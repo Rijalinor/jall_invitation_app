@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Preview Midnight Ledger</title>
+  <desc id="description">Undangan editorial gelap dengan judul besar dan aksen emas.</desc>
+  <rect width="1200" height="800" fill="#11110f"/>
+  <rect x="58" y="58" width="1084" height="684" fill="none" stroke="#c6a15b" stroke-width="2"/>
+  <path d="M60 600H1140M820 60V740" stroke="#403a31"/>
+  <text x="100" y="145" fill="#c6a15b" font-family="Arial,sans-serif" font-size="18" letter-spacing="8">MIDNIGHT LEDGER · 01</text>
+  <text x="95" y="330" fill="#f2ede2" font-family="Georgia,serif" font-size="112">Raka</text>
+  <text x="95" y="435" fill="#f2ede2" font-family="Georgia,serif" font-size="112">&amp; Nara</text>
+  <text x="865" y="180" fill="#a59d90" font-family="Arial,sans-serif" font-size="17" letter-spacing="4">10 · 01 · 2027</text>
+  <circle cx="980" cy="390" r="105" fill="#c6a15b" opacity=".92"/>
+  <text x="910" y="395" fill="#11110f" font-family="Arial,sans-serif" font-size="16" letter-spacing="3">OPEN</text>
+  <text x="100" y="680" fill="#a59d90" font-family="Arial,sans-serif" font-size="16">AN EDITORIAL CELEBRATION</text>
+</svg>

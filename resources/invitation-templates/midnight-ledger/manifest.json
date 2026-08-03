@@ -1,0 +1,13 @@
+{
+    "id": "midnight-ledger",
+    "name": "Midnight Ledger",
+    "version": "1.0.0",
+    "event_types": ["wedding", "engagement"],
+    "entry_view": "midnight-ledger.views.index",
+    "preview": "preview.svg",
+    "sections": ["opening", "events", "countdown", "hosts", "story", "gallery", "map", "calendar", "rsvp", "guestbook", "gifts", "livestream", "contacts", "sharing", "closing"],
+    "settings_schema": {
+        "accent_color": {"type": "color", "default": "#c6a15b"},
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "calm"}
+    }
+}

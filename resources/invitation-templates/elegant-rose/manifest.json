@@ -1,0 +1,13 @@
+{
+    "id": "elegant-rose",
+    "name": "Elegant Rose",
+    "version": "1.0.0",
+    "event_types": ["wedding", "engagement"],
+    "entry_view": "elegant-rose.views.index",
+    "preview": "preview.png",
+    "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
+    "settings_schema": {
+        "accent_color": {"type": "color", "default": "#7b2639"},
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "calm"}
+    }
+}

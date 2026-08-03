@@ -1,0 +1,14 @@
+interface:
+  display_name: Build Digital Invitations
+  short_description: Build flexible, reusable digital invitation websites
+  default_prompt: Use @build-digital-invitations to design or build a reusable digital
+    invitation website with configurable templates.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
