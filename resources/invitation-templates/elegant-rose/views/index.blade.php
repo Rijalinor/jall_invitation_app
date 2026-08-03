@@ -44,9 +44,7 @@
                                     @if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<span aria-hidden="true">{{ mb_substr($host['name'], 0, 1) }}</span>@endif
                                 </div>
                                 <h3>{{ $host['name'] }}</h3>
-                                @if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif
                                 @if ($host['family'])<p>Putra/putri dari {{ $host['family'] }}</p>@endif
-                                @if ($host['bio'])<p>{{ $host['bio'] }}</p>@endif
                                 @if ($host['instagram'])<a href="{{ $host['instagram'] }}" rel="noopener noreferrer" target="_blank">Instagram</a>@endif
                             </article>
                             @if (count($hosts) === 2 && ! $loop->last)<span class="er-hosts__and" aria-hidden="true">&amp;</span>@endif
