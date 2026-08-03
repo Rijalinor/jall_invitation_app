@@ -13,6 +13,7 @@ document.querySelector('[data-open-invitation]')?.addEventListener('click', asyn
 musicToggle?.addEventListener('click', async () => {
     if (music.paused) await music.play().catch(() => {}); else music.pause();
     musicToggle.textContent = music.paused ? 'Putar musik' : 'Jeda musik';
+    musicToggle.setAttribute('aria-label', musicToggle.textContent);
 });
 
 document.querySelectorAll('[data-copy]').forEach((button) => button.addEventListener('click', async () => {
@@ -49,3 +50,14 @@ document.querySelectorAll('[data-countdown]').forEach((element) => {
     update();
     setInterval(update, 60000);
 });
+
+if (root.dataset.motion !== 'off' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const sections = document.querySelectorAll('.er-section');
+    sections.forEach((section) => section.classList.add('er-reveal'));
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('er-reveal--visible');
+        observer.unobserve(entry.target);
+    }), { threshold: .08 });
+    sections.forEach((section) => observer.observe(section));
+}

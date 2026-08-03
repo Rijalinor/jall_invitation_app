@@ -10,8 +10,10 @@
 <body class="elegant-rose" style="--rose-accent: {{ $theme['accent_color'] }}" data-motion="{{ $theme['motion'] }}">
     <div class="er-cover" id="opening-cover">
         <div class="er-cover__paper">
+            <span class="er-cover__ornament" aria-hidden="true">✦</span>
             <span class="er-eyebrow">Undangan</span>
             <h1>{{ $title }}</h1>
+            @if ($primary_event)<span class="er-cover__date">{{ $primary_event['date'] }}</span>@endif
             <p>Kepada Yth.</p>
             <strong>{{ $recipient }}</strong>
             <button type="button" data-open-invitation>Buka Undangan</button>
@@ -23,7 +25,11 @@
             @if ($section === 'opening')
                 <section class="er-hero er-section">
                     <span class="er-eyebrow">Dengan penuh kebahagiaan</span>
-                    <h2>{{ $title }}</h2>
+                    @if (count($hosts) >= 2)
+                        <h2 class="er-couple-title"><span>{{ $hosts[0]['name'] }}</span><i>&amp;</i><span>{{ $hosts[1]['name'] }}</span></h2>
+                    @else
+                        <h2>{{ $title }}</h2>
+                    @endif
                     @if ($opening_text)<p>{{ $opening_text }}</p>@endif
                     @if ($primary_event)<p class="er-date">{{ $primary_event['date'] }}</p>@endif
                 </section>
@@ -31,16 +37,19 @@
                 <section class="er-section" aria-labelledby="hosts-title">
                     <span class="er-eyebrow">Yang Berbahagia</span>
                     <h2 id="hosts-title">Mempelai &amp; Keluarga</h2>
-                    <div class="er-hosts">
+                    <div class="er-hosts" data-count="{{ count($hosts) }}">
                         @foreach ($hosts as $host)
                             <article class="er-host">
-                                @if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy">@endif
+                                <div class="er-host__portrait">
+                                    @if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<span aria-hidden="true">{{ mb_substr($host['name'], 0, 1) }}</span>@endif
+                                </div>
                                 <h3>{{ $host['name'] }}</h3>
                                 @if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif
                                 @if ($host['family'])<p>Putra/putri dari {{ $host['family'] }}</p>@endif
                                 @if ($host['bio'])<p>{{ $host['bio'] }}</p>@endif
                                 @if ($host['instagram'])<a href="{{ $host['instagram'] }}" rel="noopener noreferrer" target="_blank">Instagram</a>@endif
                             </article>
+                            @if (count($hosts) === 2 && ! $loop->last)<span class="er-hosts__and" aria-hidden="true">&amp;</span>@endif
                         @endforeach
                     </div>
                 </section>
@@ -51,6 +60,7 @@
                     <div class="er-events">
                         @foreach ($events as $event)
                             <article class="er-event">
+                                <span class="er-event__number">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                                 <h3>{{ $event['label'] }}</h3>
                                 <p><strong>{{ $event['date'] }}</strong></p>
                                 @if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} {{ $event['timezone'] }}</p>@endif
