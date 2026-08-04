@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Borneo Nocturne</title>
+  <desc id="desc">Pratinjau undangan bernuansa hutan dan sungai malam</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#19364a"/><stop offset=".6" stop-color="#102b28"/><stop offset="1" stop-color="#07110f"/></linearGradient>
+    <linearGradient id="river" x2="0" y2="1"><stop stop-color="#7f846f"/><stop offset="1" stop-color="#0b2424"/></linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="850" cy="155" r="58" fill="#e2d4b3" opacity=".7"/>
+  <path d="M0 420Q160 250 320 390T630 350T900 390T1200 310V800H0Z" fill="#102722"/>
+  <path d="M0 490Q170 330 350 440T650 410T930 455T1200 390V800H0Z" fill="#091a17"/>
+  <path d="M470 800Q560 650 520 480Q680 420 755 800Z" fill="url(#river)" opacity=".85"/>
+  <g fill="#c9a96e"><circle cx="230" cy="390" r="4"/><circle cx="925" cy="420" r="3"/><circle cx="1010" cy="330" r="4"/></g>
+  <text x="72" y="80" fill="#c9a96e" font-family="Arial,sans-serif" font-size="17" letter-spacing="6">BORNEO NOCTURNE</text>
+  <text x="600" y="340" fill="#eee9dc" text-anchor="middle" font-family="Georgia,serif" font-size="83">Perjalanan Cinta</text>
+  <text x="600" y="392" fill="#c9a96e" text-anchor="middle" font-family="Georgia,serif" font-size="24" font-style="italic">written by the river</text>
+  <rect x="478" y="695" width="244" height="56" rx="28" fill="#07110f" stroke="#c9a96e"/>
+  <text x="600" y="730" fill="#eee9dc" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" letter-spacing="2">BUKA UNDANGAN</text>
+</svg>
