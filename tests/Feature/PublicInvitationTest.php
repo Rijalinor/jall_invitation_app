@@ -15,6 +15,7 @@ class PublicInvitationTest extends TestCase
     {
         $invitation = $this->invitation('published');
         $invitation->hosts()->create(['role' => 'groom', 'name' => 'Raka']);
+        $invitation->hosts()->create(['role' => 'bride', 'name' => 'Nara']);
         $invitation->events()->create([
             'label' => 'Akad Nikah', 'date' => '2027-01-10', 'start_time' => '08:00',
             'timezone' => 'Asia/Jakarta', 'venue_name' => 'Gedung Bahagia', 'address' => 'Jalan Mawar 10', 'is_primary' => true,
@@ -23,6 +24,8 @@ class PublicInvitationTest extends TestCase
         $this->get('/raka-nara?to='.rawurlencode('<b>Élodie & 家族</b>'))
             ->assertOk()
             ->assertSee('id="invitation-content" tabindex="-1" inert', false)
+            ->assertSee('class="er-hosts" data-count="2"', false)
+            ->assertSee('class="er-hosts__and"', false)
             ->assertSee('Élodie &amp; 家族', false)
             ->assertDontSee('<b>', false)
             ->assertSee('Gedung Bahagia');
