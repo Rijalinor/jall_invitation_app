@@ -44,7 +44,7 @@
                                     @if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<span aria-hidden="true">{{ mb_substr($host['name'], 0, 1) }}</span>@endif
                                 </div>
                                 <h3>{{ $host['name'] }}</h3>
-                                @if ($host['family'])<p>Putra/putri dari {{ $host['family'] }}</p>@endif
+                                @if ($host['family'])<p>{{ match ($host['role']) { 'groom' => 'Putra', 'bride' => 'Putri', default => 'Putra/putri' } }} dari {{ $host['family'] }}</p>@endif
                                 @if ($host['instagram'])<a href="{{ $host['instagram'] }}" rel="noopener noreferrer" target="_blank">Instagram</a>@endif
                             </article>
                             @if (count($hosts) === 2 && ! $loop->last)<span class="er-hosts__and" aria-hidden="true">&amp;</span>@endif
@@ -60,17 +60,23 @@
                             <article class="er-event">
                                 <span class="er-event__number">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                                 <h3>{{ $event['label'] }}</h3>
-                                <p><strong>{{ $event['date'] }}</strong></p>
-                                @if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} {{ $event['timezone'] }}</p>@endif
-                                @if ($event['venue'])<p>{{ $event['venue'] }}</p>@endif
-                                @if ($event['address'])<p>{{ $event['address'] }}</p>@endif
+                                <div class="er-event__schedule">
+                                    <p><strong>{{ $event['date'] }}</strong></p>
+                                    @if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} {{ $event['timezone'] }}</p>@endif
+                                </div>
+                                @if ($event['venue'] || $event['address'])
+                                    <div class="er-event__venue">
+                                        @if ($event['venue'])<p><strong>{{ $event['venue'] }}</strong></p>@endif
+                                        @if ($event['address'])<p>{{ $event['address'] }}</p>@endif
+                                    </div>
+                                @endif
                                 <div class="er-actions">
                                     @if (in_array('map', $sections) && $event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk Arah</a>@endif
                                     @if (in_array('calendar', $sections) && $event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Google Calendar</a>@endif
                                     @if (in_array('calendar', $sections))<a href="{{ $event['ics_url'] }}">Unduh ICS</a>@endif
                                     @if (in_array('map', $sections) && $event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin Alamat</button>@endif
                                 </div>
-                                @foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach
+                                @if (count($event['notes']))<div class="er-event__notes">@foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach</div>@endif
                             </article>
                         @endforeach
                     </div>
@@ -83,9 +89,13 @@
                     <div class="er-actions er-actions--center">@if ($primary_event['directions_url'])<a href="{{ $primary_event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Buka Google Maps</a>@endif @if ($primary_event['address'])<button type="button" data-copy="{{ $primary_event['address'] }}">Salin Alamat</button>@endif</div>
                 </section>
             @elseif ($section === 'countdown' && $primary_event && $primary_event['timestamp'])
-                <section class="er-section er-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-live="polite">
+                <section class="er-section er-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
                     <span class="er-eyebrow">Menuju Hari Bahagia</span>
-                    <p data-countdown-output>Menghitung waktu…</p>
+                    <div class="er-countdown__units" data-countdown-output>
+                        @foreach (['days' => 'Hari', 'hours' => 'Jam', 'minutes' => 'Menit', 'seconds' => 'Detik'] as $unit => $label)
+                            <span><strong data-countdown-unit="{{ $unit }}">00</strong><small>{{ $label }}</small></span>
+                        @endforeach
+                    </div>
                 </section>
             @elseif ($section === 'story' && count($stories))
                 <section class="er-section" aria-labelledby="story-title">
@@ -127,9 +137,30 @@
             @elseif ($section === 'livestream' && $livestream_url)
                 <section class="er-section"><h2>Live Streaming</h2><a class="er-button" href="{{ $livestream_url }}" target="_blank" rel="noopener noreferrer">{{ $livestream_label }}</a></section>
             @elseif ($section === 'contacts' && count($contacts))
-                <section class="er-section" aria-labelledby="contacts-title"><h2 id="contacts-title">Kontak</h2><div class="er-actions er-actions--center">@foreach ($contacts as $contact)<a href="{{ $contact['whatsapp_url'] }}" target="_blank" rel="noopener noreferrer">WhatsApp {{ $contact['label'] }} · {{ $contact['name'] }}</a><a href="{{ $contact['phone_url'] }}">Telepon</a>@endforeach</div></section>
+                <section class="er-section er-contact-section" aria-labelledby="contacts-title">
+                    <span class="er-eyebrow">Hubungi Kami</span>
+                    <h2 id="contacts-title">Kontak</h2>
+                    <p>Jika membutuhkan informasi lebih lanjut, silakan hubungi kontak berikut.</p>
+                    <div class="er-contact-list">
+                        @foreach ($contacts as $contact)
+                            <article class="er-contact-card">
+                                <small>{{ $contact['label'] }}</small>
+                                <h3>{{ $contact['name'] }}</h3>
+                                <div class="er-actions er-actions--center">
+                                    <a href="{{ $contact['whatsapp_url'] }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                                    <a href="{{ $contact['phone_url'] }}">Telepon</a>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                </section>
             @elseif ($section === 'sharing')
-                <section class="er-section er-section--compact"><div class="er-actions er-actions--center"><button type="button" data-share data-share-url="{{ $share_url }}">Bagikan Undangan</button><a href="{{ $whatsapp_url }}" target="_blank" rel="noopener noreferrer">Bagikan via WhatsApp</a></div></section>
+                <section class="er-section er-share-section">
+                    <span class="er-eyebrow">Sebarkan Kabar Bahagia</span>
+                    <h2>Bagikan Undangan</h2>
+                    <p>Bagikan undangan ini kepada keluarga dan orang terdekat.</p>
+                    <div class="er-actions er-actions--center"><button type="button" data-share data-share-url="{{ $share_url }}">Bagikan Sekarang</button><a href="{{ $whatsapp_url }}" target="_blank" rel="noopener noreferrer">Kirim via WhatsApp</a></div>
+                </section>
             @elseif ($section === 'closing')
                 <section class="er-section er-closing"><span class="er-eyebrow">Terima Kasih</span><h2>{{ $title }}</h2>@if ($closing_message)<p>{{ $closing_message }}</p>@endif</section>
             @endif
