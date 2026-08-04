@@ -60,17 +60,23 @@
                             <article class="er-event">
                                 <span class="er-event__number">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                                 <h3>{{ $event['label'] }}</h3>
-                                <p><strong>{{ $event['date'] }}</strong></p>
-                                @if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} {{ $event['timezone'] }}</p>@endif
-                                @if ($event['venue'])<p>{{ $event['venue'] }}</p>@endif
-                                @if ($event['address'])<p>{{ $event['address'] }}</p>@endif
+                                <div class="er-event__schedule">
+                                    <p><strong>{{ $event['date'] }}</strong></p>
+                                    @if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} {{ $event['timezone'] }}</p>@endif
+                                </div>
+                                @if ($event['venue'] || $event['address'])
+                                    <div class="er-event__venue">
+                                        @if ($event['venue'])<p><strong>{{ $event['venue'] }}</strong></p>@endif
+                                        @if ($event['address'])<p>{{ $event['address'] }}</p>@endif
+                                    </div>
+                                @endif
                                 <div class="er-actions">
                                     @if (in_array('map', $sections) && $event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk Arah</a>@endif
                                     @if (in_array('calendar', $sections) && $event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Google Calendar</a>@endif
                                     @if (in_array('calendar', $sections))<a href="{{ $event['ics_url'] }}">Unduh ICS</a>@endif
                                     @if (in_array('map', $sections) && $event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin Alamat</button>@endif
                                 </div>
-                                @foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach
+                                @if (count($event['notes']))<div class="er-event__notes">@foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach</div>@endif
                             </article>
                         @endforeach
                     </div>
