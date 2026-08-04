@@ -32,7 +32,6 @@
                     @endif
                     @if ($opening_text)<p>{{ $opening_text }}</p>@endif
                     @if ($primary_event)<p class="er-date">{{ $primary_event['date'] }}</p>@endif
-                    <span class="er-scroll-cue" aria-hidden="true">Geser untuk melanjutkan</span>
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
                 <section class="er-section" aria-labelledby="hosts-title">
