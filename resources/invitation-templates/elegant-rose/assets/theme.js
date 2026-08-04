@@ -42,13 +42,18 @@ document.querySelectorAll('[data-countdown]').forEach((element) => {
     const update = () => {
         const seconds = Math.floor((new Date(element.dataset.countdown) - new Date()) / 1000);
         if (seconds <= 0) return output.textContent = 'Hari bahagia telah tiba';
-        const days = Math.floor(seconds / 86400);
-        const hours = Math.floor(seconds % 86400 / 3600);
-        const minutes = Math.floor(seconds % 3600 / 60);
-        output.textContent = `${days} hari · ${hours} jam · ${minutes} menit`;
+        const values = {
+            days: Math.floor(seconds / 86400),
+            hours: Math.floor(seconds % 86400 / 3600),
+            minutes: Math.floor(seconds % 3600 / 60),
+            seconds: seconds % 60,
+        };
+        Object.entries(values).forEach(([unit, value]) => {
+            output.querySelector(`[data-countdown-unit="${unit}"]`).textContent = String(value).padStart(2, '0');
+        });
     };
     update();
-    setInterval(update, 60000);
+    setInterval(update, 1000);
 });
 
 if (root.dataset.motion !== 'off' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
