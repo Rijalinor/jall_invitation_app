@@ -1,0 +1,13 @@
+{
+    "id": "borneo-nocturne",
+    "name": "Borneo Nocturne",
+    "version": "1.0.0",
+    "event_types": ["wedding", "engagement"],
+    "entry_view": "borneo-nocturne.views.index",
+    "preview": "preview.svg",
+    "sections": ["opening", "hosts", "story", "events", "countdown", "gallery", "map", "calendar", "rsvp", "guestbook", "gifts", "livestream", "contacts", "sharing", "closing"],
+    "settings_schema": {
+        "accent_color": {"type": "color", "default": "#c9a96e"},
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "expressive"}
+    }
+}
