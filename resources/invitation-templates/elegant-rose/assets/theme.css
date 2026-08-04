@@ -58,21 +58,17 @@
 .er-couple-title i { margin: -.1em 0; color: var(--rose-accent); font-size: .75em; font-weight: 400; }
 .er-date { margin-top: 1.5rem !important; color: var(--rose-accent); font-size: .8rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
 
-.er-section[aria-labelledby="hosts-title"] { overflow: hidden; }
-#hosts-title { max-width: 12ch; margin-inline: auto; }
-#hosts-title::after { content: '❦'; display: block; margin-top: 1rem; color: var(--rose-accent); font-size: 1rem; font-weight: 400; }
-.er-hosts { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: clamp(.8rem, 4vw, 2.5rem); max-width: 52rem; margin: clamp(2.5rem, 7vw, 4.5rem) auto 0; }
+.er-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.5rem); max-width: 58rem; margin: clamp(3rem, 8vw, 5.5rem) auto 0; }
 .er-host { min-width: 0; padding: 0; }
-.er-host__portrait { position: relative; width: min(100%, 19rem); margin: 0 auto clamp(1.15rem, 4vw, 1.8rem); aspect-ratio: 4/5; overflow: hidden; border: .35rem solid var(--rose-paper); border-radius: 50% 50% .8rem .8rem; background: color-mix(in srgb, var(--rose-accent) 10%, var(--rose-paper)); box-shadow: 0 1.2rem 3.5rem rgb(70 43 48 / .16), 0 0 0 1px var(--rose-line); }
-.er-host:nth-of-type(2) .er-host__portrait { margin-top: clamp(1.8rem, 6vw, 4rem); }
-.er-host__portrait::after { content: ''; position: absolute; inset: .5rem; border: 1px solid rgb(255 255 255 / .72); border-radius: inherit; pointer-events: none; }
-.er-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; transition: transform .9s cubic-bezier(.22, 1, .36, 1); }
-.er-host__portrait:hover img { transform: scale(1.035); }
+.er-host__portrait { position: relative; width: min(100%, 18rem); margin: 0 auto clamp(1.2rem, 4vw, 2rem); aspect-ratio: 4/5; overflow: hidden; border-radius: 48% 48% 1rem 1rem; background: color-mix(in srgb, var(--rose-accent) 10%, var(--rose-paper)); box-shadow: var(--rose-shadow); }
+.er-host:nth-of-type(2) .er-host__portrait { margin-top: clamp(1.5rem, 5vw, 3.5rem); }
+.er-host__portrait::after { content: ''; position: absolute; inset: .55rem; border: 1px solid rgb(255 255 255 / .7); border-radius: inherit; pointer-events: none; }
+.er-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
 .er-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--rose-accent); font: 600 clamp(3rem, 14vw, 7rem)/1 'Playfair Display', serif; }
-.er-host h3 { margin-bottom: .55rem; overflow-wrap: anywhere; font-size: clamp(1.35rem, 5vw, 2rem); }
-.er-host p { max-width: 23ch; margin-inline: auto; color: var(--rose-muted); font-size: clamp(.72rem, 2.4vw, .9rem); line-height: 1.55; }
-.er-host a { display: inline-block; margin-top: .65rem; font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-underline-offset: .25rem; text-transform: uppercase; }
-.er-hosts__and { position: absolute; z-index: 2; top: clamp(7rem, 22vw, 13rem); left: 50%; width: clamp(2.4rem, 8vw, 3.5rem); aspect-ratio: 1; display: grid; place-items: center; color: var(--rose-accent); border: 1px solid var(--rose-line); border-radius: 50%; background: var(--rose-canvas); box-shadow: 0 .5rem 1.5rem rgb(70 43 48 / .1); font: italic 600 clamp(1.25rem, 4vw, 2rem)/1 'Playfair Display', serif; transform: translate(-50%, -50%); }
+.er-host h3 { margin-bottom: .65rem; overflow-wrap: anywhere; }
+.er-host p { color: var(--rose-muted); font-size: clamp(.78rem, 2.5vw, .95rem); line-height: 1.6; }
+.er-host a { display: inline-block; margin-top: .45rem; font-size: .78rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.er-hosts__and { align-self: center; margin-top: clamp(7rem, 20vw, 13rem); color: var(--rose-accent); font: italic 600 clamp(1.7rem, 6vw, 3.3rem)/1 'Playfair Display', serif; }
 .er-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
 .er-hosts[data-count="1"] .er-host__portrait { margin-top: 0; }
 .er-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
