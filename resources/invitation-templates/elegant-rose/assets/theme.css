@@ -14,7 +14,7 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
-    scroll-snap-type: y mandatory;
+    scroll-snap-type: y proximity;
     color: var(--rose-ink);
     background: var(--rose-canvas);
     font: 400 1rem/1.75 'DM Sans', ui-sans-serif, system-ui, sans-serif;
@@ -49,10 +49,10 @@
 .invitation-open .er-cover { opacity: 0; visibility: hidden; }
 .invitation-open .er-cover__paper { opacity: 0; transform: translateY(-1.5rem) scale(.94); }
 
-.er-section { position: relative; width: min(100%, 64rem); min-height: 100svh; display: grid; align-content: center; margin: auto; padding: clamp(5rem, 15vw, 9rem) 1.15rem; text-align: center; scroll-snap-align: start; scroll-snap-stop: always; }
+.er-section { position: relative; width: min(100%, 64rem); margin: auto; padding: clamp(5rem, 15vw, 9rem) 1.15rem; text-align: center; scroll-snap-align: start; }
 .er-section--tint { width: 100%; max-width: none; background: #eee1dc; }
 .er-section--compact { padding-block: 3rem; }
-.er-hero { min-height: 92svh; display: grid; align-content: center; overflow: hidden; background: radial-gradient(circle at 50% 42%, var(--rose-paper) 0 24%, transparent 24.5%); }
+.er-hero { min-height: 100svh; display: grid; align-content: center; overflow: hidden; background: radial-gradient(circle at 50% 42%, var(--rose-paper) 0 24%, transparent 24.5%); }
 .er-hero::before, .er-hero::after { content: ''; position: absolute; width: 12rem; height: 18rem; border: 1px solid var(--rose-line); border-radius: 50%; pointer-events: none; }
 .er-hero::before { top: -6rem; left: -7rem; transform: rotate(32deg); }
 .er-hero::after { right: -7rem; bottom: -7rem; transform: rotate(-32deg); }
