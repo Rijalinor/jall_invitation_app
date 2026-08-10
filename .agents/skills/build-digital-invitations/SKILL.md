@@ -56,6 +56,8 @@ When the user supplies a reference, extract its principles instead of copying pr
 
 Avoid producing interchangeable templates. Each new template must differ from existing ones in at least three structural dimensions such as hero composition, navigation, section framing, reading flow, typography system, media treatment, or motion language. Use `references/design-system.md` for the complete design protocol.
 
+For premium wedding directions similar to Golden Vow, apply the immersive section pattern in `references/design-system.md`: one full-screen section per scroll, dense responsive mobile composition, side-by-side couple portraits, editorial photo treatment, compact icon-only music controls, and optional cover video support.
+
 ## Build a Complete Invitation by Default
 
 For a new invitation platform, implement the complete reusable feature baseline in `references/complete-invitation-baseline.md`. Treat the baseline as product capability, not as mandatory visible content: administrators may disable irrelevant sections per invitation, but the platform must not require code changes to enable them later.
