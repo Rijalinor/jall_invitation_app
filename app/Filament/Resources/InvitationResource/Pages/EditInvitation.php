@@ -37,7 +37,7 @@ class EditInvitation extends EditRecord
                         'status' => InvitationStatus::PUBLISHED->value,
                         'published_at' => $this->record->published_at ?? now(),
                     ]);
-                    $this->refreshFormData();
+                    $this->refreshFormData(['status', 'published_at']);
                     Notification::make()
                         ->title('Undangan Berhasil Dipublikasikan')
                         ->success()
@@ -55,7 +55,7 @@ class EditInvitation extends EditRecord
                     }
 
                     $this->record->update(['status' => InvitationStatus::PREVIEW->value]);
-                    $this->refreshFormData();
+                    $this->refreshFormData(['status', 'published_at']);
                     Notification::make()
                         ->title('Status diubah ke Preview')
                         ->warning()
