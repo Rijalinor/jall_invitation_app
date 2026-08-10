@@ -15,6 +15,8 @@ export default defineConfig({
                 'resources/invitation-templates/borneo-nocturne/assets/theme.css',
                 'resources/invitation-templates/borneo-nocturne/assets/theme.js',
                 'resources/invitation-templates/borneo-nocturne/assets/gsap.js',
+                'resources/invitation-templates/cinematic-botanical-gold/assets/theme.css',
+                'resources/invitation-templates/cinematic-botanical-gold/assets/theme.js',
             ],
             refresh: true,
         }),

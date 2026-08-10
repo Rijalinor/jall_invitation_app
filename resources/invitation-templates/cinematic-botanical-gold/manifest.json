@@ -1,0 +1,24 @@
+{
+    "id": "cinematic-botanical-gold",
+    "name": "Golden Vow",
+    "version": "1.0.0",
+    "event_types": ["wedding", "engagement"],
+    "entry_view": "cinematic-botanical-gold.views.index",
+    "preview": "preview.svg",
+    "sections": ["opening", "hosts", "events", "countdown", "story", "gallery", "map", "calendar", "rsvp", "guestbook", "gifts", "livestream", "contacts", "sharing", "closing"],
+    "settings_schema": {
+        "accent_color": {"type": "color", "default": "#c8a96a"},
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "calm"},
+        "font_pairing": {"type": "select", "options": ["editorial-serif", "classic-serif"], "default": "editorial-serif"},
+        "cover_video_enabled": {"type": "boolean", "default": true},
+        "cover_video_desktop": {"type": "url", "default": null},
+        "cover_video_mobile": {"type": "url", "default": null},
+        "cover_poster_image": {"type": "url", "default": null},
+        "cover_focal_x": {"type": "range", "min": 0, "max": 100, "default": 50},
+        "cover_focal_y": {"type": "range", "min": 0, "max": 100, "default": 44},
+        "cover_overlay_opacity": {"type": "range", "min": 30, "max": 78, "default": 56},
+        "cover_text_position": {"type": "select", "options": ["left", "center", "right"], "default": "left"},
+        "ornament_style": {"type": "select", "options": ["olive-line", "gold-line", "none"], "default": "olive-line"},
+        "music_enabled": {"type": "boolean", "default": true}
+    }
+}

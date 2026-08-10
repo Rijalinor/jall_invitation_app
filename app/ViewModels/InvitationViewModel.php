@@ -22,6 +22,15 @@ final readonly class InvitationViewModel
         $accentDefault = $manifest['settings_schema']['accent_color']['default'] ?? '#7b2639';
         $motionDefault = $manifest['settings_schema']['motion']['default'] ?? 'calm';
         $motionOptions = $manifest['settings_schema']['motion']['options'] ?? ['calm', 'expressive', 'off'];
+        $settingDefault = fn (string $key, mixed $fallback = null): mixed => $manifest['settings_schema'][$key]['default'] ?? $fallback;
+        $settingOptions = fn (string $key): array => $manifest['settings_schema'][$key]['options'] ?? [];
+        $safeSettingUrl = fn (string $key): ?string => $safeUrl($settings[$key] ?? null) ?: $safeUrl($settingDefault($key));
+        $safeSettingMedia = fn (string $key): ?string => $safeSettingUrl($key) ?: $asset($settings[$key] ?? null);
+        $rangeSetting = function (string $key, int|float $fallback, int|float $min, int|float $max) use ($settings, $settingDefault): int|float {
+            $value = is_numeric($settings[$key] ?? null) ? $settings[$key] : $settingDefault($key, $fallback);
+
+            return max($min, min($max, (float) $value));
+        };
         $shareUrl = $guest
             ? route('invitations.guest', [$invitation->slug, $guest->token])
             : route('invitations.show', $invitation->slug);
@@ -61,6 +70,29 @@ final readonly class InvitationViewModel
                 'is_primary' => $event->is_primary,
             ];
         })->all();
+
+        $theme = [
+            'accent_color' => preg_match('/^#[0-9a-f]{6}$/i', $settings['accent_color'] ?? '') ? $settings['accent_color'] : $accentDefault,
+            'motion' => in_array($settings['motion'] ?? null, $motionOptions, true) ? $settings['motion'] : $motionDefault,
+        ];
+
+        foreach ([
+            'font_pairing' => in_array($settings['font_pairing'] ?? null, $settingOptions('font_pairing'), true) ? $settings['font_pairing'] : $settingDefault('font_pairing', 'editorial-serif'),
+            'cover_video_enabled' => (bool) ($settings['cover_video_enabled'] ?? $settingDefault('cover_video_enabled', false)),
+            'cover_video_desktop' => $safeSettingMedia('cover_video_desktop'),
+            'cover_video_mobile' => $safeSettingMedia('cover_video_mobile'),
+            'cover_poster_image' => $safeSettingMedia('cover_poster_image'),
+            'cover_focal_x' => $rangeSetting('cover_focal_x', 50, 0, 100),
+            'cover_focal_y' => $rangeSetting('cover_focal_y', 50, 0, 100),
+            'cover_overlay_opacity' => $rangeSetting('cover_overlay_opacity', 56, 30, 78),
+            'cover_text_position' => in_array($settings['cover_text_position'] ?? null, $settingOptions('cover_text_position'), true) ? $settings['cover_text_position'] : $settingDefault('cover_text_position', 'left'),
+            'ornament_style' => in_array($settings['ornament_style'] ?? null, $settingOptions('ornament_style'), true) ? $settings['ornament_style'] : $settingDefault('ornament_style', 'olive-line'),
+            'music_enabled' => (bool) ($settings['music_enabled'] ?? $settingDefault('music_enabled', true)),
+        ] as $key => $value) {
+            if (array_key_exists($key, $manifest['settings_schema'] ?? [])) {
+                $theme[$key] = $value;
+            }
+        }
 
         return new self([
             'title' => $invitation->title,
@@ -112,10 +144,7 @@ final readonly class InvitationViewModel
             'wishes' => $invitation->guestbookEntries->map(fn ($entry) => [
                 'name' => $entry->name, 'message' => $entry->message,
             ])->all(),
-            'theme' => [
-                'accent_color' => preg_match('/^#[0-9a-f]{6}$/i', $settings['accent_color'] ?? '') ? $settings['accent_color'] : $accentDefault,
-                'motion' => in_array($settings['motion'] ?? null, $motionOptions, true) ? $settings['motion'] : $motionDefault,
-            ],
+            'theme' => $theme,
         ]);
     }
 }

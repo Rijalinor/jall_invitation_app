@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Golden Vow preview">
+  <rect width="1200" height="800" fill="#f7f1e7"/>
+  <rect x="74" y="62" width="660" height="676" fill="#243225"/>
+  <rect x="112" y="100" width="584" height="600" fill="#6f795e"/>
+  <path d="M170 616c142-98 314-79 456-246" fill="none" stroke="#d7bf82" stroke-width="5"/>
+  <circle cx="310" cy="286" r="86" fill="#f7f1e7" opacity=".28"/>
+  <rect x="788" y="154" width="290" height="7" fill="#c8a96a"/>
+  <text x="788" y="238" fill="#27231f" font-family="Georgia,serif" font-size="76">Golden</text>
+  <text x="788" y="322" fill="#27231f" font-family="Georgia,serif" font-size="76">Vow</text>
+  <text x="790" y="384" fill="#746b60" font-family="Arial,sans-serif" font-size="24">Cinematic Botanical Gold</text>
+  <path d="M844 532c94-76 168-46 230-134" fill="none" stroke="#3d5138" stroke-width="3"/>
+  <path d="M930 476c-14-40 24-66 48-34-4 28-22 42-48 34z" fill="none" stroke="#3d5138" stroke-width="3"/>
+</svg>

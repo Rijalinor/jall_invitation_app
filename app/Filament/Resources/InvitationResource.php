@@ -130,6 +130,53 @@ class InvitationResource extends Resource
                                     ->options(['calm' => 'Tenang', 'expressive' => 'Ekspresif', 'off' => 'Tanpa Animasi'])
                                     ->default('calm')
                                     ->required(),
+                                Toggle::make('settings_json.cover_video_enabled')
+                                    ->label('Aktifkan video cover')
+                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback.')
+                                    ->default(false),
+                                FileUpload::make('settings_json.cover_video_desktop')
+                                    ->label('Video Cover Desktop')
+                                    ->disk('public')
+                                    ->directory('invitations/cover-videos')
+                                    ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                    ->maxSize(51200),
+                                FileUpload::make('settings_json.cover_video_mobile')
+                                    ->label('Video Cover Mobile')
+                                    ->disk('public')
+                                    ->directory('invitations/cover-videos')
+                                    ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                    ->maxSize(51200),
+                                FileUpload::make('settings_json.cover_poster_image')
+                                    ->label('Poster / fallback cover')
+                                    ->disk('public')
+                                    ->directory('invitations/cover-posters')
+                                    ->image()
+                                    ->maxSize(8192),
+                                TextInput::make('settings_json.cover_focal_x')
+                                    ->label('Focal point horizontal')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->suffix('%')
+                                    ->default(50),
+                                TextInput::make('settings_json.cover_focal_y')
+                                    ->label('Focal point vertikal')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->suffix('%')
+                                    ->default(44),
+                                TextInput::make('settings_json.cover_overlay_opacity')
+                                    ->label('Gelap overlay')
+                                    ->numeric()
+                                    ->minValue(30)
+                                    ->maxValue(78)
+                                    ->suffix('%')
+                                    ->default(56),
+                                Select::make('settings_json.cover_text_position')
+                                    ->label('Posisi teks cover')
+                                    ->options(['left' => 'Kiri', 'center' => 'Tengah', 'right' => 'Kanan'])
+                                    ->default('left'),
                             ])->columns(2),
                     ])->columnSpan(['lg' => 2]),
 
