@@ -8,7 +8,31 @@
     @vite(['resources/invitation-templates/elegant-rose/assets/theme.css', 'resources/invitation-templates/elegant-rose/assets/theme.js'])
 </head>
 <body class="elegant-rose" style="--rose-accent: {{ $theme['accent_color'] }}" data-motion="{{ $theme['motion'] }}">
+    @php
+        $navItems = [
+            'hosts' => ['id' => 'hosts', 'label' => 'Mempelai'],
+            'events' => ['id' => 'events', 'label' => 'Acara'],
+            'story' => ['id' => 'story', 'label' => 'Cerita'],
+            'gallery' => ['id' => 'gallery', 'label' => 'Galeri'],
+            'rsvp' => ['id' => 'rsvp', 'label' => 'RSVP'],
+        ];
+        $visibleNav = collect($sections)->filter(fn ($section) => isset($navItems[$section]))->mapWithKeys(fn ($section) => [$section => $navItems[$section]])->all();
+        $coverImage = $theme['cover_poster_image'] ?: ($gallery[0]['url'] ?? ($hosts[0]['photo_url'] ?? null));
+        $coverDesktop = $theme['cover_video_enabled'] ? $theme['cover_video_desktop'] : null;
+        $coverMobile = $theme['cover_video_enabled'] ? ($theme['cover_video_mobile'] ?: $coverDesktop) : null;
+    @endphp
     <div class="er-cover" id="opening-cover">
+        @if ($coverImage)<img class="er-cover__poster" src="{{ $coverImage }}" alt="" aria-hidden="true">@endif
+        @if ($coverDesktop)
+            <video class="er-cover__video er-cover__video--desktop" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video>
+                <source src="{{ $coverDesktop }}">
+            </video>
+        @endif
+        @if ($coverMobile)
+            <video class="er-cover__video er-cover__video--mobile" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video>
+                <source src="{{ $coverMobile }}">
+            </video>
+        @endif
         <div class="er-cover__paper">
             <span class="er-cover__ornament" aria-hidden="true">✦</span>
             <span class="er-eyebrow">Undangan</span>
@@ -18,6 +42,20 @@
             <strong>{{ $recipient }}</strong>
             <button type="button" data-open-invitation>Buka Undangan</button>
         </div>
+    </div>
+
+    <nav class="er-nav" aria-label="Navigasi undangan">
+        <a href="#invitation-content">Awal</a>
+        @foreach ($visibleNav as $item)<a href="#{{ $item['id'] }}">{{ $item['label'] }}</a>@endforeach
+    </nav>
+
+    <div class="er-botanical" aria-hidden="true">
+        <span class="er-botanical__corner er-botanical__corner--one"></span>
+        <span class="er-botanical__corner er-botanical__corner--two"></span>
+        <span class="er-petal er-petal--one"></span>
+        <span class="er-petal er-petal--two"></span>
+        <span class="er-petal er-petal--three"></span>
+        <span class="er-petal er-petal--four"></span>
     </div>
 
     <main id="invitation-content" tabindex="-1" inert>
@@ -34,7 +72,7 @@
                     @if ($primary_event)<p class="er-date">{{ $primary_event['date'] }}</p>@endif
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
-                <section class="er-section" aria-labelledby="hosts-title">
+                <section class="er-section" id="hosts" aria-labelledby="hosts-title">
                     <span class="er-eyebrow">Yang Berbahagia</span>
                     <h2 id="hosts-title">Mempelai &amp; Keluarga</h2>
                     <div class="er-hosts" data-count="{{ count($hosts) }}">
@@ -52,7 +90,7 @@
                     </div>
                 </section>
             @elseif ($section === 'events' && count($events))
-                <section class="er-section er-section--tint" aria-labelledby="events-title">
+                <section class="er-section er-section--tint" id="events" aria-labelledby="events-title">
                     <span class="er-eyebrow">Save the Date</span>
                     <h2 id="events-title">Rangkaian Acara</h2>
                     <div class="er-events">
@@ -98,7 +136,7 @@
                     </div>
                 </section>
             @elseif ($section === 'story' && count($stories))
-                <section class="er-section" aria-labelledby="story-title">
+                <section class="er-section" id="story" aria-labelledby="story-title">
                     <span class="er-eyebrow">Jejak Cerita</span><h2 id="story-title">Kisah Kami</h2>
                     <div class="er-timeline">
                         @foreach ($stories as $story)
@@ -111,12 +149,12 @@
                     </div>
                 </section>
             @elseif ($section === 'gallery' && count($gallery))
-                <section class="er-section er-section--tint" aria-labelledby="gallery-title">
+                <section class="er-section er-section--tint er-gallery-section" id="gallery" aria-labelledby="gallery-title">
                     <span class="er-eyebrow">Galeri</span><h2 id="gallery-title">Momen Pilihan</h2>
-                    <div class="er-gallery">@foreach ($gallery as $image)<figure><button type="button" data-lightbox-src="{{ $image['url'] }}" data-lightbox-alt="{{ $image['alt'] }}"><img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async"></button>@if ($image['caption'])<figcaption>{{ $image['caption'] }}</figcaption>@endif</figure>@endforeach</div>
+                    <div class="er-gallery">@foreach (array_chunk($gallery, 4) as $page)<div class="er-gallery__page">@foreach ($page as $image)<figure><button type="button" data-lightbox-src="{{ $image['url'] }}" data-lightbox-alt="{{ $image['alt'] }}"><img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async"></button>@if ($image['caption'])<figcaption>{{ $image['caption'] }}</figcaption>@endif</figure>@endforeach</div>@endforeach</div>
                 </section>
             @elseif ($section === 'rsvp')
-                @include('invitations.shared.rsvp')
+                <div id="rsvp">@include('invitations.shared.rsvp')</div>
             @elseif ($section === 'guestbook')
                 @include('invitations.shared.guestbook')
             @elseif ($section === 'gifts' && count($gifts))
@@ -169,7 +207,7 @@
 
     @if ($music_url)
         <audio data-music loop preload="none" src="{{ $music_url }}"></audio>
-        <button class="er-music" type="button" data-music-toggle aria-label="Putar musik">Musik</button>
+        <button class="er-music" type="button" data-music-toggle aria-label="Putar musik"><span aria-hidden="true">♪</span></button>
     @endif
     <dialog class="er-lightbox" data-lightbox><button type="button" data-lightbox-close aria-label="Tutup galeri">Tutup</button><img data-lightbox-image alt=""></dialog>
 </body>

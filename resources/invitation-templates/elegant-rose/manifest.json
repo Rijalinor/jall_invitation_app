@@ -8,6 +8,10 @@
     "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
     "settings_schema": {
         "accent_color": {"type": "color", "default": "#7b2639"},
-        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "calm"}
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "calm"},
+        "cover_video_enabled": {"type": "boolean", "default": true},
+        "cover_video_desktop": {"type": "url", "default": null},
+        "cover_video_mobile": {"type": "url", "default": null},
+        "cover_poster_image": {"type": "url", "default": null}
     }
 }

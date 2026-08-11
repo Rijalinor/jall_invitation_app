@@ -1,6 +1,13 @@
 const root = document.body;
 const music = document.querySelector('[data-music]');
 const musicToggle = document.querySelector('[data-music-toggle]');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+document.querySelectorAll('[data-cover-video]').forEach((video) => {
+    if (reducedMotion) return video.remove();
+    video.play().catch(() => {});
+    video.addEventListener('error', () => video.remove(), { once: true });
+});
 
 document.querySelector('[data-open-invitation]')?.addEventListener('click', async () => {
     root.classList.add('invitation-open');
@@ -12,20 +19,22 @@ document.querySelector('[data-open-invitation]')?.addEventListener('click', asyn
 
 musicToggle?.addEventListener('click', async () => {
     if (music.paused) await music.play().catch(() => {}); else music.pause();
-    musicToggle.textContent = music.paused ? 'Putar musik' : 'Jeda musik';
-    musicToggle.setAttribute('aria-label', musicToggle.textContent);
+    musicToggle.querySelector('span').textContent = music.paused ? '♪' : '♩';
+    musicToggle.setAttribute('aria-label', music.paused ? 'Putar musik' : 'Jeda musik');
 });
 
 document.querySelectorAll('[data-copy]').forEach((button) => button.addEventListener('click', async () => {
+    const label = button.textContent;
     await navigator.clipboard.writeText(button.dataset.copy).catch(() => {});
-    button.textContent = 'Berhasil disalin';
+    button.textContent = 'Tersalin';
+    setTimeout(() => button.textContent = label, 1500);
 }));
 
-document.querySelector('[data-share]')?.addEventListener('click', async () => {
-    const url = document.querySelector('[data-share]').dataset.shareUrl;
+document.querySelectorAll('[data-share]').forEach((button) => button.addEventListener('click', async () => {
+    const url = button.dataset.shareUrl;
     if (navigator.share) await navigator.share({ title: document.title, url }).catch(() => {});
     else await navigator.clipboard.writeText(url).catch(() => {});
-});
+}));
 
 const lightbox = document.querySelector('[data-lightbox]');
 document.querySelectorAll('[data-lightbox-src]').forEach((button) => button.addEventListener('click', () => {
@@ -56,7 +65,7 @@ document.querySelectorAll('[data-countdown]').forEach((element) => {
     setInterval(update, 1000);
 });
 
-if (root.dataset.motion !== 'off' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+if (root.dataset.motion !== 'off' && !reducedMotion) {
     const sections = document.querySelectorAll('.er-section');
     sections.forEach((section) => section.classList.add('er-reveal'));
     const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
