@@ -1,6 +1,6 @@
 {
     "id": "borneo-nocturne",
-    "name": "Borneo Nocturne",
+    "name": "Borneo Royal Nocturne",
     "version": "1.0.0",
     "event_types": ["wedding", "engagement"],
     "entry_view": "borneo-nocturne.views.index",

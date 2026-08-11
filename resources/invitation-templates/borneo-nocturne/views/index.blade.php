@@ -27,12 +27,12 @@
         <div class="bn-cover__gate" aria-hidden="true"><i></i><i></i></div>
         <div class="bn-cover__scene" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="bn-cover__veil" aria-hidden="true"></div>
-        <header><span>Borneo Nocturne</span><span class="bn-cover__date" data-split>{{ $primary_event['date'] ?? 'Save the date' }}</span></header>
+        <header><span>Borneo Royal Nocturne</span><span class="bn-cover__date" data-split>{{ $primary_event['date'] ?? 'Save the date' }}</span></header>
         <div class="bn-cover__content">
             <p class="bn-cover__intro" data-split>Undangan pernikahan untuk</p>
             <h1 data-split>{{ $recipient }}</h1>
             <span class="bn-cover__line" aria-hidden="true"></span>
-            <p class="bn-cover__note" data-split>Sebuah perjalanan menuju hari yang kami nantikan.</p>
+            <p class="bn-cover__note" data-split>Sebuah perayaan agung untuk hari yang kami nantikan.</p>
         </div>
         <button type="button" data-open-invitation><span>Buka undangan</span><i aria-hidden="true">↓</i></button>
     </div>
@@ -41,7 +41,7 @@
         <button type="button" data-nav-toggle aria-expanded="false" aria-controls="bn-compass-menu"><i aria-hidden="true"></i><span>Jelajah</span></button>
         <svg class="bn-compass__ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" pathLength="100"></circle><circle class="bn-compass__ring-fill" cx="60" cy="60" r="56" pathLength="100"></circle></svg>
         <div id="bn-compass-menu">
-            <a href="#top"><b>00</b><span>Hulu</span></a>
+            <a href="#top"><b>00</b><span>Awal</span></a>
             @foreach ($visibleNav as $item)<a href="#{{ $item['id'] }}"><b>{{ sprintf('%02d', $loop->iteration) }}</b><span>{{ $item['label'] }}</span></a>@endforeach
         </div>
     </nav>
@@ -57,9 +57,9 @@
                 <section class="bn-hero" data-hero>
                     <div class="bn-hero__mist" aria-hidden="true"></div>
                     <div class="bn-hero__scene" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                    <div class="bn-hero__bank"><p class="bn-eyebrow">A celebration written by the river</p><span>01 · Hulu</span></div>
-                    <div class="bn-hero__title"><span class="bn-hero__splash" data-split>Perjalanan</span><h2 data-split>{{ $title }}</h2><span class="bn-hero__lead" data-split>dimulai di sini</span></div>
-                    <div class="bn-hero__bank">@if ($opening_text)<p class="bn-hero__copy bn-observe">{{ $opening_text }}</p>@endif<div class="bn-scroll-cue"><i></i><span>Ikuti aliran cerita</span></div></div>
+                    <div class="bn-hero__bank"><p class="bn-eyebrow">A royal evening of love</p><span>01 · Royal</span></div>
+                    <div class="bn-hero__title"><span class="bn-hero__splash" data-split>Perayaan</span><h2 data-split>{{ $title }}</h2><span class="bn-hero__lead" data-split>yang kami muliakan</span></div>
+                    <div class="bn-hero__bank">@if ($opening_text)<p class="bn-hero__copy bn-observe">{{ $opening_text }}</p>@endif<div class="bn-scroll-cue"><i></i><span>Lanjutkan undangan</span></div></div>
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
                 <section class="bn-section bn-couple" id="couple">
@@ -75,7 +75,7 @@
                 </section>
             @elseif ($section === 'story' && count($stories))
                 <section class="bn-section bn-story" id="journey">
-                    <header class="bn-heading bn-observe"><p class="bn-eyebrow">Aliran waktu</p><h2 data-split>Sungai kecil yang membawa kami pulang.</h2></header>
+                    <header class="bn-heading bn-observe"><p class="bn-eyebrow">Jejak waktu</p><h2 data-split>Kisah yang mengantar kami ke hari ini.</h2></header>
                     <svg class="bn-river-path" viewBox="0 0 400 1000" preserveAspectRatio="none" aria-hidden="true"><path class="bn-river-path__fade" d="M206 0C90 135 326 235 190 360S88 605 218 702s78 198-28 298"/><path class="bn-river-path__draw" d="M206 0C90 135 326 235 190 360S88 605 218 702s78 198-28 298"/></svg>
                     <span class="bn-boat" aria-hidden="true"><i></i></span>
                     <ol>
@@ -84,7 +84,7 @@
                 </section>
             @elseif ($section === 'events' && count($events))
                 <section class="bn-section bn-events" id="celebration">
-                    <header class="bn-heading bn-observe"><p class="bn-eyebrow">Hari perayaan</p><h2 data-split>Temui kami di tepian cerita.</h2></header>
+                    <header class="bn-heading bn-observe"><p class="bn-eyebrow">Hari perayaan</p><h2 data-split>Temui kami dalam malam yang agung.</h2></header>
                     <div class="bn-events__grid" data-docks>
                         @foreach ($events as $event)<article class="bn-observe"><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><small>{{ $event['label'] }}</small><h3 data-split>{{ $event['date'] }}</h3>@if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} · {{ $event['timezone'] }}</p>@endif</div><div>@if ($event['venue'])<strong>{{ $event['venue'] }}</strong>@endif @if ($event['address'])<p>{{ $event['address'] }}</p>@endif @foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach<div class="bn-actions">@if ($event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk arah</a>@endif @if ($event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Tambah kalender</a>@endif @if ($event['ics_url'])<a href="{{ $event['ics_url'] }}">Unduh ICS</a>@endif @if ($event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin alamat</button>@endif</div></div></article>@endforeach
                     </div>
@@ -100,7 +100,7 @@
                     <div class="bn-gallery__mosaic">@foreach ($gallery as $image)<figure class="bn-observe"><button type="button" data-lightbox-src="{{ $image['url'] }}" data-lightbox-alt="{{ $image['alt'] }}"><img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async"></button><figcaption>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}@if ($image['caption']) · {{ $image['caption'] }}@endif</figcaption></figure>@endforeach</div>
                 </section>
             @elseif ($section === 'map' && $primary_event && $primary_event['map_embed_url'])
-                <section class="bn-section bn-location" id="location"><header class="bn-heading bn-observe"><p class="bn-eyebrow">Titik pertemuan</p><h2 data-split>Di sinilah perjalanan berlabuh.</h2></header><div class="bn-location__map bn-observe"><iframe src="{{ $primary_event['map_embed_url'] }}" title="Peta {{ $primary_event['venue'] ?: $primary_event['label'] }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>@if ($primary_event['address'])<p>{{ $primary_event['address'] }}</p>@endif<div class="bn-actions">@if ($primary_event['directions_url'])<a href="{{ $primary_event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Buka Google Maps ↗</a>@endif @if ($primary_event['address'])<button type="button" data-copy="{{ $primary_event['address'] }}">Salin alamat</button>@endif</div></section>
+                <section class="bn-section bn-location" id="location"><header class="bn-heading bn-observe"><p class="bn-eyebrow">Titik pertemuan</p><h2 data-split>Di sinilah malam bahagia digelar.</h2></header><div class="bn-location__map bn-observe"><iframe src="{{ $primary_event['map_embed_url'] }}" title="Peta {{ $primary_event['venue'] ?: $primary_event['label'] }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>@if ($primary_event['address'])<p>{{ $primary_event['address'] }}</p>@endif<div class="bn-actions">@if ($primary_event['directions_url'])<a href="{{ $primary_event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Buka Google Maps</a>@endif @if ($primary_event['address'])<button type="button" data-copy="{{ $primary_event['address'] }}">Salin alamat</button>@endif</div></section>
             @elseif ($section === 'rsvp')
                 <div class="bn-shared" id="attendance">@include('invitations.shared.rsvp')</div>
             @elseif ($section === 'guestbook')
@@ -114,7 +114,7 @@
             @elseif ($section === 'sharing')
                 <section class="bn-ribbon"><span>Bagikan kabar bahagia</span><div class="bn-actions"><button type="button" data-share data-share-url="{{ $share_url }}">Bagikan undangan</button><a href="{{ $whatsapp_url }}" target="_blank" rel="noopener noreferrer">WhatsApp ↗</a></div></section>
             @elseif ($section === 'closing')
-                <section class="bn-closing"><p class="bn-eyebrow">Sampai bertemu</p><div><span>With love,</span><h2 data-split>{{ $title }}</h2></div>@if ($closing_message)<p>{{ $closing_message }}</p>@endif<a href="#top">Kembali ke hulu ↑</a></section>
+                <section class="bn-closing"><p class="bn-eyebrow">Sampai bertemu</p><div><span>With love,</span><h2 data-split>{{ $title }}</h2></div>@if ($closing_message)<p>{{ $closing_message }}</p>@endif<a href="#top">Kembali ke awal</a></section>
             @endif
         @endforeach
     </main>
