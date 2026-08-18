@@ -99,6 +99,15 @@ For premium wedding templates, prefer an immersive phone-first reading model unl
 
 Use this pattern for designs similar to cinematic botanical gold, editorial vow, formal luxury, or any user request that says each scroll should reveal one full page.
 
+### Elegant Rose Benchmark Guidelines
+
+When building new templates or repairing existing ones, treat **Elegant Rose** (`resources/invitation-templates/elegant-rose`) as the golden standard for structural aesthetics and UX:
+1. **Hero & Cover Overlay**: Semi-transparent paper overlay (`.er-cover__paper`), gold/maroon accents, elegant typography (`Playfair Display`/`Cormorant`), clear recipient greeting, and bold CTA button.
+2. **Host / Mempelai Cards**: Self-contained host articles (`.er-host`), circular or arched portraits (`.er-host__portrait`), centered role kickers ("Putra/Putri dari"), clean parent info, and styled social media actions. On narrow mobile screens, ensure host cards stack vertically or maintain comfortable padding so text and names never get squished or truncated.
+3. **Event Schedule Cards**: Sequenced cards with numeric badges (`01`, `02`), prominent dates and start/end times, structured venue details, and action button groups (Directions, Google Calendar, ICS download, Salin Alamat).
+4. **Section Tinting & Rhythm**: Alternate section backgrounds using light tints (`.er-section--tint`) to create visual hierarchy and prevent visual fatigue while scrolling.
+5. **Floating Elements**: Pill-style sticky navigation (`.er-nav`) with backdrop blur and smooth anchor jumping, icon-only music toggle (`.er-music`), and accessible lightbox modal for galleries.
+
 ## 6. Typography and Content
 
 - Use display type for emotional hierarchy and a highly readable body face for details.

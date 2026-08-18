@@ -64,18 +64,32 @@
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
                 <section class="cbg-section cbg-hosts" id="couple" aria-labelledby="hosts-title">
-                    <header><span class="cbg-kicker">Mempelai</span><h2 id="hosts-title">Dua hati, satu janji.</h2></header>
+                    <header class="cbg-hosts__header">
+                        <span class="cbg-kicker">Mempelai</span>
+                        <h2 id="hosts-title">Dua hati, satu janji.</h2>
+                    </header>
                     <div class="cbg-hosts__pair">
                         @foreach ($hosts as $host)
-                            <article>
-                                <figure>@if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<span>{{ $host['nickname'] ?: $host['name'] }}</span>@endif</figure>
+                            <article class="cbg-host">
+                                <figure class="cbg-host__figure">
+                                    @if ($host['photo_url'])
+                                        <img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">
+                                    @else
+                                        <span>{{ $host['nickname'] ?: $host['name'] }}</span>
+                                    @endif
+                                </figure>
                                 <div class="cbg-host__copy">
-                                    <small>{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => $host['role'] ?: 'Mempelai' } }}</small>
-                                    <h3>{{ $host['name'] }}</h3>
-                                    @if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif
-                                    @if ($host['family'])<p>Putra/putri dari {{ $host['family'] }}</p>@endif
-                                    @if ($host['bio'])<p>{{ $host['bio'] }}</p>@endif
-                                    @if ($host['instagram'])<a href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer">Instagram</a>@endif
+                                    <small class="cbg-host__role">{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => $host['role'] ?: 'Mempelai' } }}</small>
+                                    <h3 class="cbg-host__name">{{ $host['name'] }}</h3>
+                                    @if ($host['birth_order'])<p class="cbg-host__order">{{ $host['birth_order'] }}</p>@endif
+                                    @if ($host['family'])<p class="cbg-host__family">Putra/putri dari {{ $host['family'] }}</p>@endif
+                                    @if ($host['bio'])<p class="cbg-host__bio">{{ $host['bio'] }}</p>@endif
+                                    @if ($host['instagram'])
+                                        <a class="cbg-host__ig" href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                            Instagram
+                                        </a>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach

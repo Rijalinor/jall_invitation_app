@@ -1,0 +1,15 @@
+{
+    "id": "fun-storybook",
+    "name": "Fun Storybook",
+    "version": "1.0.0",
+    "event_types": ["wedding", "engagement", "birthday"],
+    "entry_view": "fun-storybook.views.index",
+    "preview": "preview.png",
+    "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
+    "settings_schema": {
+        "accent_color": {"type": "color", "default": "#ff6b81"},
+        "bg_color": {"type": "color", "default": "#fdf6e4"},
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "expressive"},
+        "cover_poster_image": {"type": "url", "default": null}
+    }
+}
