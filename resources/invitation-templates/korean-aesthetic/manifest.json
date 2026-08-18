@@ -1,0 +1,15 @@
+{
+    "id": "korean-aesthetic",
+    "name": "Korean Aesthetic",
+    "version": "1.0.0",
+    "event_types": ["wedding", "engagement", "birthday"],
+    "entry_view": "korean-aesthetic.views.index",
+    "preview": "preview.png",
+    "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "sharing", "closing"],
+    "settings_schema": {
+        "accent_color": {"type": "color", "default": "#c4a482"},
+        "bg_color": {"type": "color", "default": "#f7f4ef"},
+        "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "expressive"},
+        "cover_poster_image": {"type": "url", "default": null}
+    }
+}

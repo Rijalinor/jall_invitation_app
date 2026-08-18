@@ -19,6 +19,8 @@ export default defineConfig({
                 'resources/invitation-templates/cinematic-botanical-gold/assets/theme.js',
                 'resources/invitation-templates/fun-storybook/assets/theme.css',
                 'resources/invitation-templates/fun-storybook/assets/theme.js',
+                'resources/invitation-templates/korean-aesthetic/assets/theme.css',
+                'resources/invitation-templates/korean-aesthetic/assets/theme.js',
             ],
             refresh: true,
         }),
