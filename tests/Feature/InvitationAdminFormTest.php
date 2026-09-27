@@ -139,7 +139,7 @@ class InvitationAdminFormTest extends TestCase
         $registry = app(TemplateRegistry::class);
 
         $this->assertTrue($registry->supportsSectionHeight('elegant-rose'));
-        $this->assertFalse($registry->supportsSectionHeight('borneo-nocturne'));
+        $this->assertFalse($registry->supportsSectionHeight('fun-storybook'));
     }
 
     private function invitation(string $template, string $slug, array $extra = []): Invitation
