@@ -32,6 +32,11 @@
         $sectionNumbers = array_flip(array_keys($navigation));
         $showLivestreamNav = in_array('livestream', $sections) && $livestream_url;
         $showSharingNav = in_array('sharing', $sections);
+        // The rail mark used to read "ML", the template name's initials, which told a
+        // guest nothing. The couple's initials say whose invitation this is.
+        $monogram = $groomName && $brideName
+            ? mb_strtoupper(mb_substr($groomName, 0, 1).mb_substr($brideName, 0, 1))
+            : mb_strtoupper(mb_substr($title, 0, 2));
     @endphp
     <div class="ml-cover" data-cover>
         @if ($coverImage)<img class="ml-cover__poster" src="{{ $coverImage }}" alt="" aria-hidden="true">@endif
@@ -52,7 +57,7 @@
     </div>
 
     <header class="ml-rail" aria-label="Navigasi undangan">
-        <a href="#top" class="ml-mark" aria-label="Ke awal">ML</a>
+        <a href="#top" class="ml-mark" aria-label="Ke awal">{{ $monogram }}</a>
         <nav>
             @foreach ($navigation as $item)<a href="#{{ $item['id'] }}">{{ sprintf('%02d', $loop->iteration) }} <span>{{ $item['label'] }}</span></a>@endforeach
             @if ($showLivestreamNav)<a href="{{ $livestream_url }}" target="_blank" rel="noopener noreferrer" class="ml-nav-action">Live <span>{{ $livestream_label }}</span></a>@endif
@@ -123,10 +128,8 @@
                 <div class="ml-shared">@include('invitations.shared.guestbook')</div>
             @elseif ($section === 'gifts' && count($gifts))
                 <section class="ml-section ml-gifts" aria-labelledby="gifts-title"><header><span>{{ $labels['gifts_eyebrow'] }}</span><h2 id="gifts-title">{{ $labels['gifts_title'] }}</h2></header><p>{!! nl2br(e($labels['gifts_intro'])) !!}</p>@foreach ($gifts as $gift)<details><summary>{{ $gift['type_label'] }} · {{ $gift['provider'] }}</summary><div>@if ($gift['account_number'])<strong>{{ $gift['account_number'] }}</strong><button type="button" data-copy="{{ $gift['account_number'] }}" aria-label="Salin nomor">∥</button>@endif @if ($gift['account_name'])<p>a.n. {{ $gift['account_name'] }}</p>@endif @if ($gift['delivery_address'])<p>{{ $gift['delivery_address'] }}</p><button type="button" data-copy="{{ $gift['delivery_address'] }}" aria-label="Salin alamat">∥</button>@endif @if ($gift['notes'])<p>{!! nl2br(e($gift['notes'])) !!}</p>@endif</div></details>@endforeach</section>
-            @elseif ($section === 'livestream' && $livestream_url)
             @elseif ($section === 'contacts' && count($contacts))
                 <section class="ml-section ml-contacts"><header><span>{{ $labels['contacts_eyebrow'] }}</span><h2>{{ $labels['contacts_title'] }}</h2></header><div class="ml-actions">@foreach ($contacts as $contact)<a href="{{ $contact['whatsapp_url'] }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp {{ $contact['name'] }}">◌ {{ $contact['name'] }}</a><a href="{{ $contact['phone_url'] }}" aria-label="Telepon {{ $contact['name'] }}">☎</a>@endforeach</div></section>
-            @elseif ($section === 'sharing')
             @elseif ($section === 'closing')
                 <section class="ml-closing">
                     <span>{{ date('Y') }}</span>

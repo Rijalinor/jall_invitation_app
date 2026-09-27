@@ -24,7 +24,9 @@ class MidnightLedgerTemplateTest extends TestCase
             ->assertSee('Kepada Yth.')
             ->assertSee('Buka Undangan')
             ->assertSee('Dengan cinta,')
-            ->assertSee('Terima kasih telah menjadi bagian dari cerita kami.');
+            ->assertSee('Terima kasih telah menjadi bagian dari cerita kami.')
+            // The rail mark must not advertise the template's own initials.
+            ->assertDontSee('>ML<', false);
     }
 
     public function test_an_override_replaces_the_template_wording(): void
@@ -36,6 +38,24 @@ class MidnightLedgerTemplateTest extends TestCase
             ->assertOk()
             ->assertSee('Masuk Undangan')
             ->assertDontSee('Buka Undangan');
+    }
+
+    /**
+     * A branch header pointing at the wrong key is invisible: the section either
+     * renders nothing or renders another section's markup. This is that case —
+     * contacts present, no gift at all — which is exactly how a mis-wired branch
+     * would slip through.
+     */
+    public function test_the_contacts_section_renders_without_any_gift(): void
+    {
+        $invitation = $this->invitation();
+        $invitation->contacts()->create(['label' => 'Keluarga', 'name' => 'Rani', 'phone' => '081234567890', 'position' => 0]);
+
+        $this->get('/undangan-uji')
+            ->assertOk()
+            ->assertSee('ml-contacts', false)
+            ->assertSee('WhatsApp Rani', false)
+            ->assertSee('☎', false);
     }
 
     private function invitation(): Invitation
