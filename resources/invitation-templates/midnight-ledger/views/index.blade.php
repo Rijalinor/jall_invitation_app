@@ -80,7 +80,7 @@
                 <section class="ml-hero">
                     <div class="ml-index">{{ $primary_event['date'] ?? 'Undangan Pernikahan' }}</div>
                     <div class="ml-hero__title"><p>Dengan penuh kebahagiaan, kami mengundang Anda</p><h1 class="ml-couple-title">@if ($groomName && $brideName)<span>{{ $groomName }}</span><em>&amp;</em><span>{{ $brideName }}</span>@else{{ $title }}@endif</h1></div>
-                    <div class="ml-hero__note">@if ($opening_text)<p>{{ $opening_text }}</p>@endif<span aria-hidden="true">↓</span></div>
+                    <div class="ml-hero__note">@if ($opening_text)<p>{!! nl2br(e($opening_text)) !!}</p>@endif<span aria-hidden="true">↓</span></div>
                 </section>
             @elseif ($section === 'events' && count($events))
                 <section class="ml-section ml-agenda" id="agenda" aria-labelledby="agenda-title">
@@ -92,7 +92,7 @@
                                 <div><h3>{{ $event['label'] }}</h3><p class="ml-large">{{ $event['date'] }}</p>@if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} · {{ $event['timezone'] }}</p>@endif</div>
                                 <div>@if ($event['venue'])<strong>{{ $event['venue'] }}</strong>@endif @if ($event['address'])<p>{{ $event['address'] }}</p>@endif
                                     <div class="ml-actions">@if (in_array('map', $sections) && $event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer" aria-label="Petunjuk arah">⌖</a>@endif @if (in_array('calendar', $sections) && $event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer" aria-label="Simpan ke kalender">□</a>@endif @if (in_array('map', $sections) && $event['address'])<button type="button" data-copy="{{ $event['address'] }}" aria-label="Salin alamat">∥</button>@endif</div>
-                                    @foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach
+                                    @foreach ($event['notes'] as $note)<small>{!! nl2br(e($note)) !!}</small>@endforeach
                                 </div>
                             </article>
                         @endforeach
@@ -109,10 +109,10 @@
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
                 <section class="ml-section ml-people" id="people" aria-labelledby="people-title"><header><span>{{ sprintf('%02d', $sectionNumbers['hosts'] + 1) }} · Mempelai</span><h2 id="people-title">Dua hati, satu tujuan</h2></header><div class="ml-hosts">
-                    @foreach ($hosts as $host)<article>@if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<div class="ml-photo-fallback" aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>@endif<div class="ml-host__copy"><small>{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => 'Mempelai' } }}</small><h3>{{ $host['name'] }}</h3>@if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif @if ($host['family'])<p>{{ $host['family'] }}</p>@endif @if ($host['bio'])<p>{{ $host['bio'] }}</p>@endif @if ($host['instagram'])<a href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram {{ $host['name'] }}">↗</a>@endif</div></article>@endforeach
+                    @foreach ($hosts as $host)<article>@if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<div class="ml-photo-fallback" aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>@endif<div class="ml-host__copy"><small>{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => 'Mempelai' } }}</small><h3>{{ $host['name'] }}</h3>@if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif @if ($host['family'])<p>{{ $host['family'] }}</p>@endif @if ($host['bio'])<p>{!! nl2br(e($host['bio'])) !!}</p>@endif @if ($host['instagram'])<a href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram {{ $host['name'] }}">↗</a>@endif</div></article>@endforeach
                 </div></section>
             @elseif ($section === 'story' && count($stories))
-                <section class="ml-section ml-story" aria-labelledby="story-title"><header><span>Perjalanan</span><h2 id="story-title">Catatan kisah kami</h2></header><ol>@foreach ($stories as $story)<li>@if ($story['image_url'])<img src="{{ $story['image_url'] }}" alt="{{ $story['title'] }}" loading="lazy" decoding="async">@endif<div><small>{{ $story['date'] }}</small><h3>{{ $story['title'] }}</h3>@if ($story['body'])<p>{{ $story['body'] }}</p>@endif</div></li>@endforeach</ol></section>
+                <section class="ml-section ml-story" aria-labelledby="story-title"><header><span>Perjalanan</span><h2 id="story-title">Catatan kisah kami</h2></header><ol>@foreach ($stories as $story)<li>@if ($story['image_url'])<img src="{{ $story['image_url'] }}" alt="{{ $story['title'] }}" loading="lazy" decoding="async">@endif<div><small>{{ $story['date'] }}</small><h3>{{ $story['title'] }}</h3>@if ($story['body'])<p>{!! nl2br(e($story['body'])) !!}</p>@endif</div></li>@endforeach</ol></section>
             @elseif ($section === 'gallery' && count($gallery))
                 <section class="ml-frames" id="frames" aria-labelledby="frames-title"><header><span>{{ sprintf('%02d', $sectionNumbers['gallery'] + 1) }} · Galeri</span><h2 id="frames-title">Momen yang tersimpan</h2></header><div class="ml-gallery">@foreach (array_chunk($gallery, 3) as $page)<div class="ml-gallery__page">@foreach ($page as $image)<figure><button type="button" data-lightbox-src="{{ $image['url'] }}" data-lightbox-alt="{{ $image['alt'] }}"><img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async"></button>@if ($image['caption'])<figcaption>{{ str_pad($loop->parent->iteration * 3 - 3 + $loop->iteration, 2, '0', STR_PAD_LEFT) }} · {{ $image['caption'] }}</figcaption>@endif</figure>@endforeach</div>@endforeach</div></section>
             @elseif ($section === 'map' && $primary_event && $primary_event['map_embed_url'])
@@ -122,7 +122,7 @@
             @elseif ($section === 'guestbook')
                 <div class="ml-shared">@include('invitations.shared.guestbook')</div>
             @elseif ($section === 'gifts' && count($gifts))
-                <section class="ml-section ml-gifts" aria-labelledby="gifts-title"><header><span>Tanda Kasih</span><h2 id="gifts-title">Hadiah & Ucapan</h2></header><p>Kehadiran dan doa Anda adalah hadiah terindah.</p>@foreach ($gifts as $gift)<details><summary>{{ $gift['type_label'] }} · {{ $gift['provider'] }}</summary><div>@if ($gift['account_number'])<strong>{{ $gift['account_number'] }}</strong><button type="button" data-copy="{{ $gift['account_number'] }}" aria-label="Salin nomor">∥</button>@endif @if ($gift['account_name'])<p>a.n. {{ $gift['account_name'] }}</p>@endif @if ($gift['delivery_address'])<p>{{ $gift['delivery_address'] }}</p><button type="button" data-copy="{{ $gift['delivery_address'] }}" aria-label="Salin alamat">∥</button>@endif @if ($gift['notes'])<p>{{ $gift['notes'] }}</p>@endif</div></details>@endforeach</section>
+                <section class="ml-section ml-gifts" aria-labelledby="gifts-title"><header><span>Tanda Kasih</span><h2 id="gifts-title">Hadiah & Ucapan</h2></header><p>Kehadiran dan doa Anda adalah hadiah terindah.</p>@foreach ($gifts as $gift)<details><summary>{{ $gift['type_label'] }} · {{ $gift['provider'] }}</summary><div>@if ($gift['account_number'])<strong>{{ $gift['account_number'] }}</strong><button type="button" data-copy="{{ $gift['account_number'] }}" aria-label="Salin nomor">∥</button>@endif @if ($gift['account_name'])<p>a.n. {{ $gift['account_name'] }}</p>@endif @if ($gift['delivery_address'])<p>{{ $gift['delivery_address'] }}</p><button type="button" data-copy="{{ $gift['delivery_address'] }}" aria-label="Salin alamat">∥</button>@endif @if ($gift['notes'])<p>{!! nl2br(e($gift['notes'])) !!}</p>@endif</div></details>@endforeach</section>
             @elseif ($section === 'livestream' && $livestream_url)
             @elseif ($section === 'contacts' && count($contacts))
                 <section class="ml-section ml-contacts"><header><span>Kontak</span><h2>Ada pertanyaan?</h2></header><div class="ml-actions">@foreach ($contacts as $contact)<a href="{{ $contact['whatsapp_url'] }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp {{ $contact['name'] }}">◌ {{ $contact['name'] }}</a><a href="{{ $contact['phone_url'] }}" aria-label="Telepon {{ $contact['name'] }}">☎</a>@endforeach</div></section>
@@ -131,7 +131,7 @@
                 <section class="ml-closing">
                     <span>{{ date('Y') }}</span>
                     <div><p class="ml-closing__script">Dengan cinta,</p><h2 class="ml-couple-title">@if ($groomName && $brideName)<span>{{ $groomName }}</span><em>&amp;</em><span>{{ $brideName }}</span>@else{{ $title }}@endif</h2></div>
-                    <div class="ml-closing__message">@if ($closing_message)<p>{{ $closing_message }}</p>@endif<p class="ml-kicker">Terima kasih telah menjadi bagian dari cerita kami.</p></div>
+                    <div class="ml-closing__message">@if ($closing_message)<p>{!! nl2br(e($closing_message)) !!}</p>@endif<p class="ml-kicker">Terima kasih telah menjadi bagian dari cerita kami.</p></div>
                     <a href="#top" class="ml-back-to-top" aria-label="Kembali ke atas">↑</a>
                 </section>
             @endif

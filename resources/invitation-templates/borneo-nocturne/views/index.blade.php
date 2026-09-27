@@ -61,7 +61,7 @@
                     <div class="bn-hero__scene" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
                     <div class="bn-hero__bank"><p class="bn-eyebrow">A royal evening of love</p><span>01 · Royal</span></div>
                     <div class="bn-hero__title"><span class="bn-hero__splash" data-split>Perayaan</span><h2 data-split>{{ $title }}</h2><span class="bn-hero__lead" data-split>yang kami muliakan</span></div>
-                    <div class="bn-hero__bank">@if ($opening_text)<p class="bn-hero__copy bn-observe">{{ $opening_text }}</p>@endif<div class="bn-scroll-cue"><i></i><span>Lanjutkan undangan</span></div></div>
+                    <div class="bn-hero__bank">@if ($opening_text)<p class="bn-hero__copy bn-observe">{!! nl2br(e($opening_text)) !!}</p>@endif<div class="bn-scroll-cue"><i></i><span>Lanjutkan undangan</span></div></div>
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
                 <section class="bn-section bn-couple" id="couple">
@@ -70,7 +70,7 @@
                         @foreach ($hosts as $host)
                             <article class="bn-observe">
                                 <div class="bn-portrait">@if ($host['photo_url'])<img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">@else<span aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>@endif</div>
-                                <div><small>{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => $host['role'] ?: 'Mempelai' } }}</small><h3 data-split>{{ $host['name'] }}</h3>@if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif @if ($host['family'])<p>Putra/putri dari {{ $host['family'] }}</p>@endif @if ($host['bio'])<p>{{ $host['bio'] }}</p>@endif @if ($host['instagram'])<a href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer">Instagram ↗</a>@endif</div>
+                                <div><small>{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => $host['role'] ?: 'Mempelai' } }}</small><h3 data-split>{{ $host['name'] }}</h3>@if ($host['birth_order'])<p>{{ $host['birth_order'] }}</p>@endif @if ($host['family'])<p>Putra/putri dari {{ $host['family'] }}</p>@endif @if ($host['bio'])<p>{!! nl2br(e($host['bio'])) !!}</p>@endif @if ($host['instagram'])<a href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer">Instagram ↗</a>@endif</div>
                             </article>
                         @endforeach
                     </div>
@@ -81,14 +81,14 @@
                     <svg class="bn-river-path" viewBox="0 0 400 1000" preserveAspectRatio="none" aria-hidden="true"><path class="bn-river-path__fade" d="M206 0C90 135 326 235 190 360S88 605 218 702s78 198-28 298"/><path class="bn-river-path__draw" d="M206 0C90 135 326 235 190 360S88 605 218 702s78 198-28 298"/></svg>
                     <span class="bn-boat" aria-hidden="true"><i></i></span>
                     <ol>
-                        @foreach ($stories as $story)<li class="bn-observe"><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>@if ($story['image_url'])<img src="{{ $story['image_url'] }}" alt="{{ $story['title'] }}" loading="lazy" decoding="async">@endif<div><small>{{ $story['date'] }}</small><h3 data-split>{{ $story['title'] }}</h3>@if ($story['body'])<p>{{ $story['body'] }}</p>@endif</div></li>@endforeach
+                        @foreach ($stories as $story)<li class="bn-observe"><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>@if ($story['image_url'])<img src="{{ $story['image_url'] }}" alt="{{ $story['title'] }}" loading="lazy" decoding="async">@endif<div><small>{{ $story['date'] }}</small><h3 data-split>{{ $story['title'] }}</h3>@if ($story['body'])<p>{!! nl2br(e($story['body'])) !!}</p>@endif</div></li>@endforeach
                     </ol>
                 </section>
             @elseif ($section === 'events' && count($events))
                 <section class="bn-section bn-events" id="celebration">
                     <header class="bn-heading bn-observe"><p class="bn-eyebrow">Hari perayaan</p><h2 data-split>Temui kami dalam malam yang agung.</h2></header>
                     <div class="bn-events__grid" data-docks>
-                        @foreach ($events as $event)<article class="bn-observe"><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><small>{{ $event['label'] }}</small><h3 data-split>{{ $event['date'] }}</h3>@if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} · {{ $event['timezone'] }}</p>@endif</div><div>@if ($event['venue'])<strong>{{ $event['venue'] }}</strong>@endif @if ($event['address'])<p>{{ $event['address'] }}</p>@endif @foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach<div class="bn-actions">@if ($event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk arah</a>@endif @if ($event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Tambah kalender</a>@endif @if ($event['ics_url'])<a href="{{ $event['ics_url'] }}">Unduh ICS</a>@endif @if ($event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin alamat</button>@endif</div></div></article>@endforeach
+                        @foreach ($events as $event)<article class="bn-observe"><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><small>{{ $event['label'] }}</small><h3 data-split>{{ $event['date'] }}</h3>@if ($event['start_time'])<p>{{ $event['start_time'] }}{{ $event['end_time'] ? ' – '.$event['end_time'] : '' }} · {{ $event['timezone'] }}</p>@endif</div><div>@if ($event['venue'])<strong>{{ $event['venue'] }}</strong>@endif @if ($event['address'])<p>{{ $event['address'] }}</p>@endif @foreach ($event['notes'] as $note)<small>{!! nl2br(e($note)) !!}</small>@endforeach<div class="bn-actions">@if ($event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk arah</a>@endif @if ($event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Tambah kalender</a>@endif @if ($event['ics_url'])<a href="{{ $event['ics_url'] }}">Unduh ICS</a>@endif @if ($event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin alamat</button>@endif</div></div></article>@endforeach
                     </div>
                 </section>
             @elseif ($section === 'countdown' && $primary_event && $primary_event['timestamp'])
@@ -108,7 +108,7 @@
             @elseif ($section === 'guestbook')
                 <div class="bn-shared" id="wishes">@include('invitations.shared.guestbook')</div>
             @elseif ($section === 'gifts' && count($gifts))
-                <section class="bn-section bn-gifts"><header class="bn-heading bn-observe"><p class="bn-eyebrow">Tanda kasih</p><h2 data-split>Doa Anda adalah hadiah terindah.</h2></header>@foreach ($gifts as $gift)<details class="bn-observe"><summary><span>{{ $gift['type_label'] }}</span>{{ $gift['provider'] }}</summary><div>@if ($gift['account_number'])<strong>{{ $gift['account_number'] }}</strong><button type="button" data-copy="{{ $gift['account_number'] }}">Salin nomor</button>@endif @if ($gift['account_name'])<p>Atas nama {{ $gift['account_name'] }}</p>@endif @if ($gift['delivery_address'])<p>{{ $gift['delivery_address'] }}</p><button type="button" data-copy="{{ $gift['delivery_address'] }}">Salin alamat hadiah</button>@endif @if ($gift['notes'])<p>{{ $gift['notes'] }}</p>@endif</div></details>@endforeach</section>
+                <section class="bn-section bn-gifts"><header class="bn-heading bn-observe"><p class="bn-eyebrow">Tanda kasih</p><h2 data-split>Doa Anda adalah hadiah terindah.</h2></header>@foreach ($gifts as $gift)<details class="bn-observe"><summary><span>{{ $gift['type_label'] }}</span>{{ $gift['provider'] }}</summary><div>@if ($gift['account_number'])<strong>{{ $gift['account_number'] }}</strong><button type="button" data-copy="{{ $gift['account_number'] }}">Salin nomor</button>@endif @if ($gift['account_name'])<p>Atas nama {{ $gift['account_name'] }}</p>@endif @if ($gift['delivery_address'])<p>{{ $gift['delivery_address'] }}</p><button type="button" data-copy="{{ $gift['delivery_address'] }}">Salin alamat hadiah</button>@endif @if ($gift['notes'])<p>{!! nl2br(e($gift['notes'])) !!}</p>@endif</div></details>@endforeach</section>
             @elseif ($section === 'livestream' && $livestream_url)
                 <section class="bn-ribbon"><span>Saksikan dari kejauhan</span><a href="{{ $livestream_url }}" target="_blank" rel="noopener noreferrer">{{ $livestream_label }} ↗</a></section>
             @elseif ($section === 'contacts' && count($contacts))
@@ -116,7 +116,7 @@
             @elseif ($section === 'sharing')
                 <section class="bn-ribbon"><span>Bagikan kabar bahagia</span><div class="bn-actions"><button type="button" data-share data-share-url="{{ $share_url }}">Bagikan undangan</button><a href="{{ $whatsapp_url }}" target="_blank" rel="noopener noreferrer">WhatsApp ↗</a></div></section>
             @elseif ($section === 'closing')
-                <section class="bn-closing"><p class="bn-eyebrow">Sampai bertemu</p><div><span>With love,</span><h2 data-split>{{ $title }}</h2></div>@if ($closing_message)<p>{{ $closing_message }}</p>@endif<a href="#top">Kembali ke awal</a></section>
+                <section class="bn-closing"><p class="bn-eyebrow">Sampai bertemu</p><div><span>With love,</span><h2 data-split>{{ $title }}</h2></div>@if ($closing_message)<p>{!! nl2br(e($closing_message)) !!}</p>@endif<a href="#top">Kembali ke awal</a></section>
             @endif
         @endforeach
     </main>
