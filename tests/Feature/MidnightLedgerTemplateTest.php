@@ -58,6 +58,35 @@ class MidnightLedgerTemplateTest extends TestCase
             ->assertSee('☎', false);
     }
 
+    /**
+     * The operator can build extra sections, and can ask a section to fit its
+     * content instead of filling the screen.
+     */
+    public function test_blocks_and_section_height_work(): void
+    {
+        $invitation = $this->invitation();
+        $invitation->blocks()->createMany([
+            ['type' => 'section', 'content_json' => ['title' => 'Kisah Keluarga'], 'position' => 0],
+            ['type' => 'quote', 'content_json' => ['quote' => 'Cinta itu sabar.', 'source' => 'Ibu'], 'position' => 1],
+        ]);
+
+        $this->get('/undangan-uji')
+            ->assertOk()
+            ->assertSee('<h2 id="invitation-blocks-1">Kisah Keluarga</h2>', false)
+            ->assertSee('Cinta itu sabar.', false)
+            ->assertSee('data-height="full"', false);
+
+        $invitation->sections()->where('key', 'blocks')->update(['content_json' => ['height' => 'half']]);
+
+        $this->get('/undangan-uji')->assertOk()->assertSee('data-height="half"', false);
+
+        // The attribute is only meaningful if the rule behind it exists.
+        $this->assertStringContainsString(
+            '.midnight-ledger [data-height="half"] { min-height: 50svh; }',
+            (string) file_get_contents(resource_path('invitation-templates/midnight-ledger/assets/theme.css')),
+        );
+    }
+
     private function invitation(): Invitation
     {
         return Invitation::create([
