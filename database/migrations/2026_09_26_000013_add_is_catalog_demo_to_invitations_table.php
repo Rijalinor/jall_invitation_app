@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Marks an invitation as the public sample for its template. The landing
+     * page catalogue links to these so prospective customers can walk through
+     * a real invitation before picking a design.
+     */
+    public function up(): void
+    {
+        Schema::table('invitations', function (Blueprint $table) {
+            $table->boolean('is_catalog_demo')->default(false)->after('status');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('invitations', function (Blueprint $table) {
+            $table->dropColumn('is_catalog_demo');
+        });
+    }
+};

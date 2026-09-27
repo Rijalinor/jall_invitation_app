@@ -6,6 +6,7 @@ use App\Enums\EventType;
 use App\Enums\InvitationStatus;
 use App\Filament\Resources\InvitationResource\Pages;
 use App\Models\Invitation;
+use App\Services\FormLinks;
 use App\Services\TemplateRegistry;
 use BackedEnum;
 use Filament\Actions;
@@ -119,21 +120,21 @@ class InvitationResource extends Resource
                                     ->columnSpanFull(),
                             ])->columns(2),
 
-                        Section::make('Tema Template')
+                        Section::make('Pengaturan Visual')
+                            ->description('Kosongkan nilai yang ingin mengikuti bawaan dari template yang dipilih.')
                             ->schema([
                                 ColorPicker::make('settings_json.accent_color')
-                                    ->label('Warna Aksen')
-                                    ->default('#7b2639')
+                                    ->label('Warna Aksen (opsional)')
                                     ->regex('/^#[0-9a-f]{6}$/i'),
                                 Select::make('settings_json.motion')
-                                    ->label('Intensitas Gerak')
+                                    ->label('Intensitas Gerak (opsional)')
                                     ->options(['calm' => 'Tenang', 'expressive' => 'Ekspresif', 'off' => 'Tanpa Animasi'])
-                                    ->default('calm')
-                                    ->required(),
-                                Toggle::make('settings_json.cover_video_enabled')
-                                    ->label('Aktifkan video cover')
-                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback.')
-                                    ->default(false),
+                                    ->placeholder('Ikuti bawaan template'),
+                                Select::make('settings_json.cover_video_enabled')
+                                    ->label('Video cover')
+                                    ->options(['true' => 'Aktif', 'false' => 'Nonaktif'])
+                                    ->placeholder('Ikuti bawaan template')
+                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback.'),
                                 FileUpload::make('settings_json.cover_video_desktop')
                                     ->label('Video Cover Desktop')
                                     ->disk('public')
@@ -157,26 +158,23 @@ class InvitationResource extends Resource
                                     ->numeric()
                                     ->minValue(0)
                                     ->maxValue(100)
-                                    ->suffix('%')
-                                    ->default(50),
+                                    ->suffix('%'),
                                 TextInput::make('settings_json.cover_focal_y')
                                     ->label('Focal point vertikal')
                                     ->numeric()
                                     ->minValue(0)
                                     ->maxValue(100)
-                                    ->suffix('%')
-                                    ->default(44),
+                                    ->suffix('%'),
                                 TextInput::make('settings_json.cover_overlay_opacity')
                                     ->label('Gelap overlay')
                                     ->numeric()
                                     ->minValue(30)
                                     ->maxValue(78)
-                                    ->suffix('%')
-                                    ->default(56),
+                                    ->suffix('%'),
                                 Select::make('settings_json.cover_text_position')
                                     ->label('Posisi teks cover')
                                     ->options(['left' => 'Kiri', 'center' => 'Tengah', 'right' => 'Kanan'])
-                                    ->default('left'),
+                                    ->placeholder('Ikuti bawaan template'),
                             ])->columns(2),
                     ])->columnSpan(['lg' => 2]),
 
@@ -196,6 +194,11 @@ class InvitationResource extends Resource
                                 DateTimePicker::make('expires_at')
                                     ->label('Tanggal Kadaluarsa')
                                     ->helperText('Kosongkan jika tidak ada batas waktu.'),
+
+                                Toggle::make('is_catalog_demo')
+                                    ->label('Tampilkan sebagai contoh di katalog')
+                                    ->helperText('Calon pelanggan bisa membuka undangan ini dari halaman katalog sebagai contoh desain. Undangan harus berstatus Published dan belum kedaluwarsa agar tombol "Lihat contoh" muncul.')
+                                    ->columnSpanFull(),
                             ]),
 
                         Section::make('Media & Fitur Tambahan')
@@ -267,6 +270,18 @@ class InvitationResource extends Resource
                     ->dateTime('d M Y H:i')
                     ->placeholder('-')
                     ->sortable(),
+
+                Tables\Columns\IconColumn::make('form_link')
+                    ->label('Form pelanggan')
+                    ->getStateUsing(fn (Invitation $record): bool => app(FormLinks::class)->isActive($record))
+                    ->boolean()
+                    ->trueIcon('heroicon-o-link')
+                    ->falseIcon('heroicon-o-no-symbol')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->tooltip(fn (Invitation $record): string => $record->form_token_used_at
+                        ? 'Terakhir dibuka '.$record->form_token_used_at->diffForHumans()
+                        : 'Belum pernah dibuka pelanggan'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -328,6 +343,48 @@ class InvitationResource extends Resource
                             Notification::make()
                                 ->title('Status dikembalikan ke Draft')
                                 ->info()
+                                ->send();
+                        }),
+
+                    Actions\Action::make('formLink')
+                        ->label('Link pengisian')
+                        ->icon('heroicon-o-link')
+                        ->color('info')
+                        ->schema([
+                            Select::make('days')
+                                ->label('Masa berlaku tautan')
+                                ->options([7 => '7 hari', 30 => '30 hari', 90 => '90 hari'])
+                                ->default(FormLinks::DEFAULT_DAYS)
+                                ->required(),
+                        ])
+                        ->modalHeading('Buat link pengisian pelanggan')
+                        ->modalDescription('Kirimkan tautan ini ke pelanggan lewat WhatsApp. Tautan yang lama otomatis tidak berlaku lagi.')
+                        ->modalSubmitActionLabel('Buat tautan')
+                        ->action(function (Invitation $record, array $data): void {
+                            $links = app(FormLinks::class);
+                            $token = $links->issue($record, (int) ($data['days'] ?? FormLinks::DEFAULT_DAYS));
+
+                            Notification::make()
+                                ->title('Tautan pengisian dibuat')
+                                ->body($links->url($token))
+                                ->persistent()
+                                ->success()
+                                ->send();
+                        }),
+
+                    Actions\Action::make('revokeFormLink')
+                        ->label('Cabut link pengisian')
+                        ->icon('heroicon-o-link-slash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalDescription('Pelanggan tidak akan bisa membuka form pengisian lewat tautan lama.')
+                        ->visible(fn (Invitation $record): bool => app(FormLinks::class)->isActive($record))
+                        ->action(function (Invitation $record): void {
+                            app(FormLinks::class)->revoke($record);
+
+                            Notification::make()
+                                ->title('Tautan pengisian dicabut')
+                                ->success()
                                 ->send();
                         }),
 

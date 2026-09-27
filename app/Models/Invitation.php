@@ -14,6 +14,15 @@ class Invitation extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * The form token hash is a credential; it must never end up in JSON.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'form_token_hash',
+    ];
+
     protected $fillable = [
         'customer_id',
         'user_id',
@@ -23,6 +32,7 @@ class Invitation extends Model
         'template_id',
         'template_version',
         'status',
+        'is_catalog_demo',
         'settings_json',
         'opening_text',
         'closing_message',
@@ -40,10 +50,13 @@ class Invitation extends Model
         return [
             'event_type' => EventType::class,
             'status' => InvitationStatus::class,
+            'is_catalog_demo' => 'boolean',
             'settings_json' => 'array',
             'music_autoplay' => 'boolean',
             'published_at' => 'datetime',
             'expires_at' => 'datetime',
+            'form_token_expires_at' => 'datetime',
+            'form_token_used_at' => 'datetime',
         ];
     }
 
