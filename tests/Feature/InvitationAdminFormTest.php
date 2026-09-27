@@ -55,13 +55,13 @@ class InvitationAdminFormTest extends TestCase
         $this->actingAs(User::factory()->create(['is_active' => true]));
 
         $elegant = $this->invitation('elegant-rose', 'undangan-elegan');
-        $borneo = $this->invitation('borneo-nocturne', 'undangan-borneo');
+        $storybook = $this->invitation('fun-storybook', 'undangan-storybook');
 
         $this->get('/admin/invitations/'.$elegant->id.'/edit')
             ->assertOk()
             ->assertSee('Seksi Tambahan (Blok Bebas)');
 
-        $this->get('/admin/invitations/'.$borneo->id.'/edit')
+        $this->get('/admin/invitations/'.$storybook->id.'/edit')
             ->assertOk()
             ->assertDontSee('Seksi Tambahan (Blok Bebas)');
     }
@@ -103,7 +103,7 @@ class InvitationAdminFormTest extends TestCase
 
         $elegant = $this->invitation('elegant-rose', 'undangan-elegan');
         $ledger = $this->invitation('midnight-ledger', 'undangan-ledger');
-        $borneo = $this->invitation('borneo-nocturne', 'undangan-borneo');
+        $storybook = $this->invitation('fun-storybook', 'undangan-storybook');
 
         // elegant-rose declares no focal point, overlay or text position, and it is
         // the only template that declares the opening video.
@@ -121,11 +121,12 @@ class InvitationAdminFormTest extends TestCase
             ->assertSee('Focal point horizontal')
             ->assertDontSee('Video di seksi pembuka');
 
-        // A template with none of them must not render an empty "advanced" box.
-        $this->get('/admin/invitations/'.$borneo->id.'/edit')
+        // fun-storybook declares a poster but no video at all.
+        $this->get('/admin/invitations/'.$storybook->id.'/edit')
             ->assertOk()
-            ->assertDontSee('Pengaturan lanjutan')
-            ->assertDontSee('Video Cover');
+            ->assertSee('Poster / fallback cover')
+            ->assertDontSee('Video di seksi pembuka')
+            ->assertDontSee('Gelap overlay');
     }
 
     /**

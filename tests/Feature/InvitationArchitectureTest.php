@@ -21,8 +21,8 @@ class InvitationArchitectureTest extends TestCase
         $this->assertNull($registry->find('../elegant-rose'));
         $this->assertSame('midnight-ledger', $registry->find('midnight-ledger')['id']);
         $this->assertStringEndsWith('midnight-ledger'.DIRECTORY_SEPARATOR.'preview.svg', $registry->previewPath('midnight-ledger'));
-        $this->assertSame('borneo-nocturne', $registry->find('borneo-nocturne')['id']);
-        $this->assertStringEndsWith('borneo-nocturne'.DIRECTORY_SEPARATOR.'preview.svg', $registry->previewPath('borneo-nocturne'));
+        $this->assertSame('fun-storybook', $registry->find('fun-storybook')['id']);
+        $this->assertStringEndsWith('fun-storybook'.DIRECTORY_SEPARATOR.'preview.svg', $registry->previewPath('fun-storybook'));
         $this->assertNull($registry->previewPath('../midnight-ledger'));
     }
 
@@ -87,12 +87,12 @@ class InvitationArchitectureTest extends TestCase
             ->assertSee('Konten tetap tersimpan.')
             ->assertSee('--ml-accent: #c6a15b', false);
 
-        $invitation->update(['template_id' => 'borneo-nocturne']);
+        $invitation->update(['template_id' => 'fun-storybook']);
 
         $this->get('/cerita-tengah-malam')->assertOk()
-            ->assertSee('borneo-nocturne', false)
+            ->assertSee('fun-storybook', false)
             ->assertSee('Konten tetap tersimpan.')
-            ->assertSee('--bn-accent: #c9a96e', false);
+            ->assertSee('--fsb-accent: #ff6b81', false);
         $this->assertSame('Konten tetap tersimpan.', $invitation->fresh()->opening_text);
     }
 }
