@@ -155,12 +155,12 @@ class InvitationResource extends Resource
                                 FileUpload::make('settings_json.cover_video_desktop')
                                     ->label('Video Cover')
                                     ->helperText('Cukup satu video di sini. Video ini juga dipakai di HP selama kolom versi HP dibiarkan kosong.')
+                                    ->imagePreviewHeight('200')
                                     ->disk('public')
                                     ->directory('invitations/cover-videos')
                                     ->acceptedFileTypes(['video/mp4', 'video/webm'])
                                     ->maxSize(51200)
-                                    ->visible(fn ($get) => $hasSetting($get, 'cover_video_desktop'))
-                                    ->columnSpanFull(),
+                                    ->visible(fn ($get) => $hasSetting($get, 'cover_video_desktop')),
 
                                 Fieldset::make('Pengaturan lanjutan (jarang diubah)')
                                     ->visible(fn ($get) => $hasSetting($get, 'cover_video_mobile', 'cover_poster_image', 'cover_focal_x', 'cover_focal_y', 'cover_overlay_opacity', 'cover_text_position'))
@@ -168,15 +168,16 @@ class InvitationResource extends Resource
                                         FileUpload::make('settings_json.cover_video_mobile')
                                             ->label('Video Cover versi HP (opsional)')
                                             ->helperText('Hanya bila ingin versi lebih ringan untuk HP. Kosongkan untuk memakai video yang sama seperti di atas.')
+                                            ->imagePreviewHeight('200')
                                             ->disk('public')
                                             ->directory('invitations/cover-videos')
                                             ->acceptedFileTypes(['video/mp4', 'video/webm'])
                                             ->maxSize(51200)
-                                            ->visible(fn ($get) => $hasSetting($get, 'cover_video_mobile'))
-                                            ->columnSpanFull(),
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_video_mobile')),
                                         FileUpload::make('settings_json.cover_poster_image')
                                             ->label('Poster / fallback cover')
                                             ->helperText('Dipakai sebelum video termuat. Kosongkan untuk memakai foto galeri/mempelai pertama.')
+                                            ->imagePreviewHeight('240')
                                             ->disk('public')
                                             ->directory('invitations/cover-posters')
                                             ->image()
