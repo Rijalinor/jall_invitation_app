@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet">
+    {{-- Marks that scripting is available before the first paint. --}}
+    <script>document.documentElement.classList.add('js-ready');</script>
     @vite(['resources/invitation-templates/borneo-nocturne/assets/theme.css', 'resources/invitation-templates/borneo-nocturne/assets/theme.js', 'resources/invitation-templates/borneo-nocturne/assets/gsap.js'])
 </head>
 <body class="borneo-nocturne" style="--bn-accent: {{ $theme['accent_color'] }}" data-motion="{{ $theme['motion'] }}">
@@ -34,7 +36,7 @@
             <span class="bn-cover__line" aria-hidden="true"></span>
             <p class="bn-cover__note" data-split>Sebuah perayaan agung untuk hari yang kami nantikan.</p>
         </div>
-        <button type="button" data-open-invitation><span>Buka undangan</span><i aria-hidden="true">↓</i></button>
+        <a href="#top" data-open-invitation><span>Buka undangan</span><i aria-hidden="true">↓</i></a>
     </div>
 
     <nav class="bn-compass" aria-label="Navigasi undangan">
@@ -51,7 +53,7 @@
         <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
     </div>
 
-    <main id="top" tabindex="-1" inert>
+    <main id="top" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
                 <section class="bn-hero" data-hero>

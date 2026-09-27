@@ -84,3 +84,75 @@ document.querySelectorAll('[data-countdown]').forEach((element) => {
     update();
     setInterval(update, 1000);
 });
+
+/* ── Motion: "the page turns, and things pop up" ───────────────────────────
+   Elements are hidden only under `.pop-armed`, a class this script adds to the
+   document root. If scripting is blocked, slow, or fails, nothing is hidden and
+   the whole invitation stays readable. */
+(function () {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const mode = root.dataset.motion || 'expressive';
+
+    if (mode === 'off' || prefersReduced || !('IntersectionObserver' in window)) {
+        return;
+    }
+
+    document.documentElement.classList.add('pop-armed', 'pop-' + mode);
+
+    const REVEAL = [
+        '.fsb-section-header',
+        '.fsb-hero__text',
+        '.fsb-speech-bubble',
+        '.fsb-host',
+        '.fsb-event',
+        '.fsb-countdown__card',
+        '.fsb-story-card',
+        '.fsb-gallery__item',
+        '.fsb-map-card',
+        '.fsb-gift-card',
+        '.fsb-contact-card',
+    ];
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-up');
+            observer.unobserve(entry.target);
+        });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+
+    REVEAL.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((element) => {
+            // Siblings inside one group rise in sequence; separate sections do not.
+            const siblings = Array.from(element.parentElement?.children || [])
+                .filter((child) => child.matches(selector));
+            const index = Math.min(Math.max(siblings.indexOf(element), 0), 5);
+
+            element.dataset.pop = '';
+            element.style.setProperty('--pop-i', String(index));
+            observer.observe(element);
+        });
+    });
+
+    /* Signature moment: the cover leaves like a turning page. */
+    document.querySelector('[data-open-invitation]')?.addEventListener('click', () => {
+        document.documentElement.classList.add('pop-cover-turning');
+
+        // Cleared again so restoring the page from cache cannot leave the cover
+        // visible with an already turned card.
+        window.setTimeout(() => document.documentElement.classList.remove('pop-cover-turning'), 1100);
+    });
+
+    /* Countdown digits flip like a paper clock. */
+    document.querySelectorAll('[data-countdown-unit]').forEach((unit) => {
+        let previous = unit.textContent;
+
+        new MutationObserver(() => {
+            if (unit.textContent === previous) return;
+            previous = unit.textContent;
+            unit.classList.remove('is-flipping');
+            void unit.offsetWidth;
+            unit.classList.add('is-flipping');
+        }).observe(unit, { childList: true, characterData: true, subtree: true });
+    });
+})();

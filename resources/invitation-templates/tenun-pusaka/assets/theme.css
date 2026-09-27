@@ -1,0 +1,463 @@
+/* Tenun Pusaka — invitation as handwoven cloth.
+   Two threads (lungsin and pakan) crossing into one cloth: the couple.
+   Every ornament here is drawn with CSS gradients, never a bitmap. */
+
+.tenun-pusaka {
+    --tp-ground: #efe7d8;
+    --tp-ground-deep: #e4d9c5;
+    --tp-paper: #faf6ee;
+    --tp-ink: #2b211a;
+    --tp-ink-soft: #6b5c4c;
+    --tp-accent: #2f4a6d;
+    --tp-turmeric: #c98b2e;
+    --tp-pandan: #5a6b4a;
+    --tp-rule: rgb(43 33 26 / .18);
+    --tp-display: 'Marcellus', Georgia, 'Times New Roman', serif;
+    --tp-body: 'Karla', system-ui, -apple-system, sans-serif;
+    --tp-gutter: clamp(1.25rem, 6vw, 5.5rem);
+    --tp-max: 62rem;
+    /* Thread grid: the small square a woven cloth resolves to. */
+    --tp-thread: 6px;
+    --tp-weave:
+        repeating-linear-gradient(90deg, var(--tp-rule) 0 1px, transparent 1px var(--tp-thread)),
+        repeating-linear-gradient(0deg, rgb(43 33 26 / .08) 0 1px, transparent 1px var(--tp-thread));
+    /* Lighter threads for use over the dark cloth. */
+    --tp-weave-dark:
+        repeating-linear-gradient(90deg, rgb(239 231 216 / .12) 0 1px, transparent 1px var(--tp-thread)),
+        repeating-linear-gradient(0deg, rgb(201 139 46 / .10) 0 1px, transparent 1px var(--tp-thread));
+
+    margin: 0;
+    background: var(--tp-ground);
+    color: var(--tp-ink);
+    font: 400 1rem/1.7 var(--tp-body);
+    overflow-x: hidden;
+}
+
+.tenun-pusaka *,
+.tenun-pusaka *::before,
+.tenun-pusaka *::after { box-sizing: border-box; }
+
+.tenun-pusaka h1,
+.tenun-pusaka h2,
+.tenun-pusaka h3 { margin: 0; font-family: var(--tp-display); font-weight: 400; line-height: 1.12; }
+.tenun-pusaka p { margin: 0; }
+.tenun-pusaka img { display: block; max-width: 100%; }
+.tenun-pusaka a { color: inherit; text-underline-offset: .2em; }
+.tenun-pusaka button,
+.tenun-pusaka input,
+.tenun-pusaka select,
+.tenun-pusaka textarea { font: inherit; }
+.tenun-pusaka :focus-visible { outline: 2px solid var(--tp-accent); outline-offset: 3px; }
+
+/* ── Small shared pieces ─────────────────────────────────────────────────── */
+
+.tp-kicker {
+    margin: 0 0 .75rem;
+    color: var(--tp-turmeric);
+    font-size: .72rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+}
+
+.tp-head { max-width: 34rem; }
+.tp-head__title { font-size: clamp(1.9rem, 6vw, 3.4rem); }
+
+.tp-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: .6rem 1.15rem;
+    border: 1px solid var(--tp-rule);
+    background: transparent;
+    color: var(--tp-ink);
+    font-size: .8rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .25s, color .25s, border-color .25s;
+}
+.tp-action:hover { border-color: var(--tp-accent); background: var(--tp-paper); }
+/* Filled controls carry ink with cream text: a customer-chosen accent cannot
+   guarantee contrast, so the accent stays on borders and ornaments. */
+.tp-action--solid { border-color: var(--tp-ink); background: var(--tp-ink); color: var(--tp-paper); }
+.tp-action--solid:hover { border-color: var(--tp-accent); background: var(--tp-ink); color: var(--tp-paper); }
+
+.tp-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.25rem; }
+
+/* ── Cover: two woven panels that part like threads ──────────────────────── */
+
+.tp-cover {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    min-height: 100svh;
+    color: var(--tp-paper);
+    background: var(--tp-ink);
+}
+/* Pinned over the page only once scripting can take it away again. Without
+   scripting it reads as the opening section and the guest scrolls on. */
+.js-ready .tp-cover { position: fixed; z-index: 30; inset: 0; }
+
+/* The photo waits behind the cloth; opening parts the cloth and reveals it. */
+.tp-cover__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--tp-focal-x) var(--tp-focal-y);
+}
+
+.tp-cover__panel {
+    position: absolute;
+    z-index: 1;
+    inset-block: 0;
+    width: 50%;
+    background-color: var(--tp-ink);
+    background-image: var(--tp-weave-dark);
+    /* Anchored to the viewport so both panels share one pattern phase; without
+       this the two halves would meet on a visible off-by-a-few-pixels seam. */
+    background-attachment: fixed;
+    transition: transform 1.05s cubic-bezier(.77, 0, .18, 1);
+}
+.tp-cover__panel--left { left: 0; }
+.tp-cover__panel--right { right: 0; }
+
+.tp-cover__veil {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background: rgb(20 15 11 / var(--tp-overlay));
+    transition: opacity .5s ease;
+}
+
+.tp-cover__content {
+    position: relative;
+    z-index: 3;
+    width: min(100% - calc(var(--tp-gutter) * 2), 46rem);
+    padding-block: 3rem;
+    text-align: center;
+    transition: opacity .35s ease, transform .6s cubic-bezier(.2, .7, .2, 1);
+}
+.tp-cover__names { display: grid; gap: .1em; margin: .5rem 0 1rem; font-size: clamp(2.4rem, 10vw, 5.2rem); }
+.tp-cover__name { display: block; }
+.tp-amp { display: block; color: var(--tp-turmeric); font-style: normal; font-size: .5em; }
+.tp-cover__date { font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; }
+.tp-cover__to { margin-top: 1.5rem; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.tp-cover__guest { display: block; margin-top: .4rem; font-family: var(--tp-display); font-size: 1.5rem; letter-spacing: .02em; text-transform: none; }
+
+.tp-open {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 2rem;
+    padding: .75rem 1.6rem;
+    border: 1px solid var(--tp-turmeric);
+    color: var(--tp-paper);
+    font-size: .8rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color .3s, color .3s;
+}
+.tp-open:hover { background: var(--tp-turmeric); color: var(--tp-ink); }
+
+.invitation-open .tp-cover__veil { opacity: 0; }
+.invitation-open .tp-cover__content { opacity: 0; transform: translateY(-1.25rem); }
+.invitation-open .tp-cover__panel--left { transform: translateX(-101%); transition-delay: .18s; }
+.invitation-open .tp-cover__panel--right { transform: translateX(101%); transition-delay: .18s; }
+.invitation-open .tp-cover { visibility: hidden; transition: visibility .12s 1.35s; }
+
+/* Kept out of the tab order while the cover is up, but only once scripting is
+   available; without it the invitation must stay reachable. */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+/* Opens without scripting as well: the cover control is a real anchor, so this
+   rule alone dismisses the cover if the template script never loads. */
+body:has(main:target) .tp-cover { visibility: hidden; pointer-events: none; }
+
+/* ── Navigation: a thread with a travelling knot ─────────────────────────── */
+
+.tp-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: .1rem;
+    padding: .35rem var(--tp-gutter);
+    border-bottom: 1px solid var(--tp-rule);
+    background: rgb(239 231 216 / .95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-padding-inline: var(--tp-gutter);
+}
+.tp-nav::-webkit-scrollbar { display: none; }
+.tp-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 .8rem;
+    color: var(--tp-ink-soft);
+    font-size: .8rem;
+    letter-spacing: .06em;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.tp-nav a[aria-current='true'] { color: var(--tp-accent); }
+.tp-nav__knot {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: var(--tp-knot-w, 0);
+    height: 2px;
+    background: var(--tp-accent);
+    transform: translateX(var(--tp-knot-x, 0));
+    transition: transform .35s cubic-bezier(.3, .8, .3, 1), width .35s cubic-bezier(.3, .8, .3, 1);
+}
+
+/* ── Stages and the woven band between them ──────────────────────────────── */
+
+.tp-stage { position: relative; padding: clamp(3rem, 9vw, 6rem) var(--tp-gutter); scroll-margin-top: 4.5rem; }
+.tp-stage:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1.25rem;
+    border-block: 1px solid var(--tp-rule);
+    background-image: var(--tp-weave);
+}
+.tp-stage__inner { width: 100%; max-width: var(--tp-max); margin-inline: auto; }
+
+.tp-opening { background: var(--tp-paper); }
+.tp-opening__text { max-width: 46rem; margin-top: .5rem; font-family: var(--tp-display); font-size: clamp(1.25rem, 3.6vw, 2rem); line-height: 1.5; }
+.tp-facts { display: grid; gap: 1.25rem; margin: 3rem 0 0; padding-top: 1.5rem; border-top: 1px solid var(--tp-rule); }
+.tp-facts dt { color: var(--tp-ink-soft); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; }
+.tp-facts dd { margin: .35rem 0 0; font-family: var(--tp-display); font-size: 1.25rem; }
+
+/* ── Hosts ───────────────────────────────────────────────────────────────── */
+
+.tp-couple { background: var(--tp-ground); }
+.tp-couple__grid { display: grid; gap: clamp(2rem, 6vw, 4rem); margin-top: clamp(2.5rem, 7vw, 4rem); }
+.tp-host { display: grid; gap: .5rem; }
+.tp-host__frame { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: var(--tp-ground-deep); border: 1px solid var(--tp-rule); }
+.tp-host__frame img { width: 100%; height: 100%; object-fit: cover; }
+.tp-host__initial { display: grid; place-items: center; width: 100%; height: 100%; color: var(--tp-accent); font-family: var(--tp-display); font-size: 4rem; }
+.tp-host__role { margin-top: .75rem; color: var(--tp-turmeric); font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; }
+.tp-host__name { font-size: 1.6rem; }
+.tp-host__order,
+.tp-host__family,
+.tp-host__bio { color: var(--tp-ink-soft); font-size: .85rem; }
+.tp-host__link { display: inline-flex; align-items: center; min-height: 44px; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+
+/* ── Story: a warp of dates with the weft beside it ──────────────────────── */
+
+.tp-story { background: var(--tp-ink); color: var(--tp-paper); }
+.tp-story .tp-head__title { color: var(--tp-paper); }
+.tp-timeline { display: grid; gap: 2.5rem; margin: clamp(2.5rem, 7vw, 4rem) 0 0; padding: 0 0 0 1.25rem; list-style: none; border-left: 1px solid rgb(250 246 238 / .25); }
+.tp-timeline__item { position: relative; display: grid; gap: .35rem; }
+.tp-timeline__item::before { content: ''; position: absolute; left: -1.55rem; top: .55rem; width: .6rem; height: .6rem; background: var(--tp-turmeric); transform: rotate(45deg); }
+.tp-timeline__date { color: var(--tp-turmeric); font-size: .75rem; letter-spacing: .16em; text-transform: uppercase; }
+.tp-timeline__body { max-width: 40rem; }
+.tp-timeline__image { width: min(100%, 22rem); margin-bottom: 1rem; object-fit: cover; border: 1px solid rgb(250 246 238 / .2); }
+.tp-timeline__title { font-size: 1.4rem; }
+.tp-timeline__text { margin-top: .5rem; color: rgb(250 246 238 / .78); }
+
+/* ── Events ──────────────────────────────────────────────────────────────── */
+
+.tp-events { background: var(--tp-paper); }
+.tp-events__list { margin-top: clamp(2.5rem, 7vw, 4rem); border-top: 1px solid var(--tp-rule); }
+.tp-event { display: grid; gap: 1rem; padding: 2rem 0; border-bottom: 1px solid var(--tp-rule); }
+.tp-event__index { color: var(--tp-turmeric); font-family: var(--tp-display); font-size: 1.35rem; }
+.tp-event__label { font-size: 1.5rem; }
+.tp-event__meta { display: grid; gap: .9rem; margin: 1rem 0 0; }
+.tp-event__meta dt { color: var(--tp-ink-soft); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; }
+.tp-event__meta dd { margin: .25rem 0 0; }
+.tp-event__zone { color: var(--tp-ink-soft); font-size: .8rem; }
+.tp-event__address { display: block; margin-top: .3rem; color: var(--tp-ink-soft); font-size: .9rem; }
+
+/* ── Countdown ───────────────────────────────────────────────────────────── */
+
+/* The accent carries this band, so an ink scrim keeps cream text readable
+   whatever colour the customer picked; a light accent would otherwise make the
+   numbers disappear. */
+.tp-countdown {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid rgb(250 246 238 / .3);
+    border-bottom: 1px solid rgb(250 246 238 / .3);
+    background-color: var(--tp-accent);
+    background-image: linear-gradient(rgb(20 15 11 / .58), rgb(20 15 11 / .58));
+    color: var(--tp-paper);
+    text-align: center;
+}
+.tp-countdown .tp-kicker { color: var(--tp-paper); opacity: .8; }
+.tp-countdown__cell { display: grid; gap: .3rem; padding: 1.5rem .5rem; border-left: 1px solid rgb(250 246 238 / .3); }
+.tp-countdown__num { font-family: var(--tp-display); font-size: clamp(2.2rem, 9vw, 4rem); line-height: 1; }
+.tp-countdown__label { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; opacity: .85; }
+
+/* ── Map ─────────────────────────────────────────────────────────────────── */
+
+.tp-map { background: var(--tp-ground-deep); }
+.tp-map__frame { margin-top: clamp(2rem, 6vw, 3rem); border: 1px solid var(--tp-rule); }
+.tp-map__frame iframe { display: block; width: 100%; min-height: 20rem; border: 0; filter: grayscale(.35) contrast(.95); }
+.tp-map__address { margin-top: 1.25rem; color: var(--tp-ink-soft); }
+
+/* ── Gallery: woven in two columns, every fifth frame wide ───────────────── */
+
+.tp-gallery { background: var(--tp-paper); }
+.tp-gallery__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: clamp(2rem, 6vw, 3rem); }
+.tp-shot { display: grid; gap: .4rem; margin: 0; }
+.tp-shot__open { display: block; width: 100%; padding: 0; border: 1px solid var(--tp-rule); background: none; cursor: zoom-in; }
+.tp-shot__open img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.tp-shot__caption { color: var(--tp-ink-soft); font-size: .78rem; }
+
+/* ── Gifts, contacts, live, share, closing ───────────────────────────────── */
+
+.tp-gifts { background: var(--tp-ground); }
+.tp-gifts__grid { display: grid; gap: 1px; margin-top: clamp(2rem, 6vw, 3rem); background: var(--tp-rule); }
+.tp-gift { padding: 1.5rem; background: var(--tp-ground); }
+.tp-gift__type { color: var(--tp-turmeric); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; }
+.tp-gift__provider { margin-top: .35rem; font-size: 1.3rem; }
+.tp-gift__number { margin-top: .75rem; font-family: var(--tp-display); font-size: 1.5rem; letter-spacing: .05em; }
+.tp-gift__name,
+.tp-gift__address,
+.tp-gift__notes { margin-top: .35rem; color: var(--tp-ink-soft); font-size: .85rem; }
+
+.tp-contacts { background: var(--tp-paper); }
+.tp-contacts__grid { display: grid; gap: 1px; margin-top: clamp(2rem, 6vw, 3rem); background: var(--tp-rule); }
+.tp-contact { display: grid; gap: .3rem; min-height: 8rem; padding: 1.5rem; background: var(--tp-paper); text-decoration: none; }
+.tp-contact__label { color: var(--tp-ink-soft); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; }
+.tp-contact__name { font-family: var(--tp-display); font-size: 1.5rem; }
+.tp-contact__phone { color: var(--tp-ink-soft); font-size: .85rem; }
+
+.tp-live { background: var(--tp-turmeric); color: var(--tp-ink); }
+.tp-live .tp-kicker { color: var(--tp-ink); opacity: .7; }
+.tp-live .tp-action--solid { margin-top: 1.5rem; border-color: var(--tp-ink); background: var(--tp-ink); color: var(--tp-ground); }
+
+.tp-share { background: var(--tp-ground-deep); }
+.tp-share__actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.5rem; }
+
+.tp-closing { display: grid; place-items: center; overflow: hidden; min-height: 70svh; color: var(--tp-paper); text-align: center; background: var(--tp-ink); }
+.tp-closing__image,
+.tp-closing__veil { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tp-closing__image { object-fit: cover; opacity: .5; }
+.tp-closing__veil { background: rgb(20 15 11 / .6); }
+.tp-closing .tp-stage__inner { position: relative; z-index: 2; }
+.tp-closing .tp-kicker { color: var(--tp-turmeric); opacity: 1; }
+.tp-closing__names { display: grid; gap: .1em; font-size: clamp(2.2rem, 9vw, 4.5rem); }
+.tp-closing__name { display: block; }
+.tp-closing__text { max-width: 38rem; margin: 1.25rem auto 0; color: rgb(250 246 238 / .8); }
+
+/* ── Shared feature forms (RSVP and guestbook) ───────────────────────────── */
+
+.tp-shared .invitation-section { padding: clamp(2.5rem, 7vw, 4rem) var(--tp-gutter); background: var(--tp-paper); color: var(--tp-ink); text-align: center; }
+.tp-shared .invitation-section--tint { background: var(--tp-ground-deep); }
+.tp-shared .invitation-eyebrow { display: inline-block; margin-bottom: .75rem; color: var(--tp-turmeric); font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; }
+.tp-shared .invitation-section h2 { font-family: var(--tp-display); font-size: clamp(1.9rem, 6vw, 3rem); }
+.tp-shared .invitation-section p { max-width: 34rem; margin: .75rem auto 0; color: var(--tp-ink-soft); }
+.tp-shared .invitation-form { display: grid; gap: 1rem; max-width: 30rem; margin: 1.75rem auto 0; text-align: left; }
+.tp-shared .invitation-form label { display: grid; gap: .35rem; font-size: .8rem; letter-spacing: .04em; }
+.tp-shared .invitation-form input,
+.tp-shared .invitation-form select,
+.tp-shared .invitation-form textarea { width: 100%; min-height: 44px; padding: .6rem .7rem; border: 1px solid var(--tp-rule); background: var(--tp-paper); color: inherit; }
+.tp-shared .invitation-form textarea { min-height: 6rem; resize: vertical; }
+.tp-shared .invitation-form button { justify-self: start; min-height: 44px; padding: .65rem 1.4rem; border: 1px solid var(--tp-accent); background: var(--tp-accent); color: var(--tp-paper); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+.tp-shared .invitation-honeypot { position: absolute; left: -9999px; }
+/* Specificity must beat the generic paragraph rule above, both being !important. */
+.tp-shared .invitation-section .invitation-notice { max-width: none; margin-top: 1.25rem; padding: .75rem 1rem; border-left: 2px solid var(--tp-pandan); background: var(--tp-paper); color: var(--tp-ink); font-size: .88rem; }
+.tp-shared .invitation-errors { margin-top: 1rem; padding: .75rem 1rem; border-left: 2px solid #9b2226; background: var(--tp-paper); color: #7d1c1f; font-size: .88rem; }
+.tp-shared .invitation-wishes { display: grid; gap: 1.25rem; margin-top: 2.5rem; }
+.tp-shared .invitation-wishes blockquote { margin: 0; padding-left: 1rem; border-left: 1px solid var(--tp-rule); text-align: left; }
+.tp-shared .invitation-wishes cite { display: block; margin-top: .35rem; color: var(--tp-ink-soft); font-size: .8rem; font-style: normal; }
+
+/* ── Controls ────────────────────────────────────────────────────────────── */
+
+.tp-music {
+    position: fixed;
+    z-index: 25;
+    right: 1rem;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid var(--tp-accent);
+    border-radius: 50%;
+    background: var(--tp-paper);
+    color: var(--tp-accent);
+    cursor: pointer;
+}
+.tp-music[aria-pressed='true'] { background: var(--tp-accent); color: var(--tp-paper); }
+.tp-music__glyph { font-size: 1.1rem; line-height: 1; }
+
+.tp-lightbox { width: min(100% - 2rem, 64rem); max-width: none; border: 0; padding: 1rem; background: var(--tp-ink); }
+.tp-lightbox::backdrop { background: rgb(20 15 11 / .82); }
+.tp-lightbox img { width: 100%; max-height: 78vh; margin-top: 2.5rem; object-fit: contain; }
+.tp-lightbox__close { position: absolute; top: .75rem; right: .75rem; display: inline-flex; align-items: center; min-height: 44px; padding: 0 1rem; border: 1px solid rgb(250 246 238 / .4); background: transparent; color: var(--tp-paper); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+
+/* ── Motion: the loom ────────────────────────────────────────────────────────
+   Content is hidden only once the template script has armed the page, so a
+   slow, blocked, or failed script can never leave a blank invitation. */
+
+.tp-expressive { --tp-draw: .95s; --tp-draw-ease: cubic-bezier(.2, .78, .24, 1); --tp-step: 90ms; --tp-shift: 2.5rem; }
+.tp-calm { --tp-draw: .5s; --tp-draw-ease: cubic-bezier(.33, .12, .25, 1); --tp-step: 45ms; --tp-shift: .9rem; }
+
+.tp-armed [data-reveal] {
+    --tp-delay: calc(var(--tp-i, 0) * var(--tp-step, 0ms));
+    opacity: 0;
+    transform: translateX(calc(var(--tp-shift, 2rem) * -1)) skewY(var(--tp-skew, 1.2deg));
+}
+.tp-armed [data-reveal].is-woven {
+    opacity: 1;
+    transform: none;
+    transition:
+        opacity var(--tp-draw, .8s) var(--tp-draw-ease, ease) var(--tp-delay, 0ms),
+        transform var(--tp-draw, .8s) var(--tp-draw-ease, ease) var(--tp-delay, 0ms);
+}
+/* The shuttle passes the other way on alternate items, as a loom does. */
+.tp-armed .tp-timeline__item:nth-child(even) [data-reveal],
+.tp-armed .tp-host:nth-child(even) { --tp-shift: 2.5rem; }
+.tp-calm .tp-host:nth-child(even),
+.tp-calm [data-reveal] { --tp-skew: 0deg; }
+
+/* The woven band fills in as it enters the page. */
+.tp-expressive .tp-stage:not(:first-child)::before {
+    background-size: auto 100%, auto 100%;
+    animation: tp-shuttle 9s linear infinite;
+}
+@keyframes tp-shuttle { to { background-position: 6px 0, 0 6px; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-armed [data-reveal] { opacity: 1 !important; transform: none !important; }
+    .tp-expressive .tp-stage:not(:first-child)::before { animation: none; }
+}
+
+/* ── Wider screens ───────────────────────────────────────────────────────── */
+
+@media (min-width: 40rem) {
+    .tp-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tp-events__list .tp-event { grid-template-columns: 6rem minmax(0, 1fr); }
+    .tp-gifts__grid,
+    .tp-contacts__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 60rem) {
+    .tp-cover__content { width: min(100% - calc(var(--tp-gutter) * 2), 56rem); }
+    .tp-couple__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tp-couple__grid .tp-host:nth-child(even) { padding-top: 4rem; }
+    .tp-gallery__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+    /* Every fifth frame runs wide, so the grid keeps a woven rhythm. */
+    .tp-gallery__grid .tp-shot:nth-child(5n + 1) { grid-column: span 2; }
+    .tp-gallery__grid .tp-shot:nth-child(5n + 1) img { aspect-ratio: 3 / 4; }
+    .tp-gifts__grid,
+    .tp-contacts__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tp-event__meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

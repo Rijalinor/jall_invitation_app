@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "event_types": ["wedding", "engagement", "birthday"],
     "entry_view": "fun-storybook.views.index",
-    "preview": "preview.png",
+    "preview": "preview.svg",
     "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
     "settings_schema": {
         "accent_color": {"type": "color", "default": "#ff6b81"},

@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {{-- Marks that scripting is available before the first paint. --}}
+    <script>document.documentElement.classList.add('js-ready');</script>
     @vite(['resources/invitation-templates/korean-aesthetic/assets/theme.css', 'resources/invitation-templates/korean-aesthetic/assets/theme.js'])
 </head>
 <body class="korean-aesthetic" style="--ka-accent: {{ $theme['accent_color'] ?? '#c4a482' }}; --ka-bg: {{ $theme['bg_color'] ?? '#f7f4ef' }};" data-motion="{{ $theme['motion'] ?? 'expressive' }}">
@@ -39,9 +41,9 @@
                 <small>Dear Special Guest,</small>
                 <strong>{{ $recipient }}</strong>
             </div>
-            <button type="button" class="ka-btn ka-btn--primary ka-btn--lg" data-open-invitation>
+            <a class="ka-btn ka-btn--primary ka-btn--lg" href="#invitation-content" data-open-invitation>
                 Open Invitation 💌
-            </button>
+            </a>
         </div>
     </div>
 
@@ -54,7 +56,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main id="invitation-content" tabindex="-1" inert>
+    <main id="invitation-content" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
                 <section class="ka-section ka-hero">

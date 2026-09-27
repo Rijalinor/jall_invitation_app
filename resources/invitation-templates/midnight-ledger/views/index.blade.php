@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    {{-- Marks that scripting is available before the first paint. --}}
+    <script>document.documentElement.classList.add('js-ready');</script>
     @vite(['resources/invitation-templates/midnight-ledger/assets/theme.css', 'resources/invitation-templates/midnight-ledger/assets/theme.js'])
 </head>
 <body class="midnight-ledger" style="--ml-accent: {{ $theme['accent_color'] }}; --ml-focal-x: {{ $theme['cover_focal_x'] }}%; --ml-focal-y: {{ $theme['cover_focal_y'] }}%; --ml-overlay: {{ $theme['cover_overlay_opacity'] / 100 }};" data-motion="{{ $theme['motion'] }}">
@@ -46,7 +48,7 @@
         <div class="ml-cover__shade" aria-hidden="true"></div>
         <p class="ml-kicker">{{ $primary_event['date'] ?? 'Undangan Pernikahan' }}</p>
         <div class="ml-cover__recipient"><span>Kepada Yth.</span><strong>{{ $recipient }}</strong></div>
-        <div class="ml-cover__footer"><span>Undangan Pernikahan</span><button type="button" data-open-invitation>Buka Undangan <i aria-hidden="true">↗</i></button></div>
+        <div class="ml-cover__footer"><span>Undangan Pernikahan</span><a href="#top" data-open-invitation>Buka Undangan <i aria-hidden="true">↗</i></a></div>
     </div>
 
     <header class="ml-rail" aria-label="Navigasi undangan">
@@ -72,7 +74,7 @@
         </div>
     @endif
 
-    <main id="top" tabindex="-1" inert>
+    <main id="top" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
                 <section class="ml-hero">

@@ -5,6 +5,12 @@ const musicBtn = document.querySelector('[data-music-toggle]');
 const progress = document.querySelector('[data-scroll-progress]');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches || root.dataset.motion === 'off';
 
+/* Content is only hidden once this script can reveal it again, so a slow,
+   blocked, or failed script never leaves a blank page. */
+if (!reducedMotion && 'IntersectionObserver' in window) {
+    root.classList.add('ml-armed');
+}
+
 document.querySelectorAll('[data-cover-video]').forEach((video) => {
     if (reducedMotion) {
         video.remove();

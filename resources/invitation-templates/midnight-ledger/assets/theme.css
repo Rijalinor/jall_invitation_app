@@ -45,6 +45,13 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
 .ml-cover button:hover i { transform: translate(3px, -3px); }
 .ml-kicker, .ml-index, .ml-section header > span, .ml-frames header > span, .ml-strip > span, .ml-closing > span { text-transform: uppercase; letter-spacing: .16em; font-size: .7rem; font-weight: 700; }
 .invitation-open .ml-cover { visibility: hidden; clip-path: inset(0 0 100% 0); }
+/* Kept out of the tab order while the cover is up, but only once scripting is
+   available; without it the invitation must stay reachable. */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+/* Opens without scripting as well: the cover control is a real anchor, so this
+   rule alone dismisses the cover if the template script never loads. */
+body:has(main:target) .ml-cover { visibility: hidden; pointer-events: none; }
 
 /* ── Sidebar rail (desktop) ── */
 .ml-rail { position: fixed; z-index: 10; inset: 0 auto 0 0; display: none; width: 5.5rem; padding: 1.5rem 1rem; border-right: 1px solid #36332d; background: rgb(17 17 15 / .92); backdrop-filter: blur(12px); }
@@ -229,16 +236,17 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
 .ml-back-to-top:hover { color: var(--ml-bg); background: var(--ml-accent); }
 
 /* ── Shared sections (RSVP, Guestbook) ── */
-.ml-shared .er-section { width: 100%; min-height: 100svh; display: grid; align-content: center; padding: clamp(4rem, 7vw, 7rem) 1.25rem; color: var(--ml-paper); background: var(--ml-bg); text-align: left; border-bottom: 1px solid #36332d; scroll-snap-align: start; scroll-snap-stop: always; }
-.ml-shared .er-eyebrow { color: var(--ml-accent); text-transform: uppercase; letter-spacing: .16em; font-size: .7rem; }
-.ml-shared .er-section h2 { max-width: none; }
-.ml-shared .er-form { display: grid; gap: 1rem; max-width: 44rem; margin-top: 2rem; }
-.ml-shared .er-form label { display: grid; gap: .4rem; }
-.ml-shared .er-form input, .ml-shared .er-form select, .ml-shared .er-form textarea { width: 100%; min-height: 48px; padding: .8rem; border: 1px solid #5a554b; color: var(--ml-paper); background: var(--ml-surface); }
-.ml-shared .er-form button { justify-self: start; }
-.ml-shared .er-notice, .ml-shared .er-errors { max-width: 44rem; padding: 1rem; color: var(--ml-bg); background: var(--ml-accent); }
-.ml-shared .er-honeypot { position: absolute !important; left: -10000px !important; }
-.ml-shared .er-wishes { display: grid; gap: 1rem; max-width: 50rem; margin-top: 3rem; }
+.ml-shared .invitation-section { width: 100%; min-height: 100svh; display: grid; align-content: center; padding: clamp(4rem, 7vw, 7rem) 1.25rem; color: var(--ml-paper); background: var(--ml-bg); text-align: left; border-bottom: 1px solid #36332d; scroll-snap-align: start; scroll-snap-stop: always; }
+.ml-shared .invitation-section--tint { background: var(--ml-surface); }
+.ml-shared .invitation-eyebrow { color: var(--ml-accent); text-transform: uppercase; letter-spacing: .16em; font-size: .7rem; }
+.ml-shared .invitation-section h2 { max-width: none; }
+.ml-shared .invitation-form { display: grid; gap: 1rem; max-width: 44rem; margin-top: 2rem; }
+.ml-shared .invitation-form label { display: grid; gap: .4rem; }
+.ml-shared .invitation-form input, .ml-shared .invitation-form select, .ml-shared .invitation-form textarea { width: 100%; min-height: 48px; padding: .8rem; border: 1px solid #5a554b; color: var(--ml-paper); background: var(--ml-surface); }
+.ml-shared .invitation-form button { justify-self: start; }
+.ml-shared .invitation-notice, .ml-shared .invitation-errors { max-width: 44rem; padding: 1rem; color: var(--ml-bg); background: var(--ml-accent); }
+.ml-shared .invitation-honeypot { position: absolute !important; left: -10000px !important; }
+.ml-shared .invitation-wishes { display: grid; gap: 1rem; max-width: 50rem; margin-top: 3rem; }
 .ml-shared blockquote { margin: 0; padding: 1.5rem 0; border-top: 1px solid #4c4840; }
 .ml-shared cite { color: var(--ml-accent); }
 
@@ -250,7 +258,7 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
 .ml-lightbox button { position: absolute; top: .5rem; right: .5rem; width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.1rem; }
 
 /* ── Motion ── */
-.midnight-ledger[data-motion]:not([data-motion="off"]) [data-reveal] { opacity: 0; transform: translateY(2rem); transition: opacity .75s ease, transform .75s cubic-bezier(.2,.7,.2,1); }
+.midnight-ledger.ml-armed [data-reveal] { opacity: 0; transform: translateY(2rem); transition: opacity .75s ease, transform .75s cubic-bezier(.2,.7,.2,1); }
 .midnight-ledger[data-motion]:not([data-motion="off"]) [data-reveal].is-visible { opacity: 1; transform: none; }
 .midnight-ledger[data-motion="off"] *, .midnight-ledger[data-motion="off"] *::before, .midnight-ledger[data-motion="off"] *::after { animation: none !important; transition: none !important; }
 
@@ -285,7 +293,7 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
     .ml-hero__note { max-width: 16.5rem; margin-left: 0; font-size: .72rem; line-height: 1.35; }
     .ml-hero__note > span { display: none; }
     .ml-hero::after { right: -4rem; bottom: 18%; opacity: .7; }
-    .ml-hero, .ml-section, .ml-frames, .ml-countdown, .ml-shared .er-section { padding-left: 1rem; padding-right: 1rem; }
+    .ml-hero, .ml-section, .ml-frames, .ml-countdown, .ml-shared .invitation-section { padding-left: 1rem; padding-right: 1rem; }
     .ml-cover::after { right: 18%; }
     .ml-section::before, .ml-frames::before { inset: .55rem; }
     .ml-event-list article { grid-template-columns: 2rem 1fr; }
@@ -311,7 +319,7 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
 
 @media (max-height: 43rem) {
     .midnight-ledger { font-size: .82rem; }
-    .ml-section, .ml-frames, .ml-countdown, .ml-shared .er-section { padding-top: 3.25rem; padding-bottom: 4.25rem; }
+    .ml-section, .ml-frames, .ml-countdown, .ml-shared .invitation-section { padding-top: 3.25rem; padding-bottom: 4.25rem; }
     .ml-section > header, .ml-frames > header { margin-bottom: 1rem; }
     .ml-event-list article, .ml-story li { padding: .85rem 0; }
     .ml-hosts img, .ml-photo-fallback { aspect-ratio: 1; }

@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "event_types": ["wedding", "engagement"],
     "entry_view": "elegant-rose.views.index",
-    "preview": "preview.png",
+    "preview": "preview.jpg",
     "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
     "settings_schema": {
         "accent_color": {"type": "color", "default": "#7b2639"},

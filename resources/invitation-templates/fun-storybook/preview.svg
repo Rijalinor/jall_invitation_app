@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Preview Fun Storybook</title>
+  <desc id="description">Undangan gaya komik pop-art: panel bergaris tebal, bayangan keras, dan warna ceria pink, kuning, serta mint.</desc>
+  <rect width="1200" height="800" fill="#fdf6e4"/>
+
+  <!-- Comic panel with a hard offset shadow -->
+  <rect x="104" y="100" width="1000" height="588" fill="#2b2d42"/>
+  <rect x="92" y="88" width="1000" height="588" fill="#ffffff" stroke="#2b2d42" stroke-width="8"/>
+
+  <!-- Candy palette row, drawn as stacked comic chips -->
+  <g stroke="#2b2d42" stroke-width="6">
+    <rect x="836" y="108" width="76" height="76" fill="#2b2d42"/>
+    <rect x="824" y="96" width="76" height="76" fill="#ffd166"/>
+    <rect x="916" y="108" width="76" height="76" fill="#2b2d42"/>
+    <rect x="904" y="96" width="76" height="76" fill="#06d6a0"/>
+  </g>
+
+  <!-- Badge -->
+  <rect x="136" y="140" width="212" height="52" rx="26" fill="#2b2d42"/>
+  <rect x="128" y="132" width="212" height="52" rx="26" fill="#ff6b81" stroke="#2b2d42" stroke-width="5"/>
+  <text x="234" y="167" fill="#ffffff" font-family="Verdana,Geneva,sans-serif" font-size="20" font-weight="bold" letter-spacing="3" text-anchor="middle">UNDANGAN</text>
+
+  <!-- Title with an offset comic shadow -->
+  <text x="146" y="376" fill="#ff6b81" font-family="Verdana,Geneva,sans-serif" font-size="104" font-weight="bold">Raka</text>
+  <text x="138" y="368" fill="#2b2d42" font-family="Verdana,Geneva,sans-serif" font-size="104" font-weight="bold">Raka</text>
+  <text x="146" y="486" fill="#ff6b81" font-family="Verdana,Geneva,sans-serif" font-size="104" font-weight="bold">&amp; Nara</text>
+  <text x="138" y="478" fill="#2b2d42" font-family="Verdana,Geneva,sans-serif" font-size="104" font-weight="bold">&amp; Nara</text>
+
+  <!-- Date -->
+  <rect x="136" y="524" width="286" height="46" rx="23" fill="#fdf6e4" stroke="#2b2d42" stroke-width="5"/>
+  <text x="279" y="554" fill="#2b2d42" font-family="Verdana,Geneva,sans-serif" font-size="18" font-weight="bold" letter-spacing="2" text-anchor="middle">10 . 01 . 2027</text>
+
+  <!-- Action button -->
+  <rect x="676" y="524" width="356" height="72" rx="36" fill="#2b2d42"/>
+  <rect x="666" y="514" width="356" height="72" rx="36" fill="#ffd166" stroke="#2b2d42" stroke-width="6"/>
+  <text x="844" y="560" fill="#2b2d42" font-family="Verdana,Geneva,sans-serif" font-size="22" font-weight="bold" letter-spacing="2" text-anchor="middle">BUKA UNDANGAN</text>
+
+  <!-- Section chips along the bottom of the panel -->
+  <g font-family="Verdana,Geneva,sans-serif" font-size="17" font-weight="bold" text-anchor="middle">
+    <rect x="128" y="612" width="150" height="44" rx="22" fill="#06d6a0" stroke="#2b2d42" stroke-width="5"/>
+    <text x="203" y="640" fill="#2b2d42">ACARA</text>
+    <rect x="300" y="612" width="150" height="44" rx="22" fill="#ffffff" stroke="#2b2d42" stroke-width="5"/>
+    <text x="375" y="640" fill="#2b2d42">GALERI</text>
+    <rect x="472" y="612" width="150" height="44" rx="22" fill="#ff6b81" stroke="#2b2d42" stroke-width="5"/>
+    <text x="547" y="640" fill="#ffffff">RSVP</text>
+    <rect x="644" y="612" width="150" height="44" rx="22" fill="#6c5ce7" stroke="#2b2d42" stroke-width="5"/>
+    <text x="719" y="640" fill="#ffffff">Ucapan</text>
+  </g>
+</svg>

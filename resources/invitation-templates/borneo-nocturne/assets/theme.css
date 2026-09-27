@@ -45,6 +45,13 @@
 .bn-cover__scene i:nth-child(2) { top: 55%; right: 17%; animation-delay: -1.7s; }
 .bn-cover__scene i:nth-child(3) { top: 68%; left: 30%; animation-delay: -3s; }
 .invitation-open .bn-cover { visibility: hidden; clip-path: inset(0 0 100%); }
+/* Kept out of the tab order while the cover is up, but only once scripting is
+   available; without it the invitation must stay reachable. */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+/* Opens without scripting as well: the cover control is a real anchor, so this
+   rule alone dismisses the cover if the template script never loads. */
+body:has(main:target) .bn-cover { visibility: hidden; pointer-events: none; }
 @keyframes bn-firefly { to { opacity: .25; transform: translate(1.5rem, -2rem) scale(.5); } }
 
 .bn-nav, .bn-compass { position: fixed; z-index: 20; opacity: 0; pointer-events: none; transition: opacity .4s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
@@ -168,16 +175,16 @@
 .bn-ribbon > span { font-size: .65rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
 .bn-ribbon .bn-actions { margin: 0; }
 
-.bn-shared .er-section { padding: clamp(6rem, 14vw, 10rem) 1.25rem; color: var(--bn-paper); background: var(--bn-ink); border-bottom: 1px solid var(--bn-line); text-align: left; }
-.bn-shared .er-eyebrow { color: var(--bn-accent); font-size: .65rem; letter-spacing: .18em; text-transform: uppercase; }
-.bn-shared .er-section h2 { max-width: 100%; font-size: clamp(2.2rem, 7vw, 5rem); line-height: 1.15; }
-.bn-shared .er-form { display: grid; gap: 1rem; max-width: 46rem; margin-top: 2.5rem; }
-.bn-shared .er-form label { display: grid; gap: .4rem; }
-.bn-shared .er-form input, .bn-shared .er-form select, .bn-shared .er-form textarea { width: 100%; min-height: 48px; padding: .85rem; border: 1px solid #486059; border-radius: 0; color: var(--bn-paper); background: var(--bn-deep); }
-.bn-shared .er-form button { justify-self: start; }
-.bn-shared .er-notice, .bn-shared .er-errors { max-width: 46rem; padding: 1rem; color: var(--bn-ink); background: var(--bn-accent); }
-.bn-shared .er-honeypot { position: absolute !important; left: -10000px !important; }
-.bn-shared .er-wishes { display: grid; gap: 1rem; max-width: 52rem; margin-top: 3rem; }
+.bn-shared .invitation-section { padding: clamp(6rem, 14vw, 10rem) 1.25rem; color: var(--bn-paper); background: var(--bn-ink); border-bottom: 1px solid var(--bn-line); text-align: left; }
+.bn-shared .invitation-eyebrow { color: var(--bn-accent); font-size: .65rem; letter-spacing: .18em; text-transform: uppercase; }
+.bn-shared .invitation-section h2 { max-width: 100%; font-size: clamp(2.2rem, 7vw, 5rem); line-height: 1.15; }
+.bn-shared .invitation-form { display: grid; gap: 1rem; max-width: 46rem; margin-top: 2.5rem; }
+.bn-shared .invitation-form label { display: grid; gap: .4rem; }
+.bn-shared .invitation-form input, .bn-shared .invitation-form select, .bn-shared .invitation-form textarea { width: 100%; min-height: 48px; padding: .85rem; border: 1px solid #486059; border-radius: 0; color: var(--bn-paper); background: var(--bn-deep); }
+.bn-shared .invitation-form button { justify-self: start; }
+.bn-shared .invitation-notice, .bn-shared .invitation-errors { max-width: 46rem; padding: 1rem; color: var(--bn-ink); background: var(--bn-accent); }
+.bn-shared .invitation-honeypot { position: absolute !important; left: -10000px !important; }
+.bn-shared .invitation-wishes { display: grid; gap: 1rem; max-width: 52rem; margin-top: 3rem; }
 .bn-shared blockquote { margin: 0; padding: 1.5rem 0; border-top: 1px solid var(--bn-line); }
 .bn-shared cite { color: var(--bn-accent); }
 
@@ -198,7 +205,7 @@
 .bn-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
 .bn-lightbox button { position: absolute; top: .5rem; right: .5rem; }
 
-.borneo-nocturne[data-motion]:not([data-motion="off"]) .bn-observe { opacity: 0; transform: translateY(2rem); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
+.borneo-nocturne.bn-gsap .bn-observe { opacity: 0; transform: translateY(2rem); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
 .borneo-nocturne[data-motion]:not([data-motion="off"]) .bn-observe.is-visible { opacity: 1; transform: none; }
 .borneo-nocturne[data-motion="off"] *, .borneo-nocturne[data-motion="off"] *::before, .borneo-nocturne[data-motion="off"] *::after { animation: none !important; transition: none !important; }
 
@@ -304,7 +311,7 @@
 
 .bn-shared#attendance { position: relative; isolation: isolate; }
 .bn-shared#attendance::before { content: 'DESTINATION'; position: absolute; z-index: 0; top: 2rem; right: 0; color: rgb(201 169 110 / .05); font: 700 clamp(4rem, 16vw, 12rem)/1 sans-serif; letter-spacing: -.08em; writing-mode: vertical-rl; pointer-events: none; }
-.bn-shared#attendance .er-section { position: relative; z-index: 1; background: radial-gradient(circle at 85% 45%, rgb(201 169 110 / .1), transparent 30%), var(--bn-ink); }
+.bn-shared#attendance .invitation-section { position: relative; z-index: 1; background: radial-gradient(circle at 85% 45%, rgb(201 169 110 / .1), transparent 30%), var(--bn-ink); }
 
 @media (min-width: 48rem) {
     .borneo-nocturne main, .bn-hero { margin-left: 0; }
@@ -516,12 +523,17 @@
 .bn-section,
 .bn-gallery,
 .bn-countdown,
-.bn-shared .er-section {
+.bn-shared .invitation-section {
     position: relative;
     isolation: isolate;
     background:
         radial-gradient(circle at 88% 10%, rgb(201 169 110 / .08), transparent 22rem),
         linear-gradient(180deg, #0a0907, #11100c);
+}
+
+/* Declared after the shared background above so the tint actually wins the cascade. */
+.bn-shared .invitation-section--tint {
+    background: color-mix(in srgb, var(--bn-paper) 7%, var(--bn-ink));
 }
 .bn-section::before,
 .bn-gallery::before,
@@ -611,9 +623,9 @@
     color: #080706;
     background: linear-gradient(135deg, var(--bn-highlight), var(--bn-accent));
 }
-.bn-shared .er-form input,
-.bn-shared .er-form select,
-.bn-shared .er-form textarea {
+.bn-shared .invitation-form input,
+.bn-shared .invitation-form select,
+.bn-shared .invitation-form textarea {
     border-color: rgb(201 169 110 / .34);
     background: #0f0d09;
 }
@@ -661,7 +673,7 @@ html:has(body.borneo-nocturne) {
 .borneo-nocturne main > .bn-gallery,
 .borneo-nocturne main > .bn-ribbon,
 .borneo-nocturne main > .bn-closing,
-.borneo-nocturne main > .bn-shared > .er-section {
+.borneo-nocturne main > .bn-shared > .invitation-section {
     min-height: 100svh;
     display: grid;
     align-content: center;
@@ -732,11 +744,11 @@ html:has(body.borneo-nocturne) {
 .bn-gifts details {
     width: min(100%, 50rem);
 }
-.bn-shared .er-form {
+.bn-shared .invitation-form {
     width: min(100%, 38rem);
     margin-top: clamp(1rem, 3vw, 1.8rem);
 }
-.bn-shared .er-wishes {
+.bn-shared .invitation-wishes {
     max-height: min(44svh, 24rem);
     overflow-y: auto;
 }
@@ -752,7 +764,7 @@ html:has(body.borneo-nocturne) {
     .borneo-nocturne main > .bn-gallery,
     .borneo-nocturne main > .bn-ribbon,
     .borneo-nocturne main > .bn-closing,
-    .borneo-nocturne main > .bn-shared > .er-section {
+    .borneo-nocturne main > .bn-shared > .invitation-section {
         padding: 3.75rem 1.05rem max(5rem, calc(env(safe-area-inset-bottom) + 4.55rem));
     }
     .bn-heading {
@@ -842,19 +854,19 @@ html:has(body.borneo-nocturne) {
         align-content: center;
         border: 1px solid var(--bn-line);
     }
-    .bn-shared .er-form {
+    .bn-shared .invitation-form {
         gap: .65rem;
         width: min(100%, 18rem);
         padding: .9rem;
     }
-    .bn-shared .er-form input,
-    .bn-shared .er-form select,
-    .bn-shared .er-form textarea {
+    .bn-shared .invitation-form input,
+    .bn-shared .invitation-form select,
+    .bn-shared .invitation-form textarea {
         min-height: 38px;
         padding: .62rem .7rem;
         font-size: .76rem;
     }
-    .bn-shared .er-form textarea {
+    .bn-shared .invitation-form textarea {
         min-height: 4.4rem;
     }
 }
@@ -877,7 +889,7 @@ html:has(body.borneo-nocturne) {
 .borneo-nocturne main > .bn-gallery,
 .borneo-nocturne main > .bn-ribbon,
 .borneo-nocturne main > .bn-closing,
-.borneo-nocturne main > .bn-shared > .er-section {
+.borneo-nocturne main > .bn-shared > .invitation-section {
     width: 100%;
     max-width: none;
 }
@@ -997,10 +1009,10 @@ html:has(body.borneo-nocturne) {
 .bn-countdown > div span {
     padding: 1rem .5rem;
 }
-.bn-shared .er-section {
+.bn-shared .invitation-section {
     text-align: center;
 }
-.bn-shared .er-form {
+.bn-shared .invitation-form {
     text-align: left;
 }
 .bn-music {
@@ -1205,7 +1217,7 @@ html:has(body.borneo-nocturne) {
     .borneo-nocturne main > .bn-gallery,
     .borneo-nocturne main > .bn-ribbon,
     .borneo-nocturne main > .bn-closing,
-    .borneo-nocturne main > .bn-shared > .er-section {
+    .borneo-nocturne main > .bn-shared > .invitation-section {
         padding-top: 3.4rem;
         padding-bottom: 4.4rem;
     }
@@ -1223,7 +1235,7 @@ html:has(body.borneo-nocturne) {
 .bn-story ol,
 .bn-events__grid,
 .bn-gallery__mosaic,
-.bn-shared .er-wishes,
+.bn-shared .invitation-wishes,
 .bn-contacts .bn-actions {
     overflow: visible;
     max-height: none;
@@ -1546,8 +1558,8 @@ html:has(body.borneo-nocturne) {
     .bn-gallery__mosaic,
     .bn-location__card,
     .bn-gifts,
-    .bn-shared .er-form-card,
-    .bn-shared .er-wishes,
+    .bn-shared .invitation-form-card,
+    .bn-shared .invitation-wishes,
     .bn-contacts,
     .bn-hosts__grid {
         position: relative;
@@ -2014,7 +2026,7 @@ html:has(body.borneo-nocturne) {
     .borneo-nocturne main > .bn-countdown,
     .borneo-nocturne main > .bn-ribbon,
     .borneo-nocturne main > .bn-closing,
-    .borneo-nocturne main > .bn-shared > .er-section {
+    .borneo-nocturne main > .bn-shared > .invitation-section {
         display: flex !important;
         flex-direction: column;
         justify-content: center;
@@ -2388,8 +2400,8 @@ html:has(body.borneo-nocturne) {
         line-height: 1.04;
     }
 
-    .bn-shared .er-form-card,
-    .bn-shared .er-wishes {
+    .bn-shared .invitation-form-card,
+    .bn-shared .invitation-wishes {
         width: 100%;
         max-width: 18rem;
         margin-inline: auto;

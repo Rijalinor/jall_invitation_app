@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Preview Paper Lantern</title>
+  <desc id="description">Undangan editorial dua kolom di atas kertas rice-paper: nama serif besar dan pelat foto bernuansa terakota.</desc>
+  <defs>
+    <linearGradient id="photo" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#aa6f56"/>
+      <stop offset=".5" stop-color="#d9c8b8"/>
+      <stop offset="1" stop-color="#664d47"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="800" fill="#272525"/>
+
+  <!-- Rice-paper programme card -->
+  <rect x="72" y="56" width="1056" height="688" fill="#d9c8b8"/>
+
+  <!-- Photo plate, right column -->
+  <rect x="620" y="56" width="508" height="688" fill="url(#photo)"/>
+  <rect x="620" y="56" width="508" height="688" fill="#272525" opacity=".18"/>
+
+  <!-- Eyebrow and accent rule -->
+  <text x="132" y="160" fill="#6b5b4d" font-family="Arial,sans-serif" font-size="14" font-weight="bold" letter-spacing="3">JALL / 2026</text>
+  <path d="M132 182h104" stroke="#d68b62" stroke-width="3"/>
+
+  <!-- Names -->
+  <text x="132" y="372" fill="#272525" font-family="Georgia,serif" font-size="100">Raka</text>
+  <text x="200" y="452" fill="#9c5b3c" font-family="Georgia,serif" font-size="56">&amp;</text>
+  <text x="290" y="536" fill="#272525" font-family="Georgia,serif" font-size="100">Naya</text>
+
+  <!-- Date, rule, closing label -->
+  <text x="132" y="600" fill="#6b5b4d" font-family="Arial,sans-serif" font-size="14" font-weight="bold" letter-spacing="3">12 · 08 · 2026</text>
+  <path d="M132 636h428" stroke="#272525" stroke-width="1.5" opacity=".28"/>
+  <text x="132" y="684" fill="#6b5b4d" font-family="Arial,sans-serif" font-size="13" font-weight="bold" letter-spacing="3">NEXT CHAPTER</text>
+</svg>

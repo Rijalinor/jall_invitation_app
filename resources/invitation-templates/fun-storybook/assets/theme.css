@@ -6,6 +6,9 @@
     --fsb-text: #2b2d42;
     --fsb-muted: #5c5f79;
     --fsb-pink: var(--fsb-accent, #ff6b81);
+    /* A deeper mix of the accent, for accent-coloured text that has to pass
+       contrast on white. The bright accent alone sits near 2.4:1. */
+    --fsb-pink-ink: #b32842;
     --fsb-yellow: #ffd166;
     --fsb-mint: #06d6a0;
     --fsb-purple: #6c5ce7;
@@ -24,7 +27,13 @@ html {
 body.fun-storybook {
     margin: 0;
     padding: 0;
-    background: var(--fsb-canvas);
+    /* A faint dot grid so the page reads as printed paper rather than flat colour. */
+    background-color: var(--fsb-canvas);
+    background-image:
+        radial-gradient(circle at 1px 1px, rgb(43 45 66 / .07) 1.4px, transparent 0),
+        radial-gradient(circle at 1px 1px, rgb(255 107 129 / .05) 1.2px, transparent 0);
+    background-size: 22px 22px, 44px 44px;
+    background-position: 0 0, 11px 11px;
     color: var(--fsb-text);
     font-family: var(--fsb-font-body);
     font-size: 1rem;
@@ -68,6 +77,9 @@ body.fun-storybook {
 .fsb-btn {
     display: inline-flex;
     align-items: center;
+    /* Comfortable touch target for every button variant, including the small
+       ones used inside cards. */
+    min-height: 44px;
     justify-content: center;
     gap: .45rem;
     padding: .65rem 1.35rem;
@@ -134,7 +146,7 @@ body.fun-storybook {
     display: block;
     font-family: var(--fsb-font-display);
     font-size: clamp(1.2rem, 4vw, 1.7rem);
-    color: var(--fsb-pink);
+    color: var(--fsb-pink-ink);
 }
 .fsb-speech-bubble--hero {
     background: var(--fsb-yellow);
@@ -161,6 +173,13 @@ body.fun-storybook {
     opacity: 0;
     pointer-events: none;
 }
+/* Kept out of the tab order while the cover is up, but only once scripting is
+   available; without it the invitation must stay reachable. */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+/* Opens without scripting as well: the cover control is a real anchor, so this
+   rule alone dismisses the cover if the template script never loads. */
+body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 .fsb-cover__bg {
     position: absolute;
     inset: 0;
@@ -188,10 +207,13 @@ body.fun-storybook {
 .fsb-cover__title {
     margin: 0;
     font-family: var(--fsb-font-display);
-    font-size: clamp(2.4rem, 8vw, 3.6rem);
-    line-height: 1.1;
+    font-size: clamp(2.2rem, 7vw, 3.25rem);
+    line-height: 1.12;
+    letter-spacing: -0.005em;
     color: var(--fsb-text);
-    text-shadow: 2px 2px 0 var(--fsb-yellow);
+    /* A printed offset in the template accent reads as comic without the
+       vibration a pale shadow causes behind heavy letterforms. */
+    text-shadow: 3px 3px 0 var(--fsb-pink);
 }
 .fsb-cover__date {
     display: inline-block;
@@ -210,10 +232,11 @@ body.fun-storybook {
     z-index: 50;
     display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: .6rem;
     overflow-x: auto;
     scrollbar-width: none;
-    padding: .6rem 1rem;
+    scroll-padding-inline: 1rem;
+    padding: .75rem 1rem;
     background: rgb(253 246 228 / .92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -221,8 +244,11 @@ body.fun-storybook {
 }
 .fsb-nav::-webkit-scrollbar { display: none; }
 .fsb-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     flex: 0 0 auto;
-    padding: .4rem .9rem;
+    padding: .5rem 1rem;
     background: #fff;
     color: var(--fsb-text);
     border: 2px solid var(--fsb-border);
@@ -631,8 +657,40 @@ body.fun-storybook {
     gap: 1rem;
 }
 @media (min-width: 48rem) {
+    /* Editorial rhythm that tiles exactly: a large feature, two squares, then a
+       wide frame. Every fourth photo restarts the pattern, so four, eight, or
+       twelve photos always fill their rows with no dead space. */
     .fsb-gallery__page {
         grid-template-columns: repeat(4, 1fr);
+        grid-auto-flow: dense;
+    }
+
+    .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 1) {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+    /* The feature photo is positioned out of flow so it fills its larger frame
+       instead of dictating the row heights, which would leave the neighbouring
+       square photos padded with empty card. */
+    .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 1) > button {
+        position: relative;
+        height: 100%;
+    }
+    .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 1) img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        aspect-ratio: auto;
+        object-fit: cover;
+    }
+
+    /* A two-to-one frame keeps the wide photo the same height as the squares. */
+    .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 4) {
+        grid-column: span 2;
+    }
+    .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 4) img {
+        aspect-ratio: 2 / 1;
     }
 }
 .fsb-gallery__item {
@@ -670,10 +728,12 @@ body.fun-storybook {
 .fsb-section-wrapper {
     width: min(100% - 2rem, 46rem);
     margin: 0 auto;
-    padding: clamp(2.5rem, 6vw, 4rem) 0;
+    /* The preceding section already carries its own bottom padding, so a large
+       top padding here reads as a dead band between sections. */
+    padding: clamp(1rem, 3vw, 1.75rem) 0 clamp(2.5rem, 6vw, 4rem);
 }
 
-.fsb-section-wrapper .er-section {
+.fsb-section-wrapper .invitation-section {
     background: #ffffff !important;
     border: 3.5px solid var(--fsb-border) !important;
     border-radius: 1.75rem !important;
@@ -682,7 +742,11 @@ body.fun-storybook {
     text-align: center;
 }
 
-.fsb-section-wrapper .er-eyebrow {
+.fsb-section-wrapper .invitation-section--tint {
+    background: color-mix(in srgb, var(--fsb-yellow) 32%, #ffffff) !important;
+}
+
+.fsb-section-wrapper .invitation-eyebrow {
     display: inline-block !important;
     padding: .25rem .75rem !important;
     background: var(--fsb-yellow) !important;
@@ -698,7 +762,7 @@ body.fun-storybook {
     margin-bottom: .5rem !important;
 }
 
-.fsb-section-wrapper .er-section h2 {
+.fsb-section-wrapper .invitation-section h2 {
     margin: .3rem 0 .4rem !important;
     font-family: var(--fsb-font-display) !important;
     font-size: clamp(1.8rem, 5vw, 2.8rem) !important;
@@ -707,18 +771,18 @@ body.fun-storybook {
     text-shadow: 2px 2px 0 var(--fsb-border);
 }
 
-.fsb-section-wrapper .er-section p {
+.fsb-section-wrapper .invitation-section p {
     margin-top: 0 !important;
     margin-bottom: 1.25rem !important;
     color: var(--fsb-muted) !important;
     font-size: .95rem !important;
 }
 
-.fsb-section-wrapper .er-honeypot {
+.fsb-section-wrapper .invitation-honeypot {
     display: none !important;
 }
 
-.fsb-section-wrapper form.er-form,
+.fsb-section-wrapper form.invitation-form,
 .fsb-section-wrapper form {
     display: flex !important;
     flex-direction: column !important;
@@ -788,7 +852,7 @@ body.fun-storybook {
     box-shadow: 6px 6px 0 var(--fsb-border) !important;
 }
 
-.fsb-section-wrapper .er-wishes {
+.fsb-section-wrapper .invitation-wishes {
     display: flex !important;
     flex-direction: column !important;
     gap: 1rem !important;
@@ -796,7 +860,7 @@ body.fun-storybook {
     text-align: left !important;
 }
 
-.fsb-section-wrapper .er-wishes blockquote {
+.fsb-section-wrapper .invitation-wishes blockquote {
     margin: 0 !important;
     padding: 1rem 1.2rem !important;
     background: #fdf6e4 !important;
@@ -805,7 +869,7 @@ body.fun-storybook {
     box-shadow: var(--fsb-shadow) !important;
 }
 
-.fsb-section-wrapper .er-wishes p {
+.fsb-section-wrapper .invitation-wishes p {
     margin: 0 0 .35rem 0 !important;
     font-family: var(--fsb-font-body) !important;
     color: var(--fsb-text) !important;
@@ -813,7 +877,7 @@ body.fun-storybook {
     font-style: italic !important;
 }
 
-.fsb-section-wrapper .er-wishes cite {
+.fsb-section-wrapper .invitation-wishes cite {
     display: block !important;
     font-family: var(--fsb-font-display) !important;
     font-weight: 700 !important;
@@ -823,7 +887,7 @@ body.fun-storybook {
     text-align: right !important;
 }
 
-.fsb-section-wrapper .er-notice {
+.fsb-section-wrapper .invitation-section .invitation-notice {
     padding: .6rem 1rem !important;
     background: var(--fsb-mint) !important;
     color: var(--fsb-text) !important;
@@ -834,7 +898,7 @@ body.fun-storybook {
     margin-bottom: 1rem !important;
 }
 
-.fsb-section-wrapper .er-errors {
+.fsb-section-wrapper .invitation-errors {
     padding: .6rem 1rem !important;
     background: var(--fsb-pink) !important;
     color: #fff !important;
@@ -984,4 +1048,79 @@ body.fun-storybook {
     font-weight: 700;
     box-shadow: 2px 2px 0 var(--fsb-border);
     cursor: pointer;
+}
+
+/* ── Motion: "the page turns, and things pop up" ──────────────────────────
+   Everything here is scoped to .pop-armed, a class the template script adds to
+   the document root only when it can actually animate. Without scripting the
+   class never appears, nothing is hidden, and the invitation reads normally. */
+
+.pop-expressive {
+    --fsb-pop-duration: 560ms;
+    --fsb-pop-ease: cubic-bezier(.18, 1.4, .4, 1);
+    --fsb-pop-step: 80ms;
+}
+.pop-calm {
+    --fsb-pop-duration: 300ms;
+    --fsb-pop-ease: cubic-bezier(.2, .7, .2, 1);
+    --fsb-pop-step: 45ms;
+}
+
+.pop-armed [data-pop] {
+    --fsb-pop-delay: calc(var(--pop-i, 0) * var(--fsb-pop-step, 70ms));
+    opacity: 0;
+    transform: translateY(1.4rem) scale(.97)
+        rotate(calc(var(--pop-tilt, 0deg) - var(--pop-spin, 0deg)));
+}
+.pop-armed [data-pop].is-up {
+    opacity: 1;
+    transform: rotate(var(--pop-tilt, 0deg));
+    transition:
+        opacity var(--fsb-pop-duration, 420ms) ease var(--fsb-pop-delay, 0ms),
+        transform var(--fsb-pop-duration, 420ms)
+            var(--fsb-pop-ease, cubic-bezier(.2, .8, .2, 1)) var(--fsb-pop-delay, 0ms);
+}
+
+/* Gallery photos are pasted onto the page, so they settle with a small tilt. */
+.pop-expressive .fsb-gallery__item { --pop-spin: 5deg; }
+.pop-expressive .fsb-gallery__item:nth-child(odd) { --pop-tilt: -1.5deg; }
+.pop-expressive .fsb-gallery__item:nth-child(even) { --pop-tilt: 1.5deg; }
+
+/* Signature moment: the cover card leaves like a turning page. */
+.pop-armed .fsb-cover__card {
+    transform-origin: left center;
+    transition: transform 620ms cubic-bezier(.4, 0, .2, 1), opacity 400ms ease;
+}
+.pop-armed .fsb-cover {
+    transition-delay: 180ms;
+}
+.pop-cover-turning .fsb-cover__card {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-20deg) translateX(-10%) scale(.94);
+}
+
+/* Calm keeps the same idea at a fraction of the movement. */
+.pop-calm.pop-cover-turning .fsb-cover__card {
+    transform: perspective(1400px) rotateY(-7deg) translateX(-3%) scale(.975);
+}
+.pop-calm .fsb-cover__card {
+    transition-duration: 420ms, 300ms;
+}
+
+/* Countdown digits flip like a paper clock. */
+.pop-armed .fsb-countdown__num.is-flipping {
+    animation: fsb-flip 420ms cubic-bezier(.3, .8, .3, 1);
+}
+@keyframes fsb-flip {
+    0% { transform: rotateX(0deg); }
+    45% { transform: rotateX(-70deg); opacity: .5; }
+    100% { transform: rotateX(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pop-armed [data-pop] {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .pop-armed .fsb-cover { transition-delay: 0ms; }
 }

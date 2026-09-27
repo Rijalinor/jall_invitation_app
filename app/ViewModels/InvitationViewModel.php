@@ -37,9 +37,10 @@ final readonly class InvitationViewModel
         $shareMessage = str_replace('[nama]', $recipient, $invitation->share_message ?: 'Kepada Yth. [nama], kami mengundang Anda ke acara kami.');
 
         $events = $invitation->events->map(function ($event) use ($safeUrl, $invitation) {
-            $startsAt = $event->start_time
-                ? Carbon::parse($event->date->format('Y-m-d').' '.$event->start_time, $event->timezone)
-                : null;
+            $startsAt = Carbon::parse(
+                $event->date->format('Y-m-d').' '.($event->start_time ?: '00:00'),
+                $event->timezone,
+            );
             $endsAt = $startsAt && $event->end_time
                 ? Carbon::parse($event->date->format('Y-m-d').' '.$event->end_time, $event->timezone)
                 : $startsAt?->copy()->addHours(2);
@@ -50,7 +51,7 @@ final readonly class InvitationViewModel
 
             return [
                 'label' => $event->label,
-                'date' => $event->date->translatedFormat('l, j F Y'),
+                'date' => $event->date->locale((string) config('invitation.locale', 'id'))->translatedFormat('l, j F Y'),
                 'start_time' => $event->start_time ? substr($event->start_time, 0, 5) : null,
                 'end_time' => $event->end_time ? substr($event->end_time, 0, 5) : null,
                 'timezone' => $event->timezone,
@@ -78,7 +79,10 @@ final readonly class InvitationViewModel
 
         foreach ([
             'font_pairing' => in_array($settings['font_pairing'] ?? null, $settingOptions('font_pairing'), true) ? $settings['font_pairing'] : $settingDefault('font_pairing', 'editorial-serif'),
-            'cover_video_enabled' => (bool) ($settings['cover_video_enabled'] ?? $settingDefault('cover_video_enabled', false)),
+            'cover_video_enabled' => filter_var(
+                $settings['cover_video_enabled'] ?? $settingDefault('cover_video_enabled', false),
+                FILTER_VALIDATE_BOOLEAN,
+            ),
             'cover_video_desktop' => $safeSettingMedia('cover_video_desktop'),
             'cover_video_mobile' => $safeSettingMedia('cover_video_mobile'),
             'cover_poster_image' => $safeSettingMedia('cover_poster_image'),

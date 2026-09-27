@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,400;6..72,600&amp;display=swap" rel="stylesheet">
+    {{-- Marks that scripting is available before the first paint. --}}
+    <script>document.documentElement.classList.add('js-ready');</script>
     @vite(['resources/invitation-templates/cinematic-botanical-gold/assets/theme.css', 'resources/invitation-templates/cinematic-botanical-gold/assets/theme.js'])
 </head>
 <body class="cbg" style="--cbg-accent: {{ $theme['accent_color'] }}; --cbg-focal-x: {{ $theme['cover_focal_x'] }}%; --cbg-focal-y: {{ $theme['cover_focal_y'] }}%; --cbg-overlay: {{ $theme['cover_overlay_opacity'] / 100 }};" data-motion="{{ $theme['motion'] }}" data-font="{{ $theme['font_pairing'] }}" data-cover-position="{{ $theme['cover_text_position'] }}" data-ornament="{{ $theme['ornament_style'] }}">
@@ -45,7 +47,7 @@
             <h1>{{ $displayNames }}</h1>
             <time>{{ $primary_event['date'] ?? 'Save the date' }}</time>
             <span>Kepada Yth. {{ $recipient }}</span>
-            <button type="button" data-open-invitation>Buka Undangan</button>
+            <a href="#top" data-open-invitation>Buka Undangan</a>
         </div>
     </div>
 
@@ -54,7 +56,7 @@
         @foreach ($visibleNav as $item)<a href="#{{ $item['id'] }}">{{ $item['label'] }}</a>@endforeach
     </nav>
 
-    <main id="top" tabindex="-1" inert>
+    <main id="top" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
                 <section class="cbg-section cbg-opening" aria-labelledby="opening-title">

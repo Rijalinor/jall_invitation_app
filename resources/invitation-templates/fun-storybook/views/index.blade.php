@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {{-- Marks that scripting is available before the first paint. --}}
+    <script>document.documentElement.classList.add('js-ready');</script>
     @vite(['resources/invitation-templates/fun-storybook/assets/theme.css', 'resources/invitation-templates/fun-storybook/assets/theme.js'])
 </head>
 <body class="fun-storybook" style="--fsb-accent: {{ $theme['accent_color'] ?? '#ff6b81' }}; --fsb-bg: {{ $theme['bg_color'] ?? '#fdf6e4' }};" data-motion="{{ $theme['motion'] ?? 'expressive' }}">
@@ -39,9 +41,9 @@
                 <small>Spesial Buat Kamu:</small>
                 <strong>{{ $recipient }}</strong>
             </div>
-            <button type="button" class="fsb-btn fsb-btn--primary fsb-btn--lg" data-open-invitation>
+            <a class="fsb-btn fsb-btn--primary fsb-btn--lg" href="#invitation-content" data-open-invitation>
                 🚀 Buka Undangan!
-            </button>
+            </a>
         </div>
     </div>
 
@@ -61,7 +63,7 @@
         <span class="fsb-decor fsb-decor--sparkle">✺</span>
     </div>
 
-    <main id="invitation-content" tabindex="-1" inert>
+    <main id="invitation-content" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
                 <section class="fsb-section fsb-hero">

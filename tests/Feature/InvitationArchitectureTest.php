@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Invitation;
-use App\Models\User;
 use App\Services\TemplateRegistry;
 use App\ViewModels\InvitationViewModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,13 +26,15 @@ class InvitationArchitectureTest extends TestCase
         $this->assertNull($registry->previewPath('../midnight-ledger'));
     }
 
-    public function test_template_previews_require_an_authenticated_admin(): void
+    public function test_template_previews_are_served_publicly(): void
     {
-        $this->get('/template-previews/midnight-ledger')->assertRedirect('/admin/login');
-        $this->actingAs(User::factory()->create(['is_active' => true]))
-            ->get('/template-previews/midnight-ledger')
+        // The public catalogue shows these previews to prospective customers,
+        // so the route is intentionally not behind the admin guard.
+        $this->get('/template-previews/midnight-ledger')
             ->assertOk()
             ->assertHeader('content-type', 'image/svg+xml');
+
+        $this->get('/template-previews/not-a-real-template')->assertNotFound();
     }
 
     public function test_view_model_applies_safe_theme_and_section_contract(): void
@@ -54,7 +55,14 @@ class InvitationArchitectureTest extends TestCase
         $data = InvitationViewModel::from($invitation->fresh(), 'Tamu', $manifest)->data;
 
         $this->assertSame(['opening'], $data['sections']);
-        $this->assertSame(['accent_color' => '#7b2639', 'motion' => 'calm'], $data['theme']);
+        $this->assertSame([
+            'accent_color' => '#7b2639',
+            'motion' => 'calm',
+            'cover_video_enabled' => true,
+            'cover_video_desktop' => null,
+            'cover_video_mobile' => null,
+            'cover_poster_image' => null,
+        ], $data['theme']);
     }
 
     public function test_switching_template_changes_presentation_without_changing_content(): void

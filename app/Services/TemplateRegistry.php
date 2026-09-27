@@ -31,11 +31,6 @@ class TemplateRegistry
             $options[$t['id']] = $t['name'].' (v'.($t['version'] ?? '1.0.0').')';
         }
 
-        // Fallback default starter template if none discovered yet
-        if (empty($options)) {
-            $options['elegant-rose'] = 'Elegant Rose (v1.0.0)';
-        }
-
         return $options;
     }
 

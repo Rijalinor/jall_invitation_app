@@ -23,7 +23,7 @@ class PublicInvitationTest extends TestCase
 
         $this->get('/raka-nara?to='.rawurlencode('<b>Élodie & 家族</b>'))
             ->assertOk()
-            ->assertSee('id="invitation-content" tabindex="-1" inert', false)
+            ->assertSee('id="invitation-content" tabindex="-1" data-gate', false)
             ->assertSee('class="er-hosts" data-count="2"', false)
             ->assertSee('class="er-hosts__and"', false)
             ->assertSee('Putra dari Bapak Raka')

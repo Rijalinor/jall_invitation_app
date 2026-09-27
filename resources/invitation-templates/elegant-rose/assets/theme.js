@@ -66,7 +66,7 @@ document.querySelectorAll('[data-countdown]').forEach((element) => {
 });
 
 if (root.dataset.motion !== 'off' && !reducedMotion) {
-    const sections = document.querySelectorAll('.er-section');
+    const sections = document.querySelectorAll('.invitation-section');
     sections.forEach((section) => section.classList.add('er-reveal'));
     const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
