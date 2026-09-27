@@ -1,4 +1,4 @@
-<section class="invitation-section invitation-section--tint" aria-labelledby="guestbook-title">
+<section class="invitation-section invitation-section--tint" data-height="{{ $section_heights['guestbook'] ?? 'full' }}" aria-labelledby="guestbook-title">
     <span class="invitation-eyebrow">Doa &amp; Ucapan</span>
     <h2 id="guestbook-title">Buku Ucapan</h2>
 

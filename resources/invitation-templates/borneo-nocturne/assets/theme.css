@@ -36,10 +36,10 @@
 .bn-cover h1 { max-width: 100%; margin: .75rem 0 1.25rem; font-family: Newsreader, Georgia, serif; font-size: clamp(2.2rem, 7.5vw, 5.5rem); font-weight: 400; line-height: 1.15; letter-spacing: -.03em; text-shadow: 0 .5rem 2rem #000; word-break: normal; overflow-wrap: break-word; }
 .bn-cover__line { display: block; width: min(60vw, 16rem); height: 1px; margin: 1.25rem 0; background: var(--bn-accent); transform-origin: left; }
 .bn-cover__note { max-width: 28rem; margin-top: 1rem; color: #d2d8d2; font-size: clamp(0.85rem, 2.5vw, 1rem); line-height: 1.6; }
-.bn-cover > button { position: relative; z-index: 3; justify-self: end; display: flex; align-items: center; gap: 1rem; padding: .6rem 1.25rem; border: 1px solid var(--bn-accent); border-radius: 999px; color: var(--bn-paper); background: rgb(7 17 15 / .75); backdrop-filter: blur(12px); transition: background-color .3s, transform .3s, border-color .3s; }
-.bn-cover > button:hover { background: var(--bn-leaf); border-color: var(--bn-highlight); transform: translateY(-2px); }
-.bn-cover > button i { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; color: var(--bn-ink); background: var(--bn-accent); font-style: normal; transition: transform .3s ease; }
-.bn-cover > button:hover i { transform: translateX(3px); }
+.bn-cover > button, .bn-cover > [data-open-invitation] { position: relative; z-index: 3; justify-self: end; display: flex; align-items: center; gap: 1rem; padding: .6rem 1.25rem; border: 1px solid var(--bn-accent); border-radius: 999px; color: var(--bn-paper); background: rgb(7 17 15 / .75); backdrop-filter: blur(12px); transition: background-color .3s, transform .3s, border-color .3s; }
+.bn-cover > button:hover, .bn-cover > [data-open-invitation]:hover { background: var(--bn-leaf); border-color: var(--bn-highlight); transform: translateY(-2px); }
+.bn-cover > button i, .bn-cover > [data-open-invitation] i { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; color: var(--bn-ink); background: var(--bn-accent); font-style: normal; transition: transform .3s ease; }
+.bn-cover > button:hover i, .bn-cover > [data-open-invitation]:hover i { transform: translateX(3px); }
 .bn-cover__scene i { position: absolute; z-index: 1; width: .28rem; aspect-ratio: 1; border-radius: 50%; background: #f5c36f; box-shadow: 0 0 1rem #f5c36f; animation: bn-firefly 4s ease-in-out infinite alternate; }
 .bn-cover__scene i:nth-child(1) { top: 38%; left: 15%; }
 .bn-cover__scene i:nth-child(2) { top: 55%; right: 17%; animation-delay: -1.7s; }
@@ -249,7 +249,7 @@ body:has(main:target) .bn-cover { visibility: hidden; pointer-events: none; }
 .invitation-open .bn-cover { clip-path: none; visibility: hidden; background: transparent; pointer-events: none; }
 .invitation-open .bn-cover__gate i:first-child { transform: translateX(-102%); }
 .invitation-open .bn-cover__gate i:last-child { transform: translateX(102%); }
-.invitation-open .bn-cover__content, .invitation-open .bn-cover > button, .invitation-open .bn-cover header { opacity: 0; transition: opacity .35s; }
+.invitation-open .bn-cover__content, .invitation-open .bn-cover > button, .invitation-open .bn-cover > [data-open-invitation], .invitation-open .bn-cover header { opacity: 0; transition: opacity .35s; }
 
 .bn-compass { position: fixed; z-index: 24; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 4.6rem; height: 4.6rem; }
 .bn-compass > button { position: absolute; z-index: 2; inset: 0; display: grid; place-items: center; gap: 0; width: 100%; padding: .55rem; border-color: rgb(201 169 110 / .6); color: var(--bn-paper); background: rgb(7 17 15 / .92); box-shadow: 0 0 0 .45rem rgb(7 17 15 / .45), 0 1rem 2.5rem #000; backdrop-filter: blur(12px); transform: scale(0); transition: transform .55s cubic-bezier(.2,.8,.2,1), background-color .25s; }
@@ -475,6 +475,7 @@ body:has(main:target) .bn-cover { visibility: hidden; pointer-events: none; }
     text-shadow: 0 1rem 3rem #000, 0 0 2rem rgb(201 169 110 / .16);
 }
 .bn-cover > button,
+.bn-cover > [data-open-invitation],
 .bn-compass > button,
 .bn-compass > div,
 .bn-music {
@@ -483,6 +484,7 @@ body:has(main:target) .bn-cover { visibility: hidden; pointer-events: none; }
     background: rgb(8 7 5 / .9) !important;
 }
 .bn-cover > button i,
+.bn-cover > [data-open-invitation] i,
 .bn-compass > div a.is-active,
 .borneo-nocturne button:hover,
 .borneo-nocturne .bn-actions a:hover {
@@ -2440,4 +2442,71 @@ html:has(body.borneo-nocturne) {
     .bn-compass__ring {
         display: none !important;
     }
+}
+
+/* -- Corrections -------------------------------------------------------------
+   Appended deliberately: the couple rules above are re-declared across a dozen
+   media queries, so a correction placed anywhere else loses the cascade.
+
+   The names are the point of a wedding invitation. The card splits into a
+   portrait and a text panel; sizing the name from the viewport let the type grow
+   while the panel barely did, so "Anindya Puspa Larasati" stacked one word per
+   line on wide screens. Measuring the name against its own panel keeps two words
+   per line at every width. */
+.bn-couple article > div:last-child { container-type: inline-size; }
+.bn-couple h3,
+.bn-couple article h3 {
+    font-size: clamp(1.25rem, 12.5cqi, 2.4rem);
+    line-height: 1.18;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+}
+
+/* Every one of these is a control a guest has to hit with a thumb; the compact
+   rules above shrank them as small as 27px. `!important` because this file
+   re-declares the same selectors across a dozen media queries, and chasing
+   specificity here is what let a 40px nav survive two attempts. */
+.borneo-nocturne .bn-cover > [data-open-invitation],
+.borneo-nocturne .bn-compass a,
+.borneo-nocturne .bn-compass > button,
+.borneo-nocturne .bn-nav > div a,
+.borneo-nocturne .bn-nav__mark,
+.borneo-nocturne .bn-ribbon a,
+.borneo-nocturne .bn-ribbon button,
+.borneo-nocturne .bn-closing a,
+.borneo-nocturne .bn-location .bn-actions a,
+.borneo-nocturne .bn-location .bn-actions button,
+.borneo-nocturne .bn-events .bn-actions a,
+.borneo-nocturne .bn-events .bn-actions button,
+.borneo-nocturne .bn-contacts .bn-actions a,
+.borneo-nocturne .bn-music {
+    min-height: 44px !important;
+}
+
+/* With the template name gone the header holds only the date. */
+.bn-cover header { justify-content: flex-end; }
+
+/* -- Content must never be dropped to make a page shorter --------------------
+   Across several breakpoints this template hid the third story, the third
+   event, the fifth photo, the second gift and the third event action, and
+   clamped story and address text to one to three lines. A customer who entered
+   three events simply never saw the third on a phone. Restored at every width;
+   the declarations above only ever hid content, so nothing else changes. */
+.bn-story li:nth-child(n + 3),
+.bn-events article:nth-child(n + 3),
+.bn-gallery__mosaic figure:nth-child(n + 5),
+.bn-gifts details:nth-child(n + 3),
+.bn-events .bn-actions > :nth-child(n + 3) {
+    display: revert;
+}
+
+.bn-story li p,
+.bn-events article p,
+.bn-events article small,
+.bn-events article strong,
+.bn-location > p {
+    display: revert;
+    -webkit-line-clamp: unset;
+    overflow: visible;
 }

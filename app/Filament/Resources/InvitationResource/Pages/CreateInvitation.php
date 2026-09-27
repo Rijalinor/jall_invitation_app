@@ -15,11 +15,7 @@ class CreateInvitation extends CreateRecord
         /** @var Invitation $invitation */
         $invitation = $this->record;
 
-        $defaultSections = [
-            'opening', 'hosts', 'events', 'countdown', 'calendar',
-            'map', 'story', 'gallery', 'rsvp', 'guestbook',
-            'gifts', 'contacts', 'livestream', 'sharing', 'closing',
-        ];
+        $defaultSections = Invitation::defaultSectionKeys();
 
         foreach ($defaultSections as $index => $key) {
             $invitation->sections()->create([

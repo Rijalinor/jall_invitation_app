@@ -92,7 +92,7 @@ body:has(main:target) .cbg-cover { visibility: hidden; pointer-events: none; }
 }
 .cbg[data-cover-position="center"] .cbg-cover h1, .cbg[data-cover-position="right"] .cbg-cover h1 { margin-inline-start: auto; }
 .cbg-cover time, .cbg-cover span { display: block; margin-top: 1rem; color: rgb(255 250 241 / .9); overflow-wrap: anywhere; }
-.cbg-cover button, .cbg-actions a, .cbg-actions button, .cbg-music, .cbg-ribbon a, .cbg-ribbon button, .cbg-closing a, .cbg-shared button {
+.cbg-cover button, .cbg-cover [data-open-invitation], .cbg-actions a, .cbg-actions button, .cbg-music, .cbg-ribbon a, .cbg-ribbon button, .cbg-closing a, .cbg-shared button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -105,7 +105,7 @@ body:has(main:target) .cbg-cover { visibility: hidden; pointer-events: none; }
     font-weight: 700;
     text-decoration: none;
 }
-.cbg-cover button { margin-top: 1.45rem; min-width: 12rem; }
+.cbg-cover button, .cbg-cover [data-open-invitation] { margin-top: 1.45rem; min-width: 12rem; }
 
 .cbg-nav {
     position: sticky;

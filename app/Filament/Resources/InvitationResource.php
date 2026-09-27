@@ -19,6 +19,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\View;
@@ -46,6 +47,14 @@ class InvitationResource extends Resource
     {
         /** @var TemplateRegistry $templateRegistry */
         $templateRegistry = app(TemplateRegistry::class);
+
+        // The panel used to offer every setting to every template, so an operator
+        // could fill in a field the chosen template silently ignores. Show only
+        // what the selected template declares, the same way section labels work.
+        $hasSetting = fn ($get, string ...$keys): bool => array_intersect(
+            $keys,
+            array_keys((array) ($templateRegistry->find((string) $get('template_id'))['settings_schema'] ?? [])),
+        ) !== [];
 
         return $schema
             ->components([
@@ -95,6 +104,7 @@ class InvitationResource extends Resource
                                     ->label('Pilihan Template')
                                     ->options($templateRegistry->getOptions())
                                     ->required()
+                                    ->live()
                                     ->helperText('Dapat diganti kapan saja tanpa kehilangan data undangan.'),
 
                                 View::make('filament.forms.template-gallery')
@@ -121,7 +131,7 @@ class InvitationResource extends Resource
                             ])->columns(2),
 
                         Section::make('Pengaturan Visual')
-                            ->description('Kosongkan nilai yang ingin mengikuti bawaan dari template yang dipilih.')
+                            ->description('Hanya pengaturan yang didukung template terpilih yang ditampilkan. Kosongkan nilai yang ingin mengikuti bawaan dari template.')
                             ->schema([
                                 ColorPicker::make('settings_json.accent_color')
                                     ->label('Warna Aksen (opsional)')
@@ -134,47 +144,226 @@ class InvitationResource extends Resource
                                     ->label('Video cover')
                                     ->options(['true' => 'Aktif', 'false' => 'Nonaktif'])
                                     ->placeholder('Ikuti bawaan template')
-                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback.'),
+                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback.')
+                                    ->visible(fn ($get) => $hasSetting($get, 'cover_video_enabled')),
+                                Select::make('settings_json.opening_video_enabled')
+                                    ->label('Video di seksi pembuka (opsional)')
+                                    ->options(['true' => 'Aktif', 'false' => 'Nonaktif'])
+                                    ->placeholder('Ikuti bawaan template')
+                                    ->helperText('Memakai video yang sama seperti sampul, hanya dipasang sebagai latar seksi pembuka.')
+                                    ->visible(fn ($get) => $hasSetting($get, 'opening_video_enabled')),
                                 FileUpload::make('settings_json.cover_video_desktop')
-                                    ->label('Video Cover Desktop')
+                                    ->label('Video Cover')
+                                    ->helperText('Cukup satu video di sini. Video ini juga dipakai di HP selama kolom versi HP dibiarkan kosong.')
                                     ->disk('public')
                                     ->directory('invitations/cover-videos')
                                     ->acceptedFileTypes(['video/mp4', 'video/webm'])
-                                    ->maxSize(51200),
-                                FileUpload::make('settings_json.cover_video_mobile')
-                                    ->label('Video Cover Mobile')
-                                    ->disk('public')
-                                    ->directory('invitations/cover-videos')
-                                    ->acceptedFileTypes(['video/mp4', 'video/webm'])
-                                    ->maxSize(51200),
-                                FileUpload::make('settings_json.cover_poster_image')
-                                    ->label('Poster / fallback cover')
-                                    ->disk('public')
-                                    ->directory('invitations/cover-posters')
-                                    ->image()
-                                    ->maxSize(8192),
-                                TextInput::make('settings_json.cover_focal_x')
-                                    ->label('Focal point horizontal')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(100)
-                                    ->suffix('%'),
-                                TextInput::make('settings_json.cover_focal_y')
-                                    ->label('Focal point vertikal')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(100)
-                                    ->suffix('%'),
-                                TextInput::make('settings_json.cover_overlay_opacity')
-                                    ->label('Gelap overlay')
-                                    ->numeric()
-                                    ->minValue(30)
-                                    ->maxValue(78)
-                                    ->suffix('%'),
-                                Select::make('settings_json.cover_text_position')
-                                    ->label('Posisi teks cover')
-                                    ->options(['left' => 'Kiri', 'center' => 'Tengah', 'right' => 'Kanan'])
-                                    ->placeholder('Ikuti bawaan template'),
+                                    ->maxSize(51200)
+                                    ->visible(fn ($get) => $hasSetting($get, 'cover_video_desktop'))
+                                    ->columnSpanFull(),
+
+                                Fieldset::make('Pengaturan lanjutan (jarang diubah)')
+                                    ->visible(fn ($get) => $hasSetting($get, 'cover_video_mobile', 'cover_poster_image', 'cover_focal_x', 'cover_focal_y', 'cover_overlay_opacity', 'cover_text_position'))
+                                    ->schema([
+                                        FileUpload::make('settings_json.cover_video_mobile')
+                                            ->label('Video Cover versi HP (opsional)')
+                                            ->helperText('Hanya bila ingin versi lebih ringan untuk HP. Kosongkan untuk memakai video yang sama seperti di atas.')
+                                            ->disk('public')
+                                            ->directory('invitations/cover-videos')
+                                            ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                            ->maxSize(51200)
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_video_mobile'))
+                                            ->columnSpanFull(),
+                                        FileUpload::make('settings_json.cover_poster_image')
+                                            ->label('Poster / fallback cover')
+                                            ->helperText('Dipakai sebelum video termuat. Kosongkan untuk memakai foto galeri/mempelai pertama.')
+                                            ->disk('public')
+                                            ->directory('invitations/cover-posters')
+                                            ->image()
+                                            ->maxSize(8192)
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_poster_image'))
+                                            ->columnSpanFull(),
+                                        TextInput::make('settings_json.cover_focal_x')
+                                            ->label('Focal point horizontal')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->suffix('%')
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_focal_x')),
+                                        TextInput::make('settings_json.cover_focal_y')
+                                            ->label('Focal point vertikal')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->suffix('%')
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_focal_y')),
+                                        TextInput::make('settings_json.cover_overlay_opacity')
+                                            ->label('Gelap overlay')
+                                            ->numeric()
+                                            ->minValue(30)
+                                            ->maxValue(78)
+                                            ->suffix('%')
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_overlay_opacity')),
+                                        Select::make('settings_json.cover_text_position')
+                                            ->label('Posisi teks cover')
+                                            ->options(['left' => 'Kiri', 'center' => 'Tengah', 'right' => 'Kanan'])
+                                            ->placeholder('Ikuti bawaan template')
+                                            ->visible(fn ($get) => $hasSetting($get, 'cover_text_position')),
+                                    ])
+                                    ->columns(2)
+                                    ->columnSpanFull(),
+                            ])->columns(2),
+
+                        Section::make('Tulisan Seksi (opsional)')
+                            ->description('Mengganti tulisan bawaan template untuk undangan ini saja; undangan lain tidak terpengaruh. Kosongkan bila ingin memakai bawaan.')
+                            ->visible(fn ($get) => $templateRegistry->labels((string) $get('template_id')) !== [])
+                            ->collapsible()
+                            ->collapsed()
+                            ->schema([
+                                TextInput::make('settings_json.labels.cover_eyebrow')
+                                    ->label('Sampul — tulisan kecil')
+                                    ->placeholder('Undangan')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.cover_recipient_label')
+                                    ->label('Sampul — tulisan "Kepada Yth."')
+                                    ->placeholder('Kepada Yth.')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.cover_countdown_label')
+                                    ->label('Sampul — tulisan di atas hitung mundur')
+                                    ->placeholder('Menuju acara')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.cover_cta')
+                                    ->label('Sampul — tombol buka undangan')
+                                    ->placeholder('Buka Undangan')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.opening_eyebrow')
+                                    ->label('Pembuka — tulisan kecil')
+                                    ->placeholder('Dengan penuh kebahagiaan')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.hosts_eyebrow')
+                                    ->label('Mempelai — tulisan kecil')
+                                    ->placeholder('Yang Berbahagia')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.hosts_title')
+                                    ->label('Mempelai — judul seksi')
+                                    ->placeholder('Mempelai & Keluarga')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.events_eyebrow')
+                                    ->label('Acara — tulisan kecil')
+                                    ->placeholder('Save the Date')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.events_title')
+                                    ->label('Acara — judul seksi')
+                                    ->placeholder('Rangkaian Acara')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.countdown_eyebrow')
+                                    ->label('Hitung mundur — tulisan kecil')
+                                    ->placeholder('Menuju Hari Bahagia')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.map_eyebrow')
+                                    ->label('Lokasi — tulisan kecil')
+                                    ->placeholder('Lokasi Acara')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.map_title')
+                                    ->label('Lokasi — judul seksi')
+                                    ->placeholder('Petunjuk Lokasi')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.story_eyebrow')
+                                    ->label('Cerita — tulisan kecil')
+                                    ->placeholder('Jejak Cerita')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.story_title')
+                                    ->label('Cerita — judul seksi')
+                                    ->placeholder('Kisah Kami')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.gallery_eyebrow')
+                                    ->label('Galeri — tulisan kecil')
+                                    ->placeholder('Galeri')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.gallery_title')
+                                    ->label('Galeri — judul seksi')
+                                    ->placeholder('Momen Pilihan')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.gifts_eyebrow')
+                                    ->label('Hadiah — tulisan kecil')
+                                    ->placeholder('Tanda Kasih')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.gifts_title')
+                                    ->label('Hadiah — judul seksi')
+                                    ->placeholder('Hadiah Digital')
+                                    ->maxLength(120),
+
+                                Textarea::make('settings_json.labels.gifts_intro')
+                                    ->label('Hadiah — paragraf pembuka')
+                                    ->placeholder('Doa dan kehadiran Anda adalah hadiah terindah. Detail berikut tersedia bila Anda ingin mengirim tanda kasih.')
+                                    ->rows(3)
+                                    ->maxLength(400)
+                                    ->helperText('Baris baru yang kamu ketik tampil sebagai baris baru.')
+                                    ->columnSpanFull(),
+
+                                Textarea::make('settings_json.labels.rsvp_intro')
+                                    ->label('RSVP — paragraf pembuka')
+                                    ->placeholder('Mohon berikan konfirmasi kehadiran Anda.')
+                                    ->rows(2)
+                                    ->maxLength(400)
+                                    ->columnSpanFull(),
+
+                                TextInput::make('settings_json.labels.contacts_eyebrow')
+                                    ->label('Kontak — tulisan kecil')
+                                    ->placeholder('Hubungi Kami')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.contacts_title')
+                                    ->label('Kontak — judul seksi')
+                                    ->placeholder('Kontak')
+                                    ->maxLength(120),
+
+                                Textarea::make('settings_json.labels.contacts_intro')
+                                    ->label('Kontak — paragraf pembuka')
+                                    ->placeholder('Jika membutuhkan informasi lebih lanjut, silakan hubungi kontak berikut.')
+                                    ->rows(2)
+                                    ->maxLength(400)
+                                    ->columnSpanFull(),
+
+                                TextInput::make('settings_json.labels.sharing_eyebrow')
+                                    ->label('Bagikan — tulisan kecil')
+                                    ->placeholder('Sebarkan Kabar Bahagia')
+                                    ->maxLength(120),
+
+                                TextInput::make('settings_json.labels.sharing_title')
+                                    ->label('Bagikan — judul seksi')
+                                    ->placeholder('Bagikan Undangan')
+                                    ->maxLength(120),
+
+                                Textarea::make('settings_json.labels.sharing_intro')
+                                    ->label('Bagikan — paragraf pembuka')
+                                    ->placeholder('Bagikan undangan ini kepada keluarga dan orang terdekat.')
+                                    ->rows(2)
+                                    ->maxLength(400)
+                                    ->columnSpanFull(),
+
+                                TextInput::make('settings_json.labels.closing_eyebrow')
+                                    ->label('Penutup — tulisan kecil')
+                                    ->placeholder('Terima Kasih')
+                                    ->maxLength(120)
+                                    ->columnSpanFull(),
                             ])->columns(2),
                     ])->columnSpan(['lg' => 2]),
 
@@ -202,6 +391,9 @@ class InvitationResource extends Resource
                             ]),
 
                         Section::make('Media & Fitur Tambahan')
+                            ->description('Musik latar dan live streaming. Biarkan tertutup bila tidak dipakai.')
+                            ->collapsible()
+                            ->collapsed()
                             ->schema([
                                 FileUpload::make('music_path')
                                     ->label('Musik Latar (.mp3)')
@@ -422,6 +614,7 @@ class InvitationResource extends Resource
             InvitationResource\RelationManagers\EventsRelationManager::class,
             InvitationResource\RelationManagers\StoriesRelationManager::class,
             InvitationResource\RelationManagers\MediaRelationManager::class,
+            InvitationResource\RelationManagers\BlocksRelationManager::class,
             InvitationResource\RelationManagers\GiftMethodsRelationManager::class,
             InvitationResource\RelationManagers\ContactsRelationManager::class,
             InvitationResource\RelationManagers\SectionsRelationManager::class,

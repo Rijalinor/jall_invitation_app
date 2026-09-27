@@ -91,6 +91,11 @@ class TemplateClassContractTest extends TestCase
      */
     private function unstyledStructuralClasses(string $view, string $css): array
     {
+        // Blade expressions inside a class attribute are resolved at render time,
+        // so only the literal part of the attribute can be checked here. The
+        // classes a Blade expression adds are guarded where they are declared.
+        $view = (string) preg_replace('/\{\{.*?\}\}/s', '', $view);
+
         preg_match_all('/class="([^"]+)"/', $view, $matches);
 
         $classes = [];

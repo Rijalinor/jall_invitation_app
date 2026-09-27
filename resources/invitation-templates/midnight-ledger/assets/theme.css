@@ -24,7 +24,7 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
 .ml-hero h1, .ml-cover strong { overflow-wrap: normal; word-break: normal; hyphens: none; }
 .midnight-ledger a { color: inherit; }
 .midnight-ledger button, .midnight-ledger input, .midnight-ledger select, .midnight-ledger textarea { font: inherit; }
-.midnight-ledger button, .midnight-ledger .ml-actions a { min-height: 44px; padding: .65rem 1rem; border: 1px solid currentColor; border-radius: 0; color: inherit; background: transparent; cursor: pointer; text-decoration: none; transition: color var(--ml-fast), background-color var(--ml-fast), border-color var(--ml-fast), transform var(--ml-fast); }
+.midnight-ledger button, .midnight-ledger .ml-actions a, .midnight-ledger .ml-cover [data-open-invitation] { min-height: 44px; padding: .65rem 1rem; border: 1px solid currentColor; border-radius: 0; color: inherit; background: transparent; cursor: pointer; text-decoration: none; transition: color var(--ml-fast), background-color var(--ml-fast), border-color var(--ml-fast), transform var(--ml-fast); }
 .midnight-ledger button:hover, .midnight-ledger .ml-actions a:hover { color: var(--ml-bg); border-color: var(--ml-accent); background: var(--ml-accent); transform: translateY(-2px); }
 .midnight-ledger a:focus-visible, .midnight-ledger button:focus-visible, .midnight-ledger input:focus-visible, .midnight-ledger select:focus-visible, .midnight-ledger textarea:focus-visible { outline: 3px solid var(--ml-accent); outline-offset: 4px; }
 
@@ -40,9 +40,9 @@ html:has(body.midnight-ledger) { scroll-snap-type: y mandatory; scroll-behavior:
 .ml-cover strong { display: block; max-width: 14ch; margin-top: .4rem; color: var(--ml-paper); font: 400 clamp(3rem, 11vw, 9rem)/.95 'Playfair Display', Georgia, serif; letter-spacing: -.06em; overflow-wrap: anywhere; }
 .ml-cover__footer { position: relative; z-index: 1; display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
 .ml-cover__footer > span { max-width: 12rem; text-transform: uppercase; letter-spacing: .14em; font-size: .62rem; font-weight: 700; }
-.ml-cover button { display: inline-flex; align-items: center; gap: 2rem; border-color: var(--ml-paper); background: rgb(17 17 15 / .35); }
-.ml-cover button i { font-style: normal; font-size: 1.25rem; transition: transform .25s; }
-.ml-cover button:hover i { transform: translate(3px, -3px); }
+.ml-cover button, .ml-cover [data-open-invitation] { display: inline-flex; align-items: center; gap: 2rem; border-color: var(--ml-paper); background: rgb(17 17 15 / .35); }
+.ml-cover button i, .ml-cover [data-open-invitation] i { font-style: normal; font-size: 1.25rem; transition: transform .25s; }
+.ml-cover button:hover i, .ml-cover [data-open-invitation]:hover i { transform: translate(3px, -3px); }
 .ml-kicker, .ml-index, .ml-section header > span, .ml-frames header > span, .ml-strip > span, .ml-closing > span { text-transform: uppercase; letter-spacing: .16em; font-size: .7rem; font-weight: 700; }
 .invitation-open .ml-cover { visibility: hidden; clip-path: inset(0 0 100% 0); }
 /* Kept out of the tab order while the cover is up, but only once scripting is

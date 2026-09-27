@@ -75,6 +75,51 @@ class TemplateNoScriptContractTest extends TestCase
         }
     }
 
+    /**
+     * A classless anchor carries no button shape of its own, so whatever the theme
+     * used to apply through a `button` selector stops matching the moment the
+     * control becomes an anchor: it collapses to a bare inline link barely 20px
+     * tall. Since this is the only way into the invitation, checking that the
+     * attribute merely appears somewhere in the stylesheet is not enough — the
+     * control needs a real touch target.
+     */
+    public function test_a_classless_anchor_cover_control_keeps_a_real_touch_target(): void
+    {
+        foreach ($this->templates() as $id => $view) {
+            preg_match('/<a\b[^>]*data-open-invitation[^>]*>/', $view, $match);
+            $control = $match[0] ?? '';
+
+            // A control with its own class keeps its styling either way.
+            if (preg_match('/class="[^"]+"/', $control) === 1) {
+                continue;
+            }
+
+            $bodies = $this->ruleBodiesMatching($this->css($id), '[data-open-invitation]');
+
+            $this->assertNotSame([], $bodies, sprintf(
+                'Template "%s" opens with a classless anchor, so every `button` selector that used to style it '
+                .'silently stops matching. Target [data-open-invitation] as well.',
+                $id,
+            ));
+
+            $hasTouchTarget = false;
+
+            foreach ($bodies as $body) {
+                if (preg_match('/min-height\s*:/', $body) === 1) {
+                    $hasTouchTarget = true;
+
+                    break;
+                }
+            }
+
+            $this->assertTrue($hasTouchTarget, sprintf(
+                'Template "%s" styles its cover anchor but never gives it a minimum height, so the only way into '
+                .'the invitation renders as a bare ~20px inline link.',
+                $id,
+            ));
+        }
+    }
+
     public function test_no_template_traps_its_content_behind_an_inert_attribute(): void
     {
         foreach ($this->templates() as $id => $view) {
@@ -134,6 +179,30 @@ class TemplateNoScriptContractTest extends TestCase
     private function mainId(string $view): ?string
     {
         return preg_match('/<main\b[^>]*\bid="([^"]+)"/', $view, $matches) === 1 ? $matches[1] : null;
+    }
+
+    /**
+     * The declaration blocks of every rule whose selector mentions the fragment.
+     *
+     * @return array<int, string>
+     */
+    private function ruleBodiesMatching(string $css, string $fragment): array
+    {
+        $bodies = [];
+
+        foreach (explode('}', $css) as $block) {
+            if (! str_contains($block, '{')) {
+                continue;
+            }
+
+            [$selector, $body] = explode('{', $block, 2);
+
+            if (str_contains($selector, $fragment)) {
+                $bodies[] = $body;
+            }
+        }
+
+        return $bodies;
     }
 
     /**

@@ -1,7 +1,7 @@
-<section class="invitation-section" aria-labelledby="rsvp-title">
+<section class="invitation-section" data-height="{{ $section_heights['rsvp'] ?? 'full' }}" aria-labelledby="rsvp-title">
     <span class="invitation-eyebrow">Konfirmasi Kehadiran</span>
     <h2 id="rsvp-title">RSVP</h2>
-    <p>Mohon berikan konfirmasi kehadiran Anda.</p>
+    <p>{!! nl2br(e($labels['rsvp_intro'] ?? 'Mohon berikan konfirmasi kehadiran Anda.')) !!}</p>
 
     @if (session('rsvp_success'))<p class="invitation-notice" role="status">{{ session('rsvp_success') }}</p>@endif
 

@@ -29,7 +29,7 @@
         <div class="bn-cover__gate" aria-hidden="true"><i></i><i></i></div>
         <div class="bn-cover__scene" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="bn-cover__veil" aria-hidden="true"></div>
-        <header><span>Borneo Royal Nocturne</span><span class="bn-cover__date" data-split>{{ $primary_event['date'] ?? 'Save the date' }}</span></header>
+        <header><span class="bn-cover__date" data-split>{{ $primary_event['date'] ?? 'Simpan tanggalnya' }}</span></header>
         <div class="bn-cover__content">
             <p class="bn-cover__intro" data-split>Undangan pernikahan untuk</p>
             <h1 data-split>{{ $recipient }}</h1>

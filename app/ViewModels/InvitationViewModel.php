@@ -2,6 +2,7 @@
 
 namespace App\ViewModels;
 
+use App\Enums\BlockType;
 use App\Models\Guest;
 use App\Models\Invitation;
 use Illuminate\Support\Carbon;
@@ -18,6 +19,18 @@ final readonly class InvitationViewModel
         $primaryEvent = $invitation->events->firstWhere('is_primary', true) ?? $invitation->events->first();
         $configuredSections = $invitation->sections->where('enabled', true)->pluck('key')->all();
         $sections = array_values(array_intersect($configuredSections ?: $manifest['sections'], $manifest['sections']));
+        // Per section height, chosen in the section editor. Values are relative to
+        // the guest's viewport, never pixels. Kept separate from $sections so
+        // templates that do not read it keep working unchanged.
+        $sectionHeights = [];
+
+        foreach ($invitation->sections->where('enabled', true) as $section) {
+            $height = $section->content_json['height'] ?? null;
+
+            if (in_array($height, ['auto', 'half', 'tall'], true)) {
+                $sectionHeights[$section->key] = $height;
+            }
+        }
         $settings = $invitation->settings_json ?? [];
         $accentDefault = $manifest['settings_schema']['accent_color']['default'] ?? '#7b2639';
         $motionDefault = $manifest['settings_schema']['motion']['default'] ?? 'calm';
@@ -81,6 +94,10 @@ final readonly class InvitationViewModel
             'font_pairing' => in_array($settings['font_pairing'] ?? null, $settingOptions('font_pairing'), true) ? $settings['font_pairing'] : $settingDefault('font_pairing', 'editorial-serif'),
             'cover_video_enabled' => filter_var(
                 $settings['cover_video_enabled'] ?? $settingDefault('cover_video_enabled', false),
+                FILTER_VALIDATE_BOOLEAN,
+            ),
+            'opening_video_enabled' => filter_var(
+                $settings['opening_video_enabled'] ?? $settingDefault('opening_video_enabled', false),
                 FILTER_VALIDATE_BOOLEAN,
             ),
             'cover_video_desktop' => $safeSettingMedia('cover_video_desktop'),
@@ -148,7 +165,91 @@ final readonly class InvitationViewModel
             'wishes' => $invitation->guestbookEntries->map(fn ($entry) => [
                 'name' => $entry->name, 'message' => $entry->message,
             ])->all(),
+            'blocks' => self::blocks($invitation, $asset),
+            'section_heights' => $sectionHeights,
+            'labels' => self::labels($invitation, $manifest),
             'theme' => $theme,
         ]);
+    }
+
+    /**
+     * Section wording for a single invitation.
+     *
+     * The template declares its own defaults in the manifest and one invitation
+     * may override any of them without touching the other invitations using the
+     * same template. A blank or unknown override is ignored, so clearing a field
+     * in the admin panel falls back to the template instead of leaving an empty
+     * heading in the published invitation.
+     *
+     * @return array<string, string>
+     */
+    private static function labels(Invitation $invitation, array $manifest): array
+    {
+        $labels = is_array($manifest['labels'] ?? null) ? $manifest['labels'] : [];
+        $overrides = $invitation->settings_json['labels'] ?? [];
+
+        if (! is_array($overrides)) {
+            return $labels;
+        }
+
+        foreach ($overrides as $key => $value) {
+            if (! isset($labels[$key]) || ! is_string($value)) {
+                continue;
+            }
+
+            // Long enough for an intro paragraph, not just a heading.
+            $value = mb_substr(trim(strip_tags($value)), 0, 400);
+
+            if ($value !== '') {
+                $labels[$key] = $value;
+            }
+        }
+
+        return $labels;
+    }
+
+    /**
+     * Operator-built blocks, normalised for the template.
+     *
+     * A block with nothing to show is dropped here rather than published as an
+     * empty band or a broken image, so a template can render whatever it is
+     * handed without guarding every field itself.
+     *
+     * @param  callable(?string): ?string  $asset
+     * @return array<int, array<string, ?string>>
+     */
+    private static function blocks(Invitation $invitation, callable $asset): array
+    {
+        return $invitation->blocks
+            ->map(function ($block) use ($asset): ?array {
+                $content = is_array($block->content_json) ? $block->content_json : [];
+                $text = function (string $key) use ($content): ?string {
+                    $value = $content[$key] ?? null;
+
+                    return is_string($value) && trim($value) !== '' ? trim($value) : null;
+                };
+
+                $normalised = [
+                    'type' => $block->type->value,
+                    'title' => $text('title'),
+                    'body' => $text('body'),
+                    'quote' => $text('quote'),
+                    'source' => $text('source'),
+                    'caption' => $text('caption'),
+                    'url' => $asset($text('path')),
+                ];
+
+                $hasContent = match ($block->type) {
+                    BlockType::SECTION => $normalised['title'] !== null,
+                    BlockType::TEXT, BlockType::NOTE => $normalised['body'] !== null,
+                    BlockType::QUOTE => $normalised['quote'] !== null,
+                    BlockType::IMAGE => $normalised['url'] !== null,
+                };
+
+                return $hasContent ? $normalised : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 }

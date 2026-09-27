@@ -95,6 +95,23 @@ class Invitation extends Model
         return $this->hasMany(Media::class)->orderBy('position');
     }
 
+    /**
+     * The sections a freshly created invitation starts with, in display order.
+     *
+     * Declared once so the admin's create flow and any code that has to seed a
+     * missing section list agree on the same order.
+     *
+     * @return array<int, string>
+     */
+    public static function defaultSectionKeys(): array
+    {
+        return [
+            'opening', 'hosts', 'events', 'countdown', 'calendar',
+            'map', 'story', 'gallery', 'blocks', 'rsvp', 'guestbook',
+            'gifts', 'contacts', 'livestream', 'sharing', 'closing',
+        ];
+    }
+
     public function guests(): HasMany
     {
         return $this->hasMany(Guest::class);
@@ -108,6 +125,11 @@ class Invitation extends Model
     public function guestbookEntries(): HasMany
     {
         return $this->hasMany(GuestbookEntry::class);
+    }
+
+    public function blocks(): HasMany
+    {
+        return $this->hasMany(InvitationBlock::class)->orderBy('position');
     }
 
     public function giftMethods(): HasMany

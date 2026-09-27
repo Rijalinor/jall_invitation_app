@@ -22,6 +22,11 @@
         $coverImage = $theme['cover_poster_image'] ?: ($gallery[0]['url'] ?? ($hosts[0]['photo_url'] ?? null));
         $coverDesktop = $theme['cover_video_enabled'] ? $theme['cover_video_desktop'] : null;
         $coverMobile = $theme['cover_video_enabled'] ? ($theme['cover_video_mobile'] ?: $coverDesktop) : null;
+        // The opening section reuses the same upload, switched on separately so
+        // turning the cover video on never changes a section the operator did not
+        // ask about.
+        $openingVideo = ($theme['opening_video_enabled'] ?? false) ? $coverDesktop : null;
+        $openingVideoMobile = ($theme['opening_video_enabled'] ?? false) ? $coverMobile : null;
     @endphp
     <div class="er-cover" id="opening-cover">
         @if ($coverImage)<img class="er-cover__poster" src="{{ $coverImage }}" alt="" aria-hidden="true">@endif
@@ -37,12 +42,12 @@
         @endif
         <div class="er-cover__paper">
             <span class="er-cover__ornament" aria-hidden="true">✦</span>
-            <span class="invitation-eyebrow">Undangan</span>
+            <span class="invitation-eyebrow">{{ $labels['cover_eyebrow'] }}</span>
             <h1>{{ $title }}</h1>
             @if ($primary_event)<span class="er-cover__date">{{ $primary_event['date'] }}</span>@endif
             @if ($primary_event && $primary_event['timestamp'])
                 <div class="er-cover__countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju acara">
-                    <span class="er-cover__countdown-label">Menuju acara</span>
+                    <span class="er-cover__countdown-label">{{ $labels['cover_countdown_label'] }}</span>
                     <div data-countdown-output>
                         @foreach (['days' => 'Hari', 'hours' => 'Jam', 'minutes' => 'Menit', 'seconds' => 'Detik'] as $unit => $label)
                             <span><strong data-countdown-unit="{{ $unit }}">00</strong><small>{{ $label }}</small></span>
@@ -50,9 +55,9 @@
                     </div>
                 </div>
             @endif
-            <p>Kepada Yth.</p>
+            <p>{{ $labels['cover_recipient_label'] }}</p>
             <strong>{{ $recipient }}</strong>
-            <a href="#invitation-content" data-open-invitation>Buka Undangan</a>
+            <a href="#invitation-content" data-open-invitation>{{ $labels['cover_cta'] }}</a>
         </div>
     </div>
 
@@ -73,20 +78,28 @@
     <main id="invitation-content" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
-                <section class="er-hero invitation-section">
-                    <span class="invitation-eyebrow">Dengan penuh kebahagiaan</span>
+                <section class="er-hero invitation-section" data-height="{{ $section_heights['opening'] ?? 'full' }}">
+                    @if ($openingVideo)
+                        @if ($openingVideoMobile !== $openingVideo)
+                            <video class="er-hero__video er-hero__video--desktop" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $openingVideo }}"></video>
+                            <video class="er-hero__video er-hero__video--mobile" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $openingVideoMobile }}"></video>
+                        @else
+                            <video class="er-hero__video" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $openingVideo }}"></video>
+                        @endif
+                    @endif
+                    <span class="invitation-eyebrow">{{ $labels['opening_eyebrow'] }}</span>
                     @if (count($hosts) >= 2)
                         <h2 class="er-couple-title"><span>{{ $hosts[0]['name'] }}</span><i>&amp;</i><span>{{ $hosts[1]['name'] }}</span></h2>
                     @else
                         <h2>{{ $title }}</h2>
                     @endif
-                    @if ($opening_text)<p>{{ $opening_text }}</p>@endif
+                    @if ($opening_text)<p>{!! nl2br(e($opening_text)) !!}</p>@endif
                     @if ($primary_event)<p class="er-date">{{ $primary_event['date'] }}</p>@endif
                 </section>
             @elseif ($section === 'hosts' && count($hosts))
-                <section class="invitation-section" id="hosts" aria-labelledby="hosts-title">
-                    <span class="invitation-eyebrow">Yang Berbahagia</span>
-                    <h2 id="hosts-title">Mempelai &amp; Keluarga</h2>
+                <section class="invitation-section" data-height="{{ $section_heights['hosts'] ?? 'full' }}" id="hosts" aria-labelledby="hosts-title">
+                    <span class="invitation-eyebrow">{{ $labels['hosts_eyebrow'] }}</span>
+                    <h2 id="hosts-title">{{ $labels['hosts_title'] }}</h2>
                     <div class="er-hosts" data-count="{{ count($hosts) }}">
                         @foreach ($hosts as $host)
                             <article class="er-host">
@@ -102,9 +115,9 @@
                     </div>
                 </section>
             @elseif ($section === 'events' && count($events))
-                <section class="invitation-section invitation-section--tint" id="events" aria-labelledby="events-title">
-                    <span class="invitation-eyebrow">Save the Date</span>
-                    <h2 id="events-title">Rangkaian Acara</h2>
+                <section class="invitation-section invitation-section--tint" data-height="{{ $section_heights['events'] ?? 'full' }}" id="events" aria-labelledby="events-title">
+                    <span class="invitation-eyebrow">{{ $labels['events_eyebrow'] }}</span>
+                    <h2 id="events-title">{{ $labels['events_title'] }}</h2>
                     <div class="er-events">
                         @foreach ($events as $event)
                             <article class="er-event">
@@ -126,21 +139,21 @@
                                     @if (in_array('calendar', $sections))<a href="{{ $event['ics_url'] }}">Unduh ICS</a>@endif
                                     @if (in_array('map', $sections) && $event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin Alamat</button>@endif
                                 </div>
-                                @if (count($event['notes']))<div class="er-event__notes">@foreach ($event['notes'] as $note)<small>{{ $note }}</small>@endforeach</div>@endif
+                                @if (count($event['notes']))<div class="er-event__notes">@foreach ($event['notes'] as $note)<small>{!! nl2br(e($note)) !!}</small>@endforeach</div>@endif
                             </article>
                         @endforeach
                     </div>
                 </section>
             @elseif ($section === 'map' && $primary_event && $primary_event['map_embed_url'])
-                <section class="invitation-section" aria-labelledby="map-title">
-                    <span class="invitation-eyebrow">Lokasi Acara</span><h2 id="map-title">Petunjuk Lokasi</h2>
+                <section class="invitation-section" data-height="{{ $section_heights['map'] ?? 'full' }}" aria-labelledby="map-title">
+                    <span class="invitation-eyebrow">{{ $labels['map_eyebrow'] }}</span><h2 id="map-title">{{ $labels['map_title'] }}</h2>
                     <div class="er-map"><iframe src="{{ $primary_event['map_embed_url'] }}" title="Peta {{ $primary_event['venue'] ?: $primary_event['label'] }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
                     @if ($primary_event['address'])<p>{{ $primary_event['address'] }}</p>@endif
                     <div class="er-actions er-actions--center">@if ($primary_event['directions_url'])<a href="{{ $primary_event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Buka Google Maps</a>@endif @if ($primary_event['address'])<button type="button" data-copy="{{ $primary_event['address'] }}">Salin Alamat</button>@endif</div>
                 </section>
             @elseif ($section === 'countdown' && $primary_event && $primary_event['timestamp'])
-                <section class="invitation-section er-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
-                    <span class="invitation-eyebrow">Menuju Hari Bahagia</span>
+                <section class="invitation-section er-countdown" data-height="{{ $section_heights['countdown'] ?? 'full' }}" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
+                    <span class="invitation-eyebrow">{{ $labels['countdown_eyebrow'] }}</span>
                     <div class="er-countdown__units" data-countdown-output>
                         @foreach (['days' => 'Hari', 'hours' => 'Jam', 'minutes' => 'Menit', 'seconds' => 'Detik'] as $unit => $label)
                             <span><strong data-countdown-unit="{{ $unit }}">00</strong><small>{{ $label }}</small></span>
@@ -148,49 +161,51 @@
                     </div>
                 </section>
             @elseif ($section === 'story' && count($stories))
-                <section class="invitation-section" id="story" aria-labelledby="story-title">
-                    <span class="invitation-eyebrow">Jejak Cerita</span><h2 id="story-title">Kisah Kami</h2>
+                <section class="invitation-section" data-height="{{ $section_heights['story'] ?? 'full' }}" id="story" aria-labelledby="story-title">
+                    <span class="invitation-eyebrow">{{ $labels['story_eyebrow'] }}</span><h2 id="story-title">{{ $labels['story_title'] }}</h2>
                     <div class="er-timeline">
                         @foreach ($stories as $story)
                             <article>
                                 @if ($story['image_url'])<img src="{{ $story['image_url'] }}" alt="{{ $story['title'] }}" loading="lazy">@endif
                                 <small>{{ $story['date'] }}</small><h3>{{ $story['title'] }}</h3>
-                                @if ($story['body'])<p>{{ $story['body'] }}</p>@endif
+                                @if ($story['body'])<p>{!! nl2br(e($story['body'])) !!}</p>@endif
                             </article>
                         @endforeach
                     </div>
                 </section>
             @elseif ($section === 'gallery' && count($gallery))
-                <section class="invitation-section invitation-section--tint er-gallery-section" id="gallery" aria-labelledby="gallery-title">
-                    <span class="invitation-eyebrow">Galeri</span><h2 id="gallery-title">Momen Pilihan</h2>
+                <section class="invitation-section invitation-section--tint er-gallery-section" data-height="{{ $section_heights['gallery'] ?? 'full' }}" id="gallery" aria-labelledby="gallery-title">
+                    <span class="invitation-eyebrow">{{ $labels['gallery_eyebrow'] }}</span><h2 id="gallery-title">{{ $labels['gallery_title'] }}</h2>
                     <div class="er-gallery">@foreach (array_chunk($gallery, 4) as $page)<div class="er-gallery__page">@foreach ($page as $image)<figure><button type="button" data-lightbox-src="{{ $image['url'] }}" data-lightbox-alt="{{ $image['alt'] }}"><img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async"></button>@if ($image['caption'])<figcaption>{{ $image['caption'] }}</figcaption>@endif</figure>@endforeach</div>@endforeach</div>
                 </section>
+            @elseif ($section === 'blocks' && count($blocks))
+                @include('invitations.shared.blocks')
             @elseif ($section === 'rsvp')
                 <div id="rsvp">@include('invitations.shared.rsvp')</div>
             @elseif ($section === 'guestbook')
                 @include('invitations.shared.guestbook')
             @elseif ($section === 'gifts' && count($gifts))
-                <section class="invitation-section" aria-labelledby="gifts-title">
-                    <span class="invitation-eyebrow">Tanda Kasih</span><h2 id="gifts-title">Hadiah Digital</h2>
-                    <p>Doa dan kehadiran Anda adalah hadiah terindah. Detail berikut tersedia bila Anda ingin mengirim tanda kasih.</p>
+                <section class="invitation-section" data-height="{{ $section_heights['gifts'] ?? 'full' }}" aria-labelledby="gifts-title">
+                    <span class="invitation-eyebrow">{{ $labels['gifts_eyebrow'] }}</span><h2 id="gifts-title">{{ $labels['gifts_title'] }}</h2>
+                    <p>{!! nl2br(e($labels['gifts_intro'])) !!}</p>
                     <div class="er-gifts">
                         @foreach ($gifts as $gift)
                             <details class="er-gift"><summary>{{ $gift['type_label'] }} · {{ $gift['provider'] }}</summary><div>
                                 @if ($gift['account_number'])<p><small>Nomor rekening / e-wallet</small><strong>{{ $gift['account_number'] }}</strong></p><button type="button" data-copy="{{ $gift['account_number'] }}">Salin Nomor</button>@endif
                                 @if ($gift['account_name'])<p>Atas nama {{ $gift['account_name'] }}</p>@endif
                                 @if ($gift['delivery_address'])<p>{{ $gift['delivery_address'] }}</p><button type="button" data-copy="{{ $gift['delivery_address'] }}">Salin Alamat Hadiah</button>@endif
-                                @if ($gift['notes'])<p>{{ $gift['notes'] }}</p>@endif
+                                @if ($gift['notes'])<p>{!! nl2br(e($gift['notes'])) !!}</p>@endif
                             </div></details>
                         @endforeach
                     </div>
                 </section>
             @elseif ($section === 'livestream' && $livestream_url)
-                <section class="invitation-section"><h2>Live Streaming</h2><a class="er-button" href="{{ $livestream_url }}" target="_blank" rel="noopener noreferrer">{{ $livestream_label }}</a></section>
+                <section class="invitation-section" data-height="{{ $section_heights['livestream'] ?? 'full' }}"><h2>Live Streaming</h2><a class="er-button" href="{{ $livestream_url }}" target="_blank" rel="noopener noreferrer">{{ $livestream_label }}</a></section>
             @elseif ($section === 'contacts' && count($contacts))
-                <section class="invitation-section er-contact-section" aria-labelledby="contacts-title">
-                    <span class="invitation-eyebrow">Hubungi Kami</span>
-                    <h2 id="contacts-title">Kontak</h2>
-                    <p>Jika membutuhkan informasi lebih lanjut, silakan hubungi kontak berikut.</p>
+                <section class="invitation-section er-contact-section" data-height="{{ $section_heights['contacts'] ?? 'full' }}" aria-labelledby="contacts-title">
+                    <span class="invitation-eyebrow">{{ $labels['contacts_eyebrow'] }}</span>
+                    <h2 id="contacts-title">{{ $labels['contacts_title'] }}</h2>
+                    <p>{!! nl2br(e($labels['contacts_intro'])) !!}</p>
                     <div class="er-contact-list">
                         @foreach ($contacts as $contact)
                             <article class="er-contact-card">
@@ -205,14 +220,14 @@
                     </div>
                 </section>
             @elseif ($section === 'sharing')
-                <section class="invitation-section er-share-section">
-                    <span class="invitation-eyebrow">Sebarkan Kabar Bahagia</span>
-                    <h2>Bagikan Undangan</h2>
-                    <p>Bagikan undangan ini kepada keluarga dan orang terdekat.</p>
+                <section class="invitation-section er-share-section" data-height="{{ $section_heights['sharing'] ?? 'full' }}">
+                    <span class="invitation-eyebrow">{{ $labels['sharing_eyebrow'] }}</span>
+                    <h2>{{ $labels['sharing_title'] }}</h2>
+                    <p>{!! nl2br(e($labels['sharing_intro'])) !!}</p>
                     <div class="er-actions er-actions--center"><button type="button" data-share data-share-url="{{ $share_url }}">Bagikan Sekarang</button><a href="{{ $whatsapp_url }}" target="_blank" rel="noopener noreferrer">Kirim via WhatsApp</a></div>
                 </section>
             @elseif ($section === 'closing')
-                <section class="invitation-section er-closing"><span class="invitation-eyebrow">Terima Kasih</span><h2>{{ $title }}</h2>@if ($closing_message)<p>{{ $closing_message }}</p>@endif</section>
+                <section class="invitation-section er-closing" data-height="{{ $section_heights['closing'] ?? 'full' }}"><span class="invitation-eyebrow">{{ $labels['closing_eyebrow'] }}</span><h2>{{ $title }}</h2>@if ($closing_message)<p>{!! nl2br(e($closing_message)) !!}</p>@endif</section>
             @endif
         @endforeach
     </main>

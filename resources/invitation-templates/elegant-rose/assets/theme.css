@@ -17,7 +17,7 @@
     font: 400 1rem/1.75 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
-html:has(body.elegant-rose) { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+html:has(body.elegant-rose) { scroll-behavior: smooth; }
 .elegant-rose *, .elegant-rose *::before, .elegant-rose *::after { box-sizing: border-box; }
 .elegant-rose h1, .elegant-rose h2, .elegant-rose h3 { margin: 0 0 1rem; font-family: 'Playfair Display', Georgia, serif; font-weight: 600; line-height: 1.08; }
 .elegant-rose h1 { font-size: clamp(2.5rem, 11vw, 5.8rem); letter-spacing: -.045em; }
@@ -31,7 +31,7 @@ html:has(body.elegant-rose) { scroll-snap-type: y mandatory; scroll-behavior: sm
 .invitation-eyebrow { display: flex; align-items: center; justify-content: center; gap: .75rem; margin-bottom: 1.2rem; color: var(--rose-action); font-size: .7rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
 .invitation-eyebrow::before, .invitation-eyebrow::after { content: ''; width: 1.8rem; height: 1px; background: currentColor; opacity: .45; }
 
-.er-cover { position: fixed; z-index: 20; inset: 0; display: grid; place-items: end center; padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); overflow: hidden; background: var(--rose-accent); transition: opacity .7s, visibility .7s; }
+.er-cover { position: fixed; z-index: 20; inset: 0; display: grid; place-items: safe end center; padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); overflow-x: hidden; overflow-y: auto; background: var(--rose-accent); transition: opacity .7s, visibility .7s; }
 .er-cover__poster, .er-cover__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: .92; filter: saturate(.86) contrast(1.06); }
 .er-cover__video--desktop { display: none; }
 .er-cover::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgb(31 10 17 / .22), rgb(55 19 29 / .24) 35%, rgb(29 8 14 / .78)); pointer-events: none; }
@@ -50,9 +50,9 @@ html:has(body.elegant-rose) { scroll-snap-type: y mandatory; scroll-behavior: sm
 .er-cover__countdown > div > span { display: grid; gap: .08rem; min-width: 3.1rem; padding: .35rem .2rem; border: 1px solid rgb(255 253 248 / .25); background: rgb(31 10 17 / .18); }
 .er-cover__countdown strong { font: 600 1rem/1.1 'Playfair Display', Georgia, serif; }
 .er-cover__countdown small { color: rgb(255 253 248 / .72); font-size: .5rem; letter-spacing: .08em; text-transform: uppercase; }
-.elegant-rose button, .er-button, .er-actions a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: .72rem 1.15rem; border: 1px solid var(--rose-action); border-radius: 999px; color: var(--rose-action); background: transparent; cursor: pointer; font-weight: 600; text-decoration: none; transition: color .2s, background .2s, box-shadow .2s, transform .2s; }
+.elegant-rose button, .er-button, .er-actions a, .er-cover [data-open-invitation] { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: .72rem 1.15rem; border: 1px solid var(--rose-action); border-radius: 999px; color: var(--rose-action); background: transparent; cursor: pointer; font-weight: 600; text-decoration: none; transition: color .2s, background .2s, box-shadow .2s, transform .2s; }
 .elegant-rose button:hover, .er-actions a:hover { color: white; background: var(--rose-action); box-shadow: 0 .45rem 1.2rem rgb(68 23 34 / .14); transform: translateY(-1px); }
-.er-cover button, .er-button { color: white; background: var(--rose-action); }
+.er-cover button, .er-cover [data-open-invitation], .er-button { color: white; background: var(--rose-action); }
 .invitation-open .er-cover { opacity: 0; visibility: hidden; }
 /* Kept out of the tab order while the cover is up, but only once scripting is
    available; without it the invitation must stay reachable. */
@@ -81,7 +81,7 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 .er-petal--three { left: 72%; top: -10%; animation: er-petal-fall 20s linear 2s infinite; }
 .er-petal--four { left: 86%; top: -14%; animation: er-petal-fall 24s linear 8s infinite; }
 
-.invitation-section { position: relative; width: min(100%, 64rem); min-height: 100svh; display: grid; align-content: center; margin: auto; padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem)); overflow: hidden; text-align: center; scroll-snap-align: start; scroll-snap-stop: always; }
+.invitation-section { position: relative; width: min(100%, 64rem); min-height: 100svh; display: grid; align-content: center; margin: auto; padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem)); overflow: hidden; text-align: center; }
 .invitation-section::before { content: ''; position: absolute; inset: .9rem; border: 1px solid color-mix(in srgb, var(--rose-accent) 24%, transparent); pointer-events: none; }
 .invitation-section::after { content: ''; position: absolute; right: -4rem; bottom: -5rem; width: 13rem; aspect-ratio: 1; border-radius: 50%; background: color-mix(in srgb, var(--rose-accent) 14%, transparent); filter: blur(14px); pointer-events: none; }
 .invitation-section > * { position: relative; z-index: 1; }
@@ -240,13 +240,13 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     .er-host__portrait { width: 100%; margin-bottom: .7rem; aspect-ratio: 4/5; border-radius: 999px 999px .4rem .4rem; }
     .er-host:nth-of-type(2) .er-host__portrait { margin-top: 1.4rem; }
     .er-host h3 { margin-bottom: .35rem; font-size: clamp(1.05rem, 5.6vw, 1.45rem); line-height: 1; overflow-wrap: normal; word-break: normal; }
-    .er-host p { display: -webkit-box; margin-block: .25rem; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .68rem; line-height: 1.35; }
+    .er-host p { margin-block: .25rem; font-size: .68rem; line-height: 1.35; }
     .er-host a { font-size: .6rem; }
     .er-hosts__and { margin-top: 6.4rem; font-size: 1.5rem; }
     .er-events { gap: .75rem; }
     .er-event__schedule, .er-event__venue, .er-event__notes { padding-block: .65rem; }
     .er-actions { gap: .45rem; margin-top: .85rem; }
-    .elegant-rose button, .er-button, .er-actions a { min-height: 44px; padding: .62rem .8rem; font-size: .74rem; }
+    .elegant-rose button, .er-button, .er-actions a, .er-cover [data-open-invitation] { min-height: 44px; padding: .62rem .8rem; font-size: .74rem; }
     .invitation-form { width: min(100%, 18rem); gap: .72rem; padding: 1rem; }
     .invitation-form label { gap: .28rem; font-size: .68rem; }
     .invitation-form input, .invitation-form select, .invitation-form textarea { min-height: 44px; padding: .62rem .7rem; font-size: .72rem; }
@@ -314,11 +314,119 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     .er-cover__date { grid-area: date; margin: .75rem 0 0; }
     .er-cover__paper p { grid-area: recipient-label; align-self: end; margin-bottom: .25rem; text-align: center; }
     .er-cover__paper strong { grid-area: recipient; align-self: center; margin: 0; text-align: center; }
-    .er-cover__paper button { grid-area: action; align-self: start; justify-self: center; margin-top: 1.25rem; }
+    .er-cover__paper button, .er-cover__paper [data-open-invitation] { grid-area: action; align-self: start; justify-self: center; margin-top: 1.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    html:has(body.elegant-rose) { scroll-snap-type: none; scroll-behavior: auto; }
+    html:has(body.elegant-rose) { scroll-behavior: auto; }
     .elegant-rose *, .elegant-rose *::before, .elegant-rose *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
     .er-botanical { display: none; }
 }
+
+/* -- Operator-built blocks ---------------------------------------------------
+   The markup comes from the shared blocks partial, which stays template-neutral.
+   These rules only dress that shared `invitation-*` vocabulary in this theme, so
+   another template can adopt the same partial and style it its own way. */
+.invitation-block-quote {
+    max-width: 42rem;
+    margin: clamp(1.5rem, 4vw, 2.5rem) auto 0;
+    padding: clamp(1.2rem, 4vw, 2rem) clamp(1.4rem, 5vw, 2.6rem);
+    text-align: left;
+    background: var(--rose-paper);
+    border-left: 3px solid var(--rose-action);
+    box-shadow: var(--rose-shadow);
+}
+.invitation-block-quote p {
+    margin: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.1rem, 3.4vw, 1.5rem);
+    font-style: italic;
+    line-height: 1.5;
+}
+.invitation-block-quote cite {
+    display: block;
+    margin-top: .9rem;
+    color: var(--rose-muted);
+    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    font-size: .8rem;
+    font-style: normal;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.invitation-block-image {
+    max-width: min(100%, 34rem);
+    margin: clamp(1.5rem, 4vw, 2.5rem) auto 0;
+    padding: .75rem;
+    background: var(--rose-paper);
+    box-shadow: var(--rose-shadow);
+}
+.invitation-block-image figcaption {
+    margin-top: .75rem;
+    color: var(--rose-muted);
+    font-size: .82rem;
+}
+
+.invitation-block-note {
+    max-width: 38rem;
+    margin: clamp(1.5rem, 4vw, 2.5rem) auto 0;
+    padding: 1.1rem 1.3rem;
+    color: var(--rose-ink);
+    text-align: left;
+    font-size: .95rem;
+    background: var(--rose-soft);
+    border: 1px solid var(--rose-line);
+    border-radius: .25rem;
+}
+
+/* -- Short laptop windows ----------------------------------------------------
+   At 1366x660 the cover measures ~711px, so the only way into the invitation
+   started below the fold and the guest had to scroll to find it. Compress the
+   cover instead of hiding anything. Scoped to wide viewports on purpose: on a
+   phone the title already renders small and scrolling the cover is natural, so
+   the original scale stays exactly as designed there. */
+@media (min-width: 40rem) and (max-height: 48rem) {
+    .er-cover h1 {
+        font-size: clamp(1.9rem, 5.4vw, 3.4rem);
+        margin-bottom: .6rem;
+    }
+
+    .er-cover__paper {
+        padding-block: clamp(1rem, 2.5vw, 1.6rem);
+    }
+
+    .er-cover__paper strong {
+        margin-bottom: 1rem;
+    }
+}
+
+/* -- Opening section background video ----------------------------------------
+   The same upload as the cover, mirroring its desktop/mobile switch so a phone
+   gets the lighter cut. Kept semi transparent rather than opaque: the hero puts
+   dark text on a light band, so the video has to read as a wash behind the words
+   instead of a background that swallows them. */
+.er-hero__video {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: .5;
+}
+.er-hero__video--desktop { display: none; }
+
+@media (min-width: 48rem) {
+    .er-hero__video--mobile { display: none; }
+    .er-hero__video--desktop { display: block; }
+}
+
+/* -- Per section height ------------------------------------------------------
+   The section editor can ask a section to fit its content instead of stretching
+   to a full screen, which is what a short band such as an extra text section
+   needs. Declared after .er-hero so it also wins for the opening section, which
+   sets its own min-height. */
+.invitation-section[data-height="tall"] { min-height: 75svh; }
+.invitation-section[data-height="half"] { min-height: 50svh; }
+.invitation-section[data-height="auto"] { min-height: 0; }

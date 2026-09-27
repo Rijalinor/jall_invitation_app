@@ -78,6 +78,32 @@ class TemplateRegistry
         return $path && $root && str_starts_with($path, $root.DIRECTORY_SEPARATOR) ? $path : null;
     }
 
+    /**
+     * Default section wording declared by a template.
+     *
+     * Drives the optional label fields in the admin panel: a template that
+     * declares none simply never shows them, so no template is forced to
+     * support overrides before it is ready.
+     *
+     * @return array<string, string>
+     */
+    public function labels(string $id): array
+    {
+        $labels = $this->find($id)['labels'] ?? [];
+
+        return is_array($labels) ? array_filter($labels, 'is_string') : [];
+    }
+
+    /**
+     * Whether a template honours the per section height set in the section
+     * editor. Declared by the template so the editor never offers a control the
+     * chosen template would ignore.
+     */
+    public function supportsSectionHeight(string $id): bool
+    {
+        return (bool) ($this->find($id)['section_height'] ?? false);
+    }
+
     private function isValid(mixed $manifest, string $directory): bool
     {
         return is_array($manifest)

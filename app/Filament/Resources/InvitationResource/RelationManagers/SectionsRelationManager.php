@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InvitationResource\RelationManagers;
 
+use App\Services\TemplateRegistry;
 use BackedEnum;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
@@ -38,6 +39,7 @@ class SectionsRelationManager extends RelationManager
                                 'map' => 'Peta Lokasi (Google Maps)',
                                 'story' => 'Kisah Cinta (Love Story)',
                                 'gallery' => 'Galeri Foto & Video',
+                                'blocks' => 'Seksi Tambahan (Blok Bebas)',
                                 'rsvp' => 'Form Konfirmasi Kehadiran (RSVP)',
                                 'guestbook' => 'Buku Tamu & Ucapan',
                                 'gifts' => 'Amplop Digital & Kado',
@@ -57,6 +59,19 @@ class SectionsRelationManager extends RelationManager
                             ->label('Urutan Tampilan')
                             ->numeric()
                             ->default(0),
+
+                        Select::make('content_json.height')
+                            ->label('Tinggi Minimal Seksi')
+                            ->options([
+                                'full' => 'Penuh layar (100%)',
+                                'tall' => 'Tiga per empat layar (75%)',
+                                'half' => 'Setengah layar (50%)',
+                                'auto' => 'Menyesuaikan isi (tanpa tinggi minimal)',
+                            ])
+                            ->default('full')
+                            ->selectablePlaceholder(false)
+                            ->visible(fn () => app(TemplateRegistry::class)->supportsSectionHeight((string) $this->getOwnerRecord()->template_id))
+                            ->helperText('Dihitung dari tinggi layar tamu, bukan piksel. Ini tinggi minimal: bila isinya lebih panjang, seksi ikut memanjang — tidak pernah terpotong.'),
                     ])->columns(2),
             ]);
     }
@@ -78,6 +93,7 @@ class SectionsRelationManager extends RelationManager
                         'map' => 'Peta Lokasi',
                         'story' => 'Kisah Cinta',
                         'gallery' => 'Galeri Foto',
+                        'blocks' => 'Seksi Tambahan',
                         'rsvp' => 'Form RSVP',
                         'guestbook' => 'Buku Tamu & Ucapan',
                         'gifts' => 'Amplop Digital',

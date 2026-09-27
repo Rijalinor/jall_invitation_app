@@ -59,6 +59,7 @@ class InvitationArchitectureTest extends TestCase
             'accent_color' => '#7b2639',
             'motion' => 'calm',
             'cover_video_enabled' => true,
+            'opening_video_enabled' => false,
             'cover_video_desktop' => null,
             'cover_video_mobile' => null,
             'cover_poster_image' => null,
