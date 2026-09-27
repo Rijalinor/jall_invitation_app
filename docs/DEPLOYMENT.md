@@ -144,6 +144,10 @@ Aplikasi saat ini tidak memiliki proses queue wajib. Jika nanti memakai email
 atau job asynchronous, tambahkan worker sesuai fasilitas hosting; jangan
 menjalankan worker permanen jika provider tidak mendukungnya.
 
+Selama cron di atas aktif, penyapu file yatim berjalan otomatis setiap hari
+pukul 03:00. Tanpa cron, jalankan manual seperti dijelaskan pada bagian
+troubleshooting di bawah.
+
 ## Backup
 
 Aktifkan dari panel hosting:
@@ -195,6 +199,42 @@ php artisan up
 Unggah `public/build` terbaru sebelum menjalankan rangkaian tersebut. Jika ada
 perintah gagal, perbaiki penyebabnya sebelum menjalankan `artisan up`.
 
+### Ketika document root adalah `public_html`
+
+Sebagian hosting tidak mengizinkan document root diarahkan ke `public/`, sehingga
+isi folder `public` disalin ke `public_html`. Bila itu yang dipakai, tujuan
+unggahan terbagi dua:
+
+```text
+isi public/  ->  ~/public_html/      (index.php, .htaccess, build/, css/, fonts/, js/)
+sisa proyek  ->  ~/jallinv/          (app/, config/, resources/, routes/, database/, vendor/)
+```
+
+Jangan unggah `.env`, `node_modules/`, `.git/`, atau `tests/`.
+
+### Periksa symlink storage setiap kali update
+
+Proses unggah dapat menimpa symlink `storage` menjadi folder biasa, dan sejak itu
+setiap foto, video, dan musik baru akan gagal tampil sementara berkas lama tetap
+ada. Periksa sebelum dan sesudah update:
+
+```bash
+ls -la ~/public_html/storage
+```
+
+Harus berupa symlink ke `storage/app/public`. Bila bukan:
+
+```bash
+rm -rf ~/public_html/storage
+ln -s /home/USERNAME/jallinv/storage/app/public ~/public_html/storage
+```
+
+### Hosting yang mematikan symlink dan exec
+
+`php artisan storage:link` akan gagal dengan `Call to undefined function
+Illuminate\Filesystem\exec()` ketika `symlink()` dan `exec()` sama-sama dimatikan.
+Buat tautannya manual dengan `ln -s` seperti di atas.
+
 ## Troubleshooting
 
 ### Tampilan admin tanpa CSS
@@ -216,6 +256,23 @@ php artisan optimize:clear
 
 Pastikan file berada di `storage/app/public/invitations`, URL memakai
 `https://DOMAIN/storage/...`, dan `APP_URL` sudah benar.
+
+### File upload menumpuk dan memenuhi kuota
+
+Menghapus foto, video, atau musik dari panel admin **tidak** menghapus file
+fisiknya dari disk. Penghapusan file di dalam transaksi tidak bisa dibatalkan
+ketika penyimpanan gagal, dan itu akan merusak undangan yang sudah tayang, jadi
+file sengaja disapu belakangan.
+
+```bash
+php artisan jall:prune-orphans            # lihat daftar, tidak menghapus
+php artisan jall:prune-orphans --force    # benar-benar hapus
+```
+
+Penyapu hanya menyentuh `storage/app/public/invitations`, hanya file yang tidak
+dirujuk catatan database mana pun, dan hanya yang umurnya lebih dari `--days`
+hari (default 1). Aman dijalankan berulang kali. Kalau tidak ada rujukan yang
+terbaca padahal file ada, perintah berhenti sendiri tanpa menghapus apa pun.
 
 ### Error 500 setelah upload atau update
 

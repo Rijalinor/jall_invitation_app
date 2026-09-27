@@ -119,12 +119,92 @@ When building new templates or repairing existing ones, treat **Elegant Rose** (
 
 ## 7. Motion and Sound
 
-- Tie motion to the concept: page turns for a letter, slow reveal for cinematic work, gentle parallax for botanical depth, or crisp cuts for editorial layouts.
-- Animate opacity and transforms preferentially; avoid layout-thrashing effects.
-- Do not hide essential content behind a long intro.
-- Respect `prefers-reduced-motion` and provide a no-motion path.
+### Name the motion concept
+
+Motion belongs to the creative brief, not to a finishing pass. Before writing code, state the movement in one sentence and hold every effect to it.
+
+| Concept | Motion character |
+|---|---|
+| Letter, stationery | Page turn, fold, seal breaking |
+| Storybook, scrapbook | Page turn, pop-up layers, sticker placement |
+| Cinematic | Slow reveal, depth of field, long cross-fades |
+| Botanical | Gentle parallax, petal drift, growth |
+| Editorial, ledger | Crisp cuts, typeset reveal, rule drawing |
+| Luminous, atelier | Bloom, light sweep, soft focus |
+| Nocturnal, royal | Embers, fireflies, slow drift, glow |
+
+If the concept cannot be stated in one sentence, there is no motion design yet.
+
+### Spend the budget on one signature moment
+
+Give each template exactly **one** memorable motion moment, normally the cover-to-content transition. Everything around it stays quiet.
+
+Motion on every element is the clearest sign of a generated template. When every section fades and slides identically, nothing is emphasised and the guest's eye is never told what matters. If a section needs no motion, give it none.
+
+### Reveal by role, not by habit
+
+- Vary the treatment by what the element is: headings reveal by line, media by scale or clip, lists by stagger, cards by offset from their own edge.
+- Stagger siblings inside one group. Never stagger unrelated sections against each other.
+- Reveal once, then stop observing. Do not replay on scroll-back unless the concept depends on it.
+- Prefer one observer per page with per-element intent over several ad-hoc observers.
+- Keep travel short: 1–2rem reads as arrival, 4rem reads as a slideshow.
+
+### Time it deliberately
+
+Define timing as template tokens and use them everywhere:
+
+```css
+--motion-fast: 140ms;   /* press, hover, control state */
+--motion-base: 320ms;   /* component entry */
+--motion-slow: 900ms;   /* signature moment, hero entrance */
+--ease-enter: cubic-bezier(.2, .7, .2, 1);
+--ease-exit: cubic-bezier(.4, 0, 1, 1);
+```
+
+Duration scales with distance and weight, and exits are faster than entrances. A reveal longer than roughly 1.2s delays reading.
+
+### Never fight the reader
+
+- Animate `transform` and `opacity` only. Anything that changes layout janks on mid-range phones.
+- Do not move body copy while it is being read, and never drift text horizontally.
+- Do not delay the first meaningful content behind more than one interaction.
+- Do not let motion block navigation, forms, or the music control.
+- Scroll effects must never trap scrolling or hijack the wheel.
+
+### Honour the motion setting
+
+Every manifest declares `motion` (`calm`, `expressive`, `off`). Treat it as a contract:
+
+- `calm` and `expressive` must differ in kind, not merely in speed.
+- `off` renders the complete invitation with no reveal and no scroll effects, all content visible immediately.
+- Honour `prefers-reduced-motion` independently: a guest who asks their device for less motion gets the `off` experience even when the template is configured `expressive`.
+
+### Never hide content behind JavaScript
+
+**Content may only be hidden by CSS when JavaScript has itself marked the document as animation capable.**
+
+```js
+document.documentElement.classList.add('js-ready'); // added by the template script
+```
+
+```css
+.template-root.js-ready .observable { opacity: 0; }
+.template-root.js-ready .observable.is-visible { opacity: 1; }
+```
+
+Hiding based on a server-rendered attribute (`[data-motion]`, a template root class) means a slow, blocked, or failed script leaves the guest staring at a blank invitation. With scripting unavailable every section must already be visible and readable. Reveal animations are an enhancement; they are never what makes content appear.
+
+### Sound
+
 - Begin audio only after the visitor opens the invitation or presses play.
-- Keep audio controls visible, keyboard accessible, and understandable without icons alone.
+- Keep audio controls visible, keyboard accessible, and understandable without relying on an icon alone.
+- Never restart audio on re-render, and remember the visitor's last choice.
+
+### Performance
+
+- Animate with CSS or the Web Animations API unless the concept needs a timeline library. If a library is required, load it only on that template and keep it off the critical path.
+- Drive scroll effects from `IntersectionObserver`, or one throttled listener. Never a per-frame `scroll` callback that reads layout.
+- Avoid animating large blurred layers, shadows, or filters on mobile.
 
 ## 8. Media and Cultural Care
 

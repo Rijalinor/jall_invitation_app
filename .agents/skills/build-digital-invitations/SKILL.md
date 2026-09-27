@@ -50,7 +50,7 @@ Before designing, define a compact creative brief:
 - image treatment
 - layout rhythm and section order
 - navigation model
-- motion character and intensity
+- motion concept in one sentence, its signature moment, and its intensity
 
 When the user supplies a reference, extract its principles instead of copying protected artwork or producing a near-duplicate. When no direction is supplied, propose a distinct direction appropriate to the event and continue with a documented assumption.
 
@@ -117,12 +117,14 @@ Keep every slice usable. Do not build a large template marketplace, reseller sys
 - Design mobile-first and verify common narrow screens before desktop polish.
 - Start music only after an intentional user interaction; provide visible play and pause controls.
 - Optimize uploads, generate responsive image sizes, prefer modern formats, and lazy-load off-screen media.
-- Respect reduced-motion preferences and avoid animations that block reading or navigation.
+- Treat motion as a designed layer with a named concept and one signature moment, never a decorative finish. Follow section 7 of `references/design-system.md`.
+- Never let motion hide content: an element may only be hidden under a class that JavaScript added to the document root, so a slow or blocked script cannot leave the guest with a blank invitation.
+- Respect `prefers-reduced-motion` and always keep a genuine no-motion path.
 - Provide fallbacks when maps, audio, fonts, or third-party embeds fail.
 - Treat gift details and account numbers as sensitive editable content and reveal them intentionally.
 
 ## Finish with Evidence
 
-Run the repository's relevant tests, formatter, build, and static checks. Exercise at least one invitation with complete data and one with optional fields missing. Test recipient links containing spaces and non-ASCII characters. Inspect representative mobile and desktop renders when visual tooling is available.
+Run the repository's relevant tests, formatter, build, and static checks. Exercise at least one invitation with complete data and one with optional fields missing. Test recipient links containing spaces and non-ASCII characters. Render at least one template with JavaScript disabled to confirm the invitation is still fully visible and usable. Inspect representative mobile and desktop renders when visual tooling is available.
 
 Use `references/quality-checklist.md`; report what was verified, what could not be verified, and any assumptions that remain.

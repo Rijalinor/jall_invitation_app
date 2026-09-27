@@ -35,8 +35,24 @@
 - Check long names, long addresses, missing images, and large text settings.
 - Verify cover, navigation, forms, gallery, gift details, and floating controls.
 - Confirm contrast, focus visibility, heading order, labels, and alternative text.
-- Confirm reduced-motion behavior.
 - Check that fixed elements respect safe-area insets and do not cover content.
+
+## Motion
+
+- The template states its motion concept in one sentence, and every effect serves it.
+- Exactly one signature moment exists, normally the cover-to-content transition.
+- Sections do not share one identical fade-and-slide treatment.
+- Timings come from template tokens, with shorter exits than entrances.
+- Only `transform` and `opacity` animate; nothing shifts layout while scrolling.
+- Content is only hidden under a class that JavaScript added to the document root.
+- With JavaScript disabled, blocked, or failed, the whole invitation is visible and usable.
+- The `motion` manifest setting changes the motion in kind; `off` removes all reveal and scroll animation.
+- `prefers-reduced-motion` produces the no-motion experience regardless of the setting.
+- No motion delays the first readable content or blocks navigation, forms, or audio controls.
+- Scroll effects do not hijack, trap, or smooth-scroll against the guest's intent.
+- Motion is not driven by a per-frame scroll handler that reads layout.
+- A motion library, when used, is loaded per template and does not block the first render.
+- Audio starts only from a user gesture and never restarts on re-render.
 
 ## Security and Privacy
 
