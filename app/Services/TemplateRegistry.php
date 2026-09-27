@@ -95,6 +95,28 @@ class TemplateRegistry
     }
 
     /**
+     * Declared labels for every template, keyed by template id.
+     *
+     * The panel builds one field per key any template declares, so reading the
+     * manifests once here keeps that from walking the template directory again for
+     * every field.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public function labelsByTemplate(): array
+    {
+        $labels = [];
+
+        foreach ($this->all() as $id => $manifest) {
+            $declared = $manifest['labels'] ?? [];
+
+            $labels[$id] = is_array($declared) ? array_filter($declared, 'is_string') : [];
+        }
+
+        return $labels;
+    }
+
+    /**
      * Whether a template honours the per section height set in the section
      * editor. Declared by the template so the editor never offers a control the
      * chosen template would ignore.

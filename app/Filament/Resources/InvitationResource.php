@@ -220,152 +220,76 @@ class InvitationResource extends Resource
                             ->visible(fn ($get) => $templateRegistry->labels((string) $get('template_id')) !== [])
                             ->collapsible()
                             ->collapsed()
-                            ->schema([
-                                TextInput::make('settings_json.labels.cover_eyebrow')
-                                    ->label('Sampul — tulisan kecil')
-                                    ->placeholder('Undangan')
-                                    ->maxLength(120),
+                            ->schema(function () use ($templateRegistry): array {
+                                // One field per label any template declares, shown only when the
+                                // chosen template declares it. A fixed list would offer wording
+                                // that every other template silently ignores.
+                                $names = [
+                                    'cover_eyebrow' => 'Sampul — tulisan kecil',
+                                    'cover_recipient_label' => 'Sampul — tulisan "Kepada Yth."',
+                                    'cover_countdown_label' => 'Sampul — tulisan di atas hitung mundur',
+                                    'cover_cta' => 'Sampul — tombol buka undangan',
+                                    'opening_eyebrow' => 'Pembuka — tulisan kecil',
+                                    'hosts_eyebrow' => 'Mempelai — tulisan kecil',
+                                    'hosts_title' => 'Mempelai — judul seksi',
+                                    'events_eyebrow' => 'Acara — tulisan kecil',
+                                    'events_title' => 'Acara — judul seksi',
+                                    'countdown_eyebrow' => 'Hitung mundur — tulisan kecil',
+                                    'countdown_title' => 'Hitung mundur — judul seksi',
+                                    'map_eyebrow' => 'Lokasi — tulisan kecil',
+                                    'map_title' => 'Lokasi — judul seksi',
+                                    'story_eyebrow' => 'Cerita — tulisan kecil',
+                                    'story_title' => 'Cerita — judul seksi',
+                                    'gallery_eyebrow' => 'Galeri — tulisan kecil',
+                                    'gallery_title' => 'Galeri — judul seksi',
+                                    'gifts_eyebrow' => 'Hadiah — tulisan kecil',
+                                    'gifts_title' => 'Hadiah — judul seksi',
+                                    'gifts_intro' => 'Hadiah — paragraf pembuka',
+                                    'rsvp_intro' => 'RSVP — paragraf pembuka',
+                                    'contacts_eyebrow' => 'Kontak — tulisan kecil',
+                                    'contacts_title' => 'Kontak — judul seksi',
+                                    'contacts_intro' => 'Kontak — paragraf pembuka',
+                                    'sharing_eyebrow' => 'Bagikan — tulisan kecil',
+                                    'sharing_title' => 'Bagikan — judul seksi',
+                                    'sharing_intro' => 'Bagikan — paragraf pembuka',
+                                    'closing_eyebrow' => 'Penutup — tulisan kecil',
+                                    'closing_script' => 'Penutup — tulisan kecil kedua',
+                                    'closing_kicker' => 'Penutup — kalimat penutup',
+                                ];
 
-                                TextInput::make('settings_json.labels.cover_recipient_label')
-                                    ->label('Sampul — tulisan "Kepada Yth."')
-                                    ->placeholder('Kepada Yth.')
-                                    ->maxLength(120),
+                                $byTemplate = $templateRegistry->labelsByTemplate();
+                                $declared = [];
 
-                                TextInput::make('settings_json.labels.cover_countdown_label')
-                                    ->label('Sampul — tulisan di atas hitung mundur')
-                                    ->placeholder('Menuju acara')
-                                    ->maxLength(120),
+                                foreach ($byTemplate as $labels) {
+                                    $declared += $labels;
+                                }
 
-                                TextInput::make('settings_json.labels.cover_cta')
-                                    ->label('Sampul — tombol buka undangan')
-                                    ->placeholder('Buka Undangan')
-                                    ->maxLength(120),
+                                $hasLabel = fn ($get, string $key): bool => array_key_exists(
+                                    $key,
+                                    $byTemplate[(string) $get('template_id')] ?? [],
+                                );
 
-                                TextInput::make('settings_json.labels.opening_eyebrow')
-                                    ->label('Pembuka — tulisan kecil')
-                                    ->placeholder('Dengan penuh kebahagiaan')
-                                    ->maxLength(120),
+                                $fields = [];
 
-                                TextInput::make('settings_json.labels.hosts_eyebrow')
-                                    ->label('Mempelai — tulisan kecil')
-                                    ->placeholder('Yang Berbahagia')
-                                    ->maxLength(120),
+                                foreach (array_keys($declared) as $key) {
+                                    $name = $names[$key] ?? $key;
 
-                                TextInput::make('settings_json.labels.hosts_title')
-                                    ->label('Mempelai — judul seksi')
-                                    ->placeholder('Mempelai & Keluarga')
-                                    ->maxLength(120),
+                                    $fields[] = str_ends_with($key, '_intro')
+                                        ? Textarea::make('settings_json.labels.'.$key)
+                                            ->label($name)
+                                            ->rows(3)
+                                            ->maxLength(400)
+                                            ->helperText('Baris baru yang kamu ketik tampil sebagai baris baru.')
+                                            ->visible(fn ($get) => $hasLabel($get, $key))
+                                            ->columnSpanFull()
+                                        : TextInput::make('settings_json.labels.'.$key)
+                                            ->label($name)
+                                            ->maxLength(120)
+                                            ->visible(fn ($get) => $hasLabel($get, $key));
+                                }
 
-                                TextInput::make('settings_json.labels.events_eyebrow')
-                                    ->label('Acara — tulisan kecil')
-                                    ->placeholder('Save the Date')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.events_title')
-                                    ->label('Acara — judul seksi')
-                                    ->placeholder('Rangkaian Acara')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.countdown_eyebrow')
-                                    ->label('Hitung mundur — tulisan kecil')
-                                    ->placeholder('Menuju Hari Bahagia')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.map_eyebrow')
-                                    ->label('Lokasi — tulisan kecil')
-                                    ->placeholder('Lokasi Acara')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.map_title')
-                                    ->label('Lokasi — judul seksi')
-                                    ->placeholder('Petunjuk Lokasi')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.story_eyebrow')
-                                    ->label('Cerita — tulisan kecil')
-                                    ->placeholder('Jejak Cerita')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.story_title')
-                                    ->label('Cerita — judul seksi')
-                                    ->placeholder('Kisah Kami')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.gallery_eyebrow')
-                                    ->label('Galeri — tulisan kecil')
-                                    ->placeholder('Galeri')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.gallery_title')
-                                    ->label('Galeri — judul seksi')
-                                    ->placeholder('Momen Pilihan')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.gifts_eyebrow')
-                                    ->label('Hadiah — tulisan kecil')
-                                    ->placeholder('Tanda Kasih')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.gifts_title')
-                                    ->label('Hadiah — judul seksi')
-                                    ->placeholder('Hadiah Digital')
-                                    ->maxLength(120),
-
-                                Textarea::make('settings_json.labels.gifts_intro')
-                                    ->label('Hadiah — paragraf pembuka')
-                                    ->placeholder('Doa dan kehadiran Anda adalah hadiah terindah. Detail berikut tersedia bila Anda ingin mengirim tanda kasih.')
-                                    ->rows(3)
-                                    ->maxLength(400)
-                                    ->helperText('Baris baru yang kamu ketik tampil sebagai baris baru.')
-                                    ->columnSpanFull(),
-
-                                Textarea::make('settings_json.labels.rsvp_intro')
-                                    ->label('RSVP — paragraf pembuka')
-                                    ->placeholder('Mohon berikan konfirmasi kehadiran Anda.')
-                                    ->rows(2)
-                                    ->maxLength(400)
-                                    ->columnSpanFull(),
-
-                                TextInput::make('settings_json.labels.contacts_eyebrow')
-                                    ->label('Kontak — tulisan kecil')
-                                    ->placeholder('Hubungi Kami')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.contacts_title')
-                                    ->label('Kontak — judul seksi')
-                                    ->placeholder('Kontak')
-                                    ->maxLength(120),
-
-                                Textarea::make('settings_json.labels.contacts_intro')
-                                    ->label('Kontak — paragraf pembuka')
-                                    ->placeholder('Jika membutuhkan informasi lebih lanjut, silakan hubungi kontak berikut.')
-                                    ->rows(2)
-                                    ->maxLength(400)
-                                    ->columnSpanFull(),
-
-                                TextInput::make('settings_json.labels.sharing_eyebrow')
-                                    ->label('Bagikan — tulisan kecil')
-                                    ->placeholder('Sebarkan Kabar Bahagia')
-                                    ->maxLength(120),
-
-                                TextInput::make('settings_json.labels.sharing_title')
-                                    ->label('Bagikan — judul seksi')
-                                    ->placeholder('Bagikan Undangan')
-                                    ->maxLength(120),
-
-                                Textarea::make('settings_json.labels.sharing_intro')
-                                    ->label('Bagikan — paragraf pembuka')
-                                    ->placeholder('Bagikan undangan ini kepada keluarga dan orang terdekat.')
-                                    ->rows(2)
-                                    ->maxLength(400)
-                                    ->columnSpanFull(),
-
-                                TextInput::make('settings_json.labels.closing_eyebrow')
-                                    ->label('Penutup — tulisan kecil')
-                                    ->placeholder('Terima Kasih')
-                                    ->maxLength(120)
-                                    ->columnSpanFull(),
-                            ])->columns(2),
+                                return $fields;
+                            })->columns(2),
                     ])->columnSpan(['lg' => 2]),
 
                 Group::make()
