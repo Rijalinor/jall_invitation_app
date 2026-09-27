@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GiftMethodType;
 use App\Models\Invitation;
 use App\Services\FormLinks;
 use App\Services\PublicImageUpload;
@@ -33,6 +34,10 @@ class InvitationFormController extends Controller
 
     public const STEP_GALLERY = 'galeri';
 
+    public const STEP_GIFTS = 'hadiah';
+
+    public const STEP_CONTACTS = 'kontak';
+
     public const STEP_DONE = 'selesai';
 
     private const STEPS = [
@@ -40,6 +45,8 @@ class InvitationFormController extends Controller
         self::STEP_EVENTS => 'Acara',
         self::STEP_STORIES => 'Cerita',
         self::STEP_GALLERY => 'Galeri',
+        self::STEP_GIFTS => 'Hadiah',
+        self::STEP_CONTACTS => 'Kontak',
         self::STEP_DONE => 'Selesai',
     ];
 
@@ -70,6 +77,10 @@ class InvitationFormController extends Controller
 
     private const MAX_GALLERY = 30;
 
+    private const MAX_GIFTS = 5;
+
+    private const MAX_CONTACTS = 5;
+
     public function show(
         FormLinks $links,
         string $token,
@@ -89,12 +100,17 @@ class InvitationFormController extends Controller
             'events' => $invitation->events()->orderBy('position')->orderBy('id')->get(),
             'stories' => $invitation->stories()->orderBy('position')->orderBy('id')->get(),
             'gallery' => $invitation->media()->orderBy('position')->orderBy('id')->get(),
+            'gifts' => $invitation->giftMethods()->orderBy('position')->orderBy('id')->get(),
+            'contacts' => $invitation->contacts()->orderBy('position')->orderBy('id')->get(),
             'hostRoles' => self::HOST_ROLES,
             'timezones' => self::TIMEZONES,
+            'giftTypes' => self::giftTypes(),
             'maxHosts' => self::MAX_HOSTS,
             'maxEvents' => self::MAX_EVENTS,
             'maxStories' => self::MAX_STORIES,
             'maxGallery' => self::MAX_GALLERY,
+            'maxGifts' => self::MAX_GIFTS,
+            'maxContacts' => self::MAX_CONTACTS,
             'remainingPhotoSlots' => $this->remainingPhotoSlots($invitation),
         ]);
     }
@@ -113,6 +129,8 @@ class InvitationFormController extends Controller
             self::STEP_EVENTS => $this->saveEvents($request, $invitation, $token),
             self::STEP_STORIES => $this->saveStories($request, $invitation, $uploads, $token),
             self::STEP_GALLERY => $this->saveGallery($request, $invitation, $uploads, $token),
+            self::STEP_GIFTS => $this->saveGifts($request, $invitation, $token),
+            self::STEP_CONTACTS => $this->saveContacts($request, $invitation, $token),
             default => $this->toStep($token, self::STEP_DONE),
         };
     }
@@ -441,7 +459,134 @@ class InvitationFormController extends Controller
             $this->applyRemovals($invitation->media(), $data['galeri'] ?? [], $keptIds, $uploads, self::GALLERY_PHOTO_DIRECTORY, 'path');
         });
 
+        return $this->toStep($token, self::STEP_GIFTS);
+    }
+
+    private function saveGifts(Request $request, Invitation $invitation, string $token): RedirectResponse
+    {
+        $data = $request->validateWithBag('form', [
+            'hadiah' => ['array', 'max:'.self::MAX_GIFTS],
+            'hadiah.*.id' => ['nullable', 'integer'],
+            'hadiah.*.remove' => ['nullable', 'boolean'],
+            'hadiah.*.type' => ['nullable', Rule::in(array_keys(self::giftTypes()))],
+            'hadiah.*.provider' => ['nullable', 'string', 'max:100'],
+            'hadiah.*.account_name' => ['nullable', 'string', 'max:255'],
+            'hadiah.*.account_number' => ['nullable', 'string', 'max:255'],
+            'hadiah.*.delivery_address' => ['nullable', 'string', 'max:500'],
+            'hadiah.*.notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $rows = collect($data['hadiah'] ?? [])
+            ->filter(fn (array $row): bool => filled($row['provider'] ?? null))
+            ->reject(fn (array $row): bool => filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL))
+            ->take(self::MAX_GIFTS)
+            ->values();
+
+        foreach ($rows as $row) {
+            $physical = ($row['type'] ?? null) === GiftMethodType::PHYSICAL_GIFT->value;
+
+            if ($physical && ! filled($row['delivery_address'] ?? null)) {
+                $this->fail('Isi alamat pengiriman untuk hadiah fisik.');
+            }
+
+            if (! $physical && ! filled($row['account_name'] ?? null)) {
+                $this->fail('Isi nama pemilik rekening atau e-wallet.');
+            }
+        }
+
+        DB::transaction(function () use ($rows, $data, $invitation): void {
+            $keptIds = [];
+
+            foreach ($rows as $index => $row) {
+                $gift = filled($row['id'] ?? null)
+                    ? $invitation->giftMethods()->find($row['id'])
+                    : null;
+
+                $gift ??= $invitation->giftMethods()->make();
+
+                $gift->fill([
+                    'type' => ($row['type'] ?? null) ?: GiftMethodType::BANK_TRANSFER->value,
+                    'provider' => $row['provider'],
+                    'account_name' => $row['account_name'] ?? null,
+                    'account_number' => $row['account_number'] ?? null,
+                    'delivery_address' => $row['delivery_address'] ?? null,
+                    'notes' => $row['notes'] ?? null,
+                    'position' => $index,
+                ]);
+
+                $gift->save();
+                $keptIds[] = $gift->id;
+            }
+
+            $this->applyRemovals($invitation->giftMethods(), $data['hadiah'] ?? [], $keptIds);
+        });
+
+        return $this->toStep($token, self::STEP_CONTACTS);
+    }
+
+    private function saveContacts(Request $request, Invitation $invitation, string $token): RedirectResponse
+    {
+        $data = $request->validateWithBag('form', [
+            'kontak' => ['array', 'max:'.self::MAX_CONTACTS],
+            'kontak.*.id' => ['nullable', 'integer'],
+            'kontak.*.remove' => ['nullable', 'boolean'],
+            'kontak.*.label' => ['nullable', 'string', 'max:255'],
+            'kontak.*.name' => ['nullable', 'string', 'max:255'],
+            // Same shape the admin panel accepts, so the two never disagree.
+            'kontak.*.phone' => ['nullable', 'string', 'max:50', 'regex:/^\+?[0-9\s\-()]{8,20}$/'],
+        ]);
+
+        $rows = collect($data['kontak'] ?? [])
+            ->filter(fn (array $row): bool => filled($row['name'] ?? null))
+            ->reject(fn (array $row): bool => filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL))
+            ->take(self::MAX_CONTACTS)
+            ->values();
+
+        foreach ($rows as $row) {
+            if (! filled($row['label'] ?? null)) {
+                $this->fail('Isi peran setiap kontak, misalnya CP Keluarga atau WO.');
+            }
+
+            if (! filled($row['phone'] ?? null)) {
+                $this->fail('Isi nomor WhatsApp setiap kontak.');
+            }
+        }
+
+        DB::transaction(function () use ($rows, $data, $invitation): void {
+            $keptIds = [];
+
+            foreach ($rows as $index => $row) {
+                $contact = filled($row['id'] ?? null)
+                    ? $invitation->contacts()->find($row['id'])
+                    : null;
+
+                $contact ??= $invitation->contacts()->make();
+
+                $contact->fill([
+                    'label' => $row['label'],
+                    'name' => $row['name'],
+                    'phone' => $row['phone'],
+                    'position' => $index,
+                ]);
+
+                $contact->save();
+                $keptIds[] = $contact->id;
+            }
+
+            $this->applyRemovals($invitation->contacts(), $data['kontak'] ?? [], $keptIds);
+        });
+
         return $this->toStep($token, self::STEP_DONE);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function giftTypes(): array
+    {
+        return collect(GiftMethodType::cases())
+            ->mapWithKeys(fn (GiftMethodType $type): array => [$type->value => $type->label()])
+            ->all();
     }
 
     /**

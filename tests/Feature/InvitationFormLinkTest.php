@@ -280,7 +280,7 @@ class InvitationFormLinkTest extends TestCase
                 ['photo' => UploadedFile::fake()->image('dua.png', 700, 700), 'alt_text' => 'Foto dua'],
                 ['caption' => ''],
             ],
-        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'selesai']));
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'hadiah']));
 
         $this->assertSame(2, $invitation->media()->count());
 
@@ -333,7 +333,7 @@ class InvitationFormLinkTest extends TestCase
 
         $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'galeri']), [
             'galeri' => [['photo' => UploadedFile::fake()->image('satu.jpg', 700, 700)]],
-        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'selesai']));
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'hadiah']));
 
         $item = $invitation->media()->first();
         $path = $item->path;
@@ -342,7 +342,7 @@ class InvitationFormLinkTest extends TestCase
 
         $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'galeri']), [
             'galeri' => [['id' => $item->id, 'remove' => '1']],
-        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'selesai']));
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'hadiah']));
 
         $this->assertSame(0, $invitation->media()->count());
         $this->assertNull(Media::find($item->id));
@@ -373,6 +373,114 @@ class InvitationFormLinkTest extends TestCase
             ->assertSessionHasErrors('form', null, 'form');
 
         $this->assertSame(PublicImageUpload::MAX_PER_INVITATION, $invitation->media()->count());
+    }
+
+    public function test_the_customer_can_save_gift_accounts(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'hadiah']), [
+            'hadiah' => [
+                ['type' => 'bank_transfer', 'provider' => 'Bank Mandiri', 'account_name' => 'Rangga', 'account_number' => '1234567890'],
+                ['type' => 'physical_gift', 'provider' => 'JNE', 'delivery_address' => 'Jl. Merdeka 1, Jakarta'],
+                ['provider' => ''],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'kontak']));
+
+        $this->assertSame(2, $invitation->giftMethods()->count());
+        $this->assertSame('Bank Mandiri', $invitation->giftMethods()->orderBy('position')->first()->provider);
+        $this->assertSame(1, $invitation->giftMethods()->where('type', 'physical_gift')->count());
+    }
+
+    public function test_a_gift_needs_the_right_detail_for_its_type(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        // A bank gift without a holder name would show an unattributable account.
+        $this->from(route('invitation-form.show', $token))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'hadiah']), [
+                'hadiah' => [['type' => 'bank_transfer', 'provider' => 'BCA', 'account_number' => '123']],
+            ])
+            ->assertSessionHasErrors('form', null, 'form');
+
+        // A physical gift without an address could never be sent.
+        $this->from(route('invitation-form.show', $token))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'hadiah']), [
+                'hadiah' => [['type' => 'physical_gift', 'provider' => 'JNE']],
+            ])
+            ->assertSessionHasErrors('form', null, 'form');
+
+        $this->assertSame(0, $invitation->giftMethods()->count());
+    }
+
+    public function test_the_customer_can_save_contacts(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'kontak']), [
+            'kontak' => [
+                ['label' => 'CP Keluarga Pria', 'name' => 'Rani', 'phone' => '081234567890'],
+                ['label' => 'WO', 'name' => 'Dewi', 'phone' => '+62 812-3456-7890'],
+                ['name' => ''],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'selesai']));
+
+        $this->assertSame(2, $invitation->contacts()->count());
+        $this->assertSame('Rani', $invitation->contacts()->orderBy('position')->first()->name);
+    }
+
+    public function test_a_contact_needs_a_role_and_a_usable_number(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->from(route('invitation-form.show', $token))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'kontak']), [
+                'kontak' => [['name' => 'Rani', 'phone' => '081234567890']],
+            ])
+            ->assertSessionHasErrors('form', null, 'form');
+
+        $this->from(route('invitation-form.show', $token))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'kontak']), [
+                'kontak' => [['label' => 'WO', 'name' => 'Dewi', 'phone' => 'bukan nomor']],
+            ])
+            ->assertSessionHasErrors('kontak.0.phone', null, 'form');
+
+        $this->assertSame(0, $invitation->contacts()->count());
+    }
+
+    public function test_the_new_steps_render_their_fields_and_summary(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $invitation->giftMethods()->create(['type' => 'bank_transfer', 'provider' => 'Bank BCA', 'account_name' => 'Rangga', 'account_number' => '1234567890', 'position' => 0]);
+        $invitation->contacts()->create(['label' => 'CP Keluarga', 'name' => 'Dewi', 'phone' => '08123456789', 'position' => 0]);
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'hadiah']))
+            ->assertOk()
+            ->assertSee('Bank, e-wallet, atau kurir', false)
+            ->assertSee('name="hadiah[0][provider]"', false)
+            ->assertSee('Bank BCA');
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'kontak']))
+            ->assertOk()
+            ->assertSee('name="kontak[0][phone]"', false)
+            ->assertSee('Dewi');
+
+        // The closing step has to show what the customer actually entered.
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'selesai']))
+            ->assertOk()
+            ->assertSee('Bank BCA')
+            ->assertSee('Dewi');
     }
 
     /**

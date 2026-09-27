@@ -237,10 +237,52 @@
 
                 <div class="actions">
                     <button class="button--quiet button" type="button" id="add-gallery" data-max="{{ $maxGallery }}">Tambah foto</button>
-                    <button class="button" type="submit">Simpan dan selesai</button>
+                    <button class="button" type="submit">Simpan dan lanjut ke hadiah</button>
                 </div>
 
                 <p style="color:var(--ink-soft);font-size:.875rem">Sisa kuota foto: {{ $remainingPhotoSlots }}.</p>
+            </form>
+        @elseif ($step === \App\Http\Controllers\InvitationFormController::STEP_GIFTS)
+            <form method="POST" action="{{ route('invitation-form.update', ['token' => $token, 'step' => $step]) }}">
+                @csrf
+
+                <p class="lede">Bagian ini opsional. Isi kalau kamu ingin tamu bisa mengirim tanda kasih. Nomor rekening tampil di undangan, jadi periksa lagi sebelum disimpan.</p>
+
+                <div id="gift-rows" style="display:grid;gap:1rem;margin-top:1.25rem">
+                    @foreach ($gifts as $index => $gift)
+                        @include('invitation-form.partials.gift-row', ['index' => $index, 'gift' => $gift])
+                    @endforeach
+
+                    @if ($gifts->count() < $maxGifts)
+                        @include('invitation-form.partials.gift-row', ['index' => $gifts->count(), 'gift' => null])
+                    @endif
+                </div>
+
+                <div class="actions">
+                    <button class="button--quiet button" type="button" id="add-gift" data-max="{{ $maxGifts }}">Tambah hadiah</button>
+                    <button class="button" type="submit">Simpan dan lanjut ke kontak</button>
+                </div>
+            </form>
+        @elseif ($step === \App\Http\Controllers\InvitationFormController::STEP_CONTACTS)
+            <form method="POST" action="{{ route('invitation-form.update', ['token' => $token, 'step' => $step]) }}">
+                @csrf
+
+                <p class="lede">Bagian ini opsional. Isi orang yang bisa dihubungi tamu kalau ada pertanyaan soal acara.</p>
+
+                <div id="contact-rows" style="display:grid;gap:1rem;margin-top:1.25rem">
+                    @foreach ($contacts as $index => $contact)
+                        @include('invitation-form.partials.contact-row', ['index' => $index, 'contact' => $contact])
+                    @endforeach
+
+                    @if ($contacts->count() < $maxContacts)
+                        @include('invitation-form.partials.contact-row', ['index' => $contacts->count(), 'contact' => null])
+                    @endif
+                </div>
+
+                <div class="actions">
+                    <button class="button--quiet button" type="button" id="add-contact" data-max="{{ $maxContacts }}">Tambah kontak</button>
+                    <button class="button" type="submit">Simpan dan selesai</button>
+                </div>
             </form>
         @else
             <ul class="summary">
@@ -274,6 +316,22 @@
                 <li>
                     <strong>Galeri</strong>
                     <div>{{ $gallery->count() }} foto</div>
+                </li>
+                <li>
+                    <strong>Hadiah</strong>
+                    @forelse ($gifts as $gift)
+                        <div>{{ $gift->type->label() }} — {{ $gift->provider }}@if ($gift->account_number) · {{ $gift->account_number }}@endif</div>
+                    @empty
+                        <div>Belum ada data hadiah (opsional).</div>
+                    @endforelse
+                </li>
+                <li>
+                    <strong>Kontak</strong>
+                    @forelse ($contacts as $contact)
+                        <div>{{ $contact->label }} — {{ $contact->name }} · {{ $contact->phone }}</div>
+                    @empty
+                        <div>Belum ada kontak (opsional).</div>
+                    @endforelse
                 </li>
             </ul>
 
@@ -318,6 +376,18 @@
         </template>
     @endif
 
+    @if ($step === \App\Http\Controllers\InvitationFormController::STEP_GIFTS)
+        <template id="gift-row-template">
+            @include('invitation-form.partials.gift-row', ['index' => '__INDEX__', 'gift' => null])
+        </template>
+    @endif
+
+    @if ($step === \App\Http\Controllers\InvitationFormController::STEP_CONTACTS)
+        <template id="contact-row-template">
+            @include('invitation-form.partials.contact-row', ['index' => '__INDEX__', 'contact' => null])
+        </template>
+    @endif
+
     <script>
         (function () {
             function wire(buttonId, listId, templateId, rowSelector) {
@@ -353,6 +423,8 @@
             wire('add-event', 'event-rows', 'event-row-template', '[data-event-row]');
             wire('add-story', 'story-rows', 'story-row-template', '[data-story-row]');
             wire('add-gallery', 'gallery-rows', 'gallery-row-template', '[data-gallery-row]');
+            wire('add-gift', 'gift-rows', 'gift-row-template', '[data-gift-row]');
+            wire('add-contact', 'contact-rows', 'contact-row-template', '[data-contact-row]');
         })();
     </script>
 </body>
