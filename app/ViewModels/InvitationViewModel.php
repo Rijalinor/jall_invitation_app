@@ -166,6 +166,7 @@ final readonly class InvitationViewModel
                 'name' => $entry->name, 'message' => $entry->message,
             ])->all(),
             'blocks' => self::blocks($invitation, $asset),
+            'block_sections' => self::blockSections($invitation, $asset),
             'section_heights' => $sectionHeights,
             'labels' => self::labels($invitation, $manifest),
             'theme' => $theme,
@@ -221,35 +222,69 @@ final readonly class InvitationViewModel
     private static function blocks(Invitation $invitation, callable $asset): array
     {
         return $invitation->blocks
-            ->map(function ($block) use ($asset): ?array {
-                $content = is_array($block->content_json) ? $block->content_json : [];
-                $text = function (string $key) use ($content): ?string {
-                    $value = $content[$key] ?? null;
-
-                    return is_string($value) && trim($value) !== '' ? trim($value) : null;
-                };
-
-                $normalised = [
-                    'type' => $block->type->value,
-                    'title' => $text('title'),
-                    'body' => $text('body'),
-                    'quote' => $text('quote'),
-                    'source' => $text('source'),
-                    'caption' => $text('caption'),
-                    'url' => $asset($text('path')),
-                ];
-
-                $hasContent = match ($block->type) {
-                    BlockType::SECTION => $normalised['title'] !== null,
-                    BlockType::TEXT, BlockType::NOTE => $normalised['body'] !== null,
-                    BlockType::QUOTE => $normalised['quote'] !== null,
-                    BlockType::IMAGE => $normalised['url'] !== null,
-                };
-
-                return $hasContent ? $normalised : null;
-            })
+            ->map(fn ($block): ?array => self::normaliseBlock($block, $asset))
             ->filter()
             ->values()
             ->all();
+    }
+
+    /**
+     * The same blocks, grouped by the section that holds them.
+     *
+     * A section renders its own group, which is what lets an operator build several
+     * extra sections and place each one separately instead of moving them together.
+     *
+     * @param  callable(?string): ?string  $asset
+     * @return array<string, array<int, array<string, ?string>>>
+     */
+    private static function blockSections(Invitation $invitation, callable $asset): array
+    {
+        $keys = $invitation->sections->pluck('key', 'id');
+        $grouped = [];
+
+        foreach ($invitation->blocks as $block) {
+            $normalised = self::normaliseBlock($block, $asset);
+
+            if ($normalised !== null) {
+                $grouped[$keys[$block->section_id] ?? 'blocks'][] = $normalised;
+            }
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * One block, ready to render, or null when it has nothing to show.
+     *
+     * @param  callable(?string): ?string  $asset
+     * @return array<string, ?string>|null
+     */
+    private static function normaliseBlock($block, callable $asset): ?array
+    {
+        $content = is_array($block->content_json) ? $block->content_json : [];
+        $text = function (string $key) use ($content): ?string {
+            $value = $content[$key] ?? null;
+
+            return is_string($value) && trim($value) !== '' ? trim($value) : null;
+        };
+
+        $normalised = [
+            'type' => $block->type->value,
+            'title' => $text('title'),
+            'body' => $text('body'),
+            'quote' => $text('quote'),
+            'source' => $text('source'),
+            'caption' => $text('caption'),
+            'url' => $asset($text('path')),
+        ];
+
+        $hasContent = match ($block->type) {
+            BlockType::SECTION => $normalised['title'] !== null,
+            BlockType::TEXT, BlockType::NOTE => $normalised['body'] !== null,
+            BlockType::QUOTE => $normalised['quote'] !== null,
+            BlockType::IMAGE => $normalised['url'] !== null,
+        };
+
+        return $hasContent ? $normalised : null;
     }
 }

@@ -66,6 +66,32 @@ class InvitationArchitectureTest extends TestCase
         ], $data['theme']);
     }
 
+    /**
+     * A block belongs to a section, and the view model hands them over grouped that
+     * way. That grouping is what lets a template render several extra sections and
+     * an operator place each one on its own.
+     */
+    public function test_blocks_are_grouped_by_the_section_that_holds_them(): void
+    {
+        $invitation = Invitation::create([
+            'customer_id' => Customer::create(['name' => 'Pelanggan'])->id,
+            'title' => 'Undangan Berkelompok',
+            'slug' => 'undangan-berkelompok',
+            'event_type' => 'wedding',
+            'template_id' => 'elegant-rose',
+            'status' => 'published',
+        ]);
+
+        $invitation->blocks()->create(['type' => 'text', 'content_json' => ['body' => 'Isi'], 'position' => 0]);
+
+        $data = InvitationViewModel::from(
+            $invitation->fresh(), 'Tamu', app(TemplateRegistry::class)->find('elegant-rose'),
+        )->data;
+
+        $this->assertSame(['blocks'], array_keys($data['block_sections']));
+        $this->assertSame('Isi', $data['block_sections']['blocks'][0]['body']);
+    }
+
     public function test_switching_template_changes_presentation_without_changing_content(): void
     {
         $invitation = Invitation::create([
