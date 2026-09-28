@@ -30,4 +30,27 @@ class Section extends Model
     {
         return $this->belongsTo(Invitation::class);
     }
+
+    /**
+     * The next free key for a section the operator adds.
+     *
+     * Keys are unique per invitation, so taking the first number nothing uses means
+     * deleting a section and adding another cannot collide with an existing one.
+     */
+    public static function nextCustomKey(Invitation $invitation): string
+    {
+        $taken = $invitation->sections()
+            ->where('key', 'like', 'blocks:%')
+            ->pluck('key')
+            ->map(fn (string $key): int => (int) substr($key, 7))
+            ->all();
+
+        $number = 2;
+
+        while (in_array($number, $taken, true)) {
+            $number++;
+        }
+
+        return 'blocks:'.$number;
+    }
 }

@@ -6,6 +6,7 @@ use App\Filament\Resources\InvitationResource\Pages\EditInvitation;
 use App\Filament\Resources\InvitationResource\RelationManagers\BlocksRelationManager;
 use App\Models\Customer;
 use App\Models\Invitation;
+use App\Models\Section;
 use App\Models\User;
 use App\Services\TemplateRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -140,6 +141,30 @@ class InvitationAdminFormTest extends TestCase
 
         $this->assertTrue($registry->supportsSectionHeight('elegant-rose'));
         $this->assertFalse($registry->supportsSectionHeight('fun-storybook'));
+    }
+
+    /**
+     * Keys are unique per invitation, so adding a section after deleting one must
+     * not reuse a key that is still taken.
+     */
+    public function test_a_new_extra_section_takes_a_free_key(): void
+    {
+        $invitation = $this->invitation('elegant-rose', 'undangan-elegan');
+
+        $invitation->sections()->create(['key' => 'blocks', 'enabled' => true, 'position' => 8]);
+        $this->assertSame('blocks:2', Section::nextCustomKey($invitation));
+
+        $second = $invitation->sections()->create(['key' => 'blocks:2', 'enabled' => true, 'position' => 9]);
+        $this->assertSame('blocks:3', Section::nextCustomKey($invitation));
+
+        // The first free number is reused, but only once it is actually free.
+        $second->delete();
+        $this->assertSame('blocks:2', Section::nextCustomKey($invitation));
+
+        $invitation->sections()->create(['key' => 'blocks:2', 'enabled' => true, 'position' => 9]);
+        $invitation->sections()->create(['key' => 'blocks:5', 'enabled' => true, 'position' => 10]);
+
+        $this->assertSame('blocks:3', Section::nextCustomKey($invitation), 'The first gap wins, not the highest number.');
     }
 
     private function invitation(string $template, string $slug, array $extra = []): Invitation

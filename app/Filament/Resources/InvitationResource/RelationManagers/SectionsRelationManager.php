@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InvitationResource\RelationManagers;
 
+use App\Models\Section;
 use App\Services\TemplateRegistry;
 use BackedEnum;
 use Filament\Actions;
@@ -120,9 +121,7 @@ class SectionsRelationManager extends RelationManager
                     // row per section, and the invitation renders each one separately.
                     ->mutateDataUsing(function (array $data): array {
                         if (($data['key'] ?? null) === 'blocks') {
-                            $used = $this->getOwnerRecord()->sections()->where('key', 'like', 'blocks:%')->count();
-
-                            $data['key'] = 'blocks:'.($used + 2);
+                            $data['key'] = Section::nextCustomKey($this->getOwnerRecord());
                         }
 
                         return $data;
