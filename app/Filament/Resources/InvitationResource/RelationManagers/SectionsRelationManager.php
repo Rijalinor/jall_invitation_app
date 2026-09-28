@@ -101,7 +101,7 @@ class SectionsRelationManager extends RelationManager
                         'livestream' => 'Live Streaming',
                         'sharing' => 'Bagikan WA',
                         'closing' => 'Penutup Undangan',
-                        default => $state
+                        default => str_starts_with($state, 'blocks') ? 'Seksi Tambahan' : $state
                     }),
 
                 Tables\Columns\IconColumn::make('enabled')
@@ -115,7 +115,18 @@ class SectionsRelationManager extends RelationManager
             ->defaultSort('position', 'asc')
             ->reorderable('position')
             ->headerActions([
-                Actions\CreateAction::make(),
+                Actions\CreateAction::make()
+                    // Every extra section needs a key of its own: the table holds one
+                    // row per section, and the invitation renders each one separately.
+                    ->mutateDataUsing(function (array $data): array {
+                        if (($data['key'] ?? null) === 'blocks') {
+                            $used = $this->getOwnerRecord()->sections()->where('key', 'like', 'blocks:%')->count();
+
+                            $data['key'] = 'blocks:'.($used + 2);
+                        }
+
+                        return $data;
+                    }),
             ])
             ->actions([
                 Actions\EditAction::make(),

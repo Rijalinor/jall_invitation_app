@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvitationResource\RelationManagers;
 
 use App\Enums\BlockType;
+use App\Models\InvitationBlock;
 use App\Services\TemplateRegistry;
 use BackedEnum;
 use Filament\Actions;
@@ -49,6 +50,19 @@ class BlocksRelationManager extends RelationManager
                             ->options(collect(BlockType::cases())->mapWithKeys(fn (BlockType $type) => [$type->value => $type->label()]))
                             ->required()
                             ->live(),
+
+                        Select::make('section_id')
+                            ->label('Masuk ke Seksi Tambahan')
+                            ->options(fn () => $this->getOwnerRecord()->sections()
+                                ->where('key', 'like', 'blocks%')
+                                ->orderBy('position')
+                                ->pluck('key', 'id')
+                                ->map(fn (string $key): string => $key === 'blocks' ? 'Seksi Tambahan 1' : 'Seksi Tambahan '.substr($key, 7))
+                                ->all())
+                            ->default(fn () => InvitationBlock::sectionFor($this->getOwnerRecord())?->id)
+                            ->required()
+                            ->helperText('Elemen ini akan muncul di dalam seksi yang dipilih.')
+                            ->columnSpanFull(),
 
                         TextInput::make('position')
                             ->label('Urutan Tampilan')
