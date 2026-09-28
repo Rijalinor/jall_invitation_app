@@ -136,6 +136,10 @@ class InvitationResource extends Resource
                                 ColorPicker::make('settings_json.accent_color')
                                     ->label('Warna Aksen (opsional)')
                                     ->regex('/^#[0-9a-f]{6}$/i'),
+                                ColorPicker::make('settings_json.bg_color')
+                                    ->label('Warna Latar (opsional)')
+                                    ->regex('/^#[0-9a-f]{6}$/i')
+                                    ->visible(fn ($get) => $hasSetting($get, 'bg_color')),
                                 Select::make('settings_json.motion')
                                     ->label('Intensitas Gerak (opsional)')
                                     ->options(['calm' => 'Tenang', 'expressive' => 'Ekspresif', 'off' => 'Tanpa Animasi'])

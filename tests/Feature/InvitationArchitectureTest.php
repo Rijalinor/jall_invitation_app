@@ -119,6 +119,31 @@ class InvitationArchitectureTest extends TestCase
         $this->assertSame(['hosts', 'closing'], $data['sections']);
     }
 
+    /**
+     * fun-storybook declares a background colour, so it has to be changeable and it
+     * has to reach the page. A declared setting with no way to set it is a setting
+     * that silently does nothing.
+     */
+    public function test_a_templates_declared_background_colour_reaches_the_render(): void
+    {
+        $invitation = Invitation::create([
+            'customer_id' => Customer::create(['name' => 'Pelanggan'])->id,
+            'title' => 'Undangan Latar',
+            'slug' => 'undangan-latar',
+            'event_type' => 'wedding',
+            'template_id' => 'fun-storybook',
+            'status' => 'published',
+            'settings_json' => ['bg_color' => '#123456'],
+        ]);
+
+        $this->get('/undangan-latar')->assertOk()->assertSee('--fsb-bg: #123456', false);
+
+        // Anything that is not a hex colour falls back to the template default.
+        $invitation->update(['settings_json' => ['bg_color' => 'url(javascript:alert(1))']]);
+
+        $this->get('/undangan-latar')->assertOk()->assertSee('--fsb-bg: #fdf6e4', false);
+    }
+
     public function test_switching_template_changes_presentation_without_changing_content(): void
     {
         $invitation = Invitation::create([

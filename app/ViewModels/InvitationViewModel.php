@@ -92,6 +92,7 @@ final readonly class InvitationViewModel
 
         foreach ([
             'font_pairing' => in_array($settings['font_pairing'] ?? null, $settingOptions('font_pairing'), true) ? $settings['font_pairing'] : $settingDefault('font_pairing', 'editorial-serif'),
+            'bg_color' => preg_match('/^#[0-9a-f]{6}$/i', $settings['bg_color'] ?? '') ? $settings['bg_color'] : $settingDefault('bg_color', null),
             'cover_video_enabled' => filter_var(
                 $settings['cover_video_enabled'] ?? $settingDefault('cover_video_enabled', false),
                 FILTER_VALIDATE_BOOLEAN,
