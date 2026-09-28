@@ -92,6 +92,33 @@ class InvitationArchitectureTest extends TestCase
         $this->assertSame('Isi', $data['block_sections']['blocks'][0]['body']);
     }
 
+    /**
+     * The section editor offers an "Urutan Tampilan" field, so the rendered order
+     * has to follow it. If it does not, moving a section to the bottom silently
+     * does nothing — and the answer to it is structural, not cosmetic.
+     */
+    public function test_the_rendered_section_order_follows_the_position_field(): void
+    {
+        $invitation = Invitation::create([
+            'customer_id' => Customer::create(['name' => 'Pelanggan'])->id,
+            'title' => 'Undangan Urut',
+            'slug' => 'undangan-urut',
+            'event_type' => 'wedding',
+            'template_id' => 'elegant-rose',
+            'status' => 'published',
+        ]);
+
+        // Created last, but asked to appear first.
+        $invitation->sections()->create(['key' => 'closing', 'enabled' => true, 'position' => 20]);
+        $invitation->sections()->create(['key' => 'hosts', 'enabled' => true, 'position' => 1]);
+
+        $data = InvitationViewModel::from(
+            $invitation->fresh(), 'Tamu', app(TemplateRegistry::class)->find('elegant-rose'),
+        )->data;
+
+        $this->assertSame(['hosts', 'closing'], $data['sections']);
+    }
+
     public function test_switching_template_changes_presentation_without_changing_content(): void
     {
         $invitation = Invitation::create([
