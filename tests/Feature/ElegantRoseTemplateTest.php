@@ -362,6 +362,35 @@ class ElegantRoseTemplateTest extends TestCase
         $this->assertStringContainsString('.invitation-section[data-height="auto"] { min-height: 0; }', $css);
     }
 
+    /**
+     * A second extra section renders on its own, with only its own blocks, so an
+     * operator can place it somewhere the first one is not.
+     */
+    public function test_a_second_extra_section_renders_only_its_own_blocks(): void
+    {
+        $invitation = $this->invitation();
+
+        $invitation->blocks()->create(['type' => 'text', 'content_json' => ['body' => 'Isi seksi satu'], 'position' => 0]);
+
+        $second = $invitation->sections()->create(['key' => 'blocks:2', 'enabled' => true, 'position' => 30]);
+
+        $invitation->blocks()->createMany([
+            ['section_id' => $second->id, 'type' => 'section', 'content_json' => ['title' => 'Seksi Kedua'], 'position' => 0],
+            ['section_id' => $second->id, 'type' => 'text', 'content_json' => ['body' => 'Isi seksi dua'], 'position' => 1],
+        ]);
+
+        $response = $this->get('/undangan-elegan');
+
+        $response->assertOk()
+            ->assertSee('Isi seksi satu')
+            ->assertSee('Isi seksi dua')
+            ->assertSee('<h2 id="invitation-blocks-1">Seksi Kedua</h2>', false);
+
+        // Each section shows its own blocks once, not both.
+        $this->assertSame(1, substr_count($response->getContent(), 'Isi seksi satu'));
+        $this->assertSame(1, substr_count($response->getContent(), 'Isi seksi dua'));
+    }
+
     private function withIntroSections(Invitation $invitation): void
     {
         $invitation->giftMethods()->create([

@@ -18,7 +18,12 @@ final readonly class InvitationViewModel
         $asset = fn (?string $path): ?string => $path ? Storage::disk('public')->url($path) : null;
         $primaryEvent = $invitation->events->firstWhere('is_primary', true) ?? $invitation->events->first();
         $configuredSections = $invitation->sections->where('enabled', true)->pluck('key')->all();
-        $sections = array_values(array_intersect($configuredSections ?: $manifest['sections'], $manifest['sections']));
+        // Extra sections are named by the operator rather than the template, so an
+        // intersection with the manifest would drop them. Filtering instead keeps
+        // them, and keeps the order the operator put the sections in.
+        $customSections = array_values(array_filter($configuredSections, fn (string $key): bool => str_starts_with($key, 'blocks:')));
+        $allowed = array_flip(array_merge($manifest['sections'], $customSections));
+        $sections = array_values(array_filter($configuredSections ?: $manifest['sections'], fn (string $key): bool => isset($allowed[$key])));
         // Per section height, chosen in the section editor. Values are relative to
         // the guest's viewport, never pixels. Kept separate from $sections so
         // templates that do not read it keep working unchanged.

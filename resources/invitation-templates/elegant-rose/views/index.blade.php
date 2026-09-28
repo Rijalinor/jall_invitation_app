@@ -178,8 +178,8 @@
                     <span class="invitation-eyebrow">{{ $labels['gallery_eyebrow'] }}</span><h2 id="gallery-title">{{ $labels['gallery_title'] }}</h2>
                     <div class="er-gallery">@foreach (array_chunk($gallery, 4) as $page)<div class="er-gallery__page">@foreach ($page as $image)<figure><button type="button" data-lightbox-src="{{ $image['url'] }}" data-lightbox-alt="{{ $image['alt'] }}"><img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async"></button>@if ($image['caption'])<figcaption>{{ $image['caption'] }}</figcaption>@endif</figure>@endforeach</div>@endforeach</div>
                 </section>
-            @elseif ($section === 'blocks' && count($blocks))
-                @include('invitations.shared.blocks')
+            @elseif (str_starts_with($section, 'blocks') && ! empty($block_sections[$section] ?? $blocks))
+                @include('invitations.shared.blocks', ['blocks' => $block_sections[$section] ?? $blocks])
             @elseif ($section === 'rsvp')
                 <div id="rsvp">@include('invitations.shared.rsvp')</div>
             @elseif ($section === 'guestbook')
