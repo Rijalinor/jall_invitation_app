@@ -69,7 +69,10 @@
     left: -10000px !important;
 }
 
-.invitation-notice {
+/* Scoped to the section on purpose: a template usually sets paragraph rules like
+   `.invitation-section p`, and a bare class would lose to them. This is the rule
+   the tests guard, since a losing notice is invisible without any error. */
+.invitation-section .invitation-notice {
     max-width: 36rem;
     margin: 1rem auto;
     padding: 1rem;
@@ -112,7 +115,7 @@
     background: var(--inv-paper, #fff);
 }
 
-.invitation-block-quote p {
+.invitation-section .invitation-block-quote p {
     margin: 0;
     font-size: 1.05rem;
     font-style: italic;
@@ -144,7 +147,7 @@
     opacity: .75;
 }
 
-.invitation-block-note {
+.invitation-section .invitation-block-note {
     max-width: 38rem;
     margin: 1.5rem auto 0;
     padding: 1rem 1.2rem;
