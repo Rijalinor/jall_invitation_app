@@ -32,7 +32,7 @@
             <img class="fsb-cover__bg" src="{{ $coverImage }}" alt="" aria-hidden="true">
         @endif
         <div class="fsb-cover__card">
-            <span class="fsb-badge fsb-badge--pop">YEAY, AKHIRNYA NIKAH! 🥳</span>
+            <span class="fsb-badge fsb-badge--pop">{{ $labels['cover_eyebrow'] }} 🥳</span>
             <h1 class="fsb-cover__title">{{ $displayNames }}</h1>
             @if ($primary_event)
                 <div class="fsb-cover__date">📅 {{ $primary_event['date'] }}</div>
@@ -92,7 +92,7 @@
             @elseif ($section === 'hosts' && count($hosts))
                 <section class="fsb-section" id="hosts" aria-labelledby="hosts-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">THE MAIN CHARACTERS 👑</span>
+                        <span class="fsb-badge">{{ $labels['hosts_eyebrow'] }} 👑</span>
                         <h2 id="hosts-title">{{ $labels['hosts_title'] }}</h2>
                         <p>Dua sejoli yang akhirnya bakal sah di pelaminan!</p>
                     </div>
@@ -142,7 +142,7 @@
             @elseif ($section === 'events' && count($events))
                 <section class="fsb-section fsb-section--tint" id="events" aria-labelledby="events-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">SAVE THE DATE 📌</span>
+                        <span class="fsb-badge">{{ $labels['events_eyebrow'] }} 📌</span>
                         <h2 id="events-title">{{ $labels['events_title'] }}</h2>
                         <p>Jangan sampai salah kostum apalagi salah tanggal ya!</p>
                     </div>
@@ -186,7 +186,7 @@
             @elseif ($section === 'countdown' && $primary_event && $primary_event['timestamp'])
                 <section class="fsb-section fsb-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">COUNTDOWN ⏳</span>
+                        <span class="fsb-badge">{{ $labels['countdown_eyebrow'] }} ⏳</span>
                         <h2>{{ $labels['countdown_title'] }}</h2>
                     </div>
                     <div class="fsb-countdown__grid" data-countdown-output>
@@ -202,7 +202,7 @@
             @elseif ($section === 'map' && $primary_event && $primary_event['map_embed_url'])
                 <section class="fsb-section" aria-labelledby="map-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">MAP & LOCATION 🧭</span>
+                        <span class="fsb-badge">{{ $labels['map_eyebrow'] }} 🧭</span>
                         <h2 id="map-title">{{ $labels['map_title'] }}</h2>
                     </div>
                     <div class="fsb-map-card">
@@ -224,7 +224,7 @@
             @elseif ($section === 'story' && count($stories))
                 <section class="fsb-section fsb-section--tint" id="story" aria-labelledby="story-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">LOVE STORY 📖</span>
+                        <span class="fsb-badge">{{ $labels['story_eyebrow'] }} 📖</span>
                         <h2 id="story-title">{{ $labels['story_title'] }}</h2>
                         <p>Dari cuma iseng ketemu sampai siap arungi hidup bareng!</p>
                     </div>
@@ -248,7 +248,7 @@
             @elseif ($section === 'gallery' && count($gallery))
                 <section class="fsb-section" id="gallery" aria-labelledby="gallery-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">PHOTO GALLERY 📸</span>
+                        <span class="fsb-badge">{{ $labels['gallery_eyebrow'] }} 📸</span>
                         <h2 id="gallery-title">{{ $labels['gallery_title'] }}</h2>
                     </div>
                     <div class="fsb-gallery">
@@ -287,7 +287,7 @@
             @elseif ($section === 'gifts' && count($gifts))
                 <section class="fsb-section fsb-section--tint" aria-labelledby="gifts-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">DIGITAL GIFT 🎁</span>
+                        <span class="fsb-badge">{{ $labels['gifts_eyebrow'] }} 🎁</span>
                         <h2 id="gifts-title">{{ $labels['gifts_title'] }}</h2>
                         <p>Kehadiran dan doa kalian adalah hadiah terbaik! Tapi kalau mau kirim kado, boleh banget kok 😆</p>
                     </div>
@@ -324,7 +324,7 @@
             @elseif ($section === 'contacts' && count($contacts))
                 <section class="fsb-section" aria-labelledby="contacts-title">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">CONTACT US 📞</span>
+                        <span class="fsb-badge">{{ $labels['contacts_eyebrow'] }} 📞</span>
                         <h2 id="contacts-title">{{ $labels['contacts_title'] }}</h2>
                         <p>Bisa langsung hubungi kontak keluarga di bawah ini ya!</p>
                     </div>
@@ -345,7 +345,7 @@
             @elseif ($section === 'sharing')
                 <section class="fsb-section fsb-section--tint">
                     <div class="fsb-section-header">
-                        <span class="fsb-badge">SHARE THE LOVE 💌</span>
+                        <span class="fsb-badge">{{ $labels['sharing_eyebrow'] }} 💌</span>
                         <h2>{{ $labels['sharing_title'] }}</h2>
                         <p>Bantu sebarkan kabar bahagia ini ke temen-temen dan grup alumni kamu ya!</p>
                     </div>

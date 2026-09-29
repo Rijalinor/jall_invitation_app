@@ -16,6 +16,16 @@
         "gifts_title": "Tanda Kasih & Amplop Digital",
         "contacts_title": "Ada Yang Mau Ditanyain?",
         "sharing_title": "Bagikan Ke Teman-Teman!",
+        "cover_eyebrow": "YEAY, AKHIRNYA NIKAH!",
+        "hosts_eyebrow": "THE MAIN CHARACTERS",
+        "events_eyebrow": "SAVE THE DATE",
+        "countdown_eyebrow": "COUNTDOWN",
+        "map_eyebrow": "MAP & LOCATION",
+        "story_eyebrow": "LOVE STORY",
+        "gallery_eyebrow": "PHOTO GALLERY",
+        "gifts_eyebrow": "DIGITAL GIFT",
+        "contacts_eyebrow": "CONTACT US",
+        "sharing_eyebrow": "SHARE THE LOVE",
         "rsvp_intro": "Mohon berikan konfirmasi kehadiran Anda."
     },
     "settings_schema": {
