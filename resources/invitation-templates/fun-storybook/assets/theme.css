@@ -1124,3 +1124,41 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     }
     .pop-armed .fsb-cover { transition-delay: 0ms; }
 }
+
+/* -- Operator-built blocks ---------------------------------------------------
+   Markup comes from the shared blocks partial, so these rules only dress that
+   template-neutral vocabulary in this theme's palette. */
+.invitation-block-quote {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.4rem;
+    background: #fff;
+    border-left: 4px solid var(--fsb-accent);
+    border-radius: 1rem;
+}
+.invitation-block-quote p {
+    margin: 0;
+    font-size: 1.05rem;
+    font-style: italic;
+    line-height: 1.6;
+}
+.invitation-block-quote cite {
+    display: block;
+    margin-top: .75rem;
+    color: var(--fsb-accent);
+    font-size: .7rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.invitation-block-image { margin-top: 1.5rem; }
+.invitation-block-image img { width: 100%; border-radius: 1rem; }
+.invitation-block-image figcaption { margin-top: .5rem; font-size: .75rem; opacity: .75; }
+.invitation-block-note {
+    margin-top: 1.5rem;
+    padding: 1rem 1.2rem;
+    background: #fff;
+    border: 2px dashed var(--fsb-accent);
+    border-radius: 1rem;
+    font-size: .9rem;
+}

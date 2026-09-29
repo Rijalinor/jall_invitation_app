@@ -269,6 +269,11 @@
                     </div>
                 </section>
 
+            @elseif (str_starts_with($section, 'blocks') && ! empty($block_sections[$section] ?? $blocks))
+                <div class="fsb-section-wrapper">
+                    @include('invitations.shared.blocks', ['blocks' => $block_sections[$section] ?? $blocks])
+                </div>
+
             @elseif ($section === 'rsvp')
                 <div class="fsb-section-wrapper" id="rsvp">
                     @include('invitations.shared.rsvp')

@@ -62,9 +62,11 @@ class InvitationAdminFormTest extends TestCase
             ->assertOk()
             ->assertSee('Seksi Tambahan (Blok Bebas)');
 
+        // Every shipped template renders free blocks now, so the tab shows for all
+        // three. canViewForRecord still hides it for one that does not declare them.
         $this->get('/admin/invitations/'.$storybook->id.'/edit')
             ->assertOk()
-            ->assertDontSee('Seksi Tambahan (Blok Bebas)');
+            ->assertSee('Seksi Tambahan (Blok Bebas)');
     }
 
     /**
