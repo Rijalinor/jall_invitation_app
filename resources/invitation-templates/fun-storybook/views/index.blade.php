@@ -80,7 +80,7 @@
                         <h2>{{ $title }}</h2>
                     @endif
                     @if ($opening_text)
-                        <p class="fsb-hero__text">{{ $opening_text }}</p>
+                        <p class="fsb-hero__text">{!! nl2br(e($opening_text)) !!}</p>
                     @else
                         <p class="fsb-hero__text">Dengan menyebut nama Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu di hari bahagia kami!</p>
                     @endif
@@ -120,7 +120,7 @@
                                         <p class="fsb-host__family">{{ match ($host['role']) { 'groom' => 'Putra kesayangan dari', 'bride' => 'Putri tercinta dari', default => 'Putra/putri dari' } }} <strong>{{ $host['family'] }}</strong></p>
                                     @endif
                                     @if ($host['bio'])
-                                        <p class="fsb-host__bio">"{{ $host['bio'] }}"</p>
+                                        <p class="fsb-host__bio">"{!! nl2br(e($host['bio'])) !!}"</p>
                                     @endif
                                     @if ($host['instagram'])
                                         <a class="fsb-btn fsb-btn--outline fsb-btn--sm" href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer">
@@ -238,7 +238,7 @@
                                 <small class="fsb-story__date">🗓️ {{ $story['date'] }}</small>
                                 <h3>{{ $story['title'] }}</h3>
                                 @if ($story['body'])
-                                    <p>{{ $story['body'] }}</p>
+                                    <p>{!! nl2br(e($story['body'])) !!}</p>
                                 @endif
                             </article>
                         @endforeach
@@ -308,7 +308,7 @@
                                         <button type="button" class="fsb-btn fsb-btn--sm fsb-btn--outline" data-copy="{{ $gift['delivery_address'] }}">📋 Salin Alamat</button>
                                     @endif
                                     @if ($gift['notes'])
-                                        <p class="fsb-muted">{{ $gift['notes'] }}</p>
+                                        <p class="fsb-muted">{!! nl2br(e($gift['notes'])) !!}</p>
                                     @endif
                                 </div>
                             </details>
@@ -357,7 +357,7 @@
                     </div>
                     <h2>{{ $displayNames }}</h2>
                     @if ($closing_message)
-                        <p>{{ $closing_message }}</p>
+                        <p>{!! nl2br(e($closing_message)) !!}</p>
                     @endif
                     <a class="fsb-btn fsb-btn--outline fsb-btn--sm" href="#invitation-content">⬆️ Kembali Ke Atas</a>
                 </section>

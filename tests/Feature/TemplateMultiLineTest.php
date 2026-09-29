@@ -20,7 +20,7 @@ class TemplateMultiLineTest extends TestCase
      *
      * @var array<int, string>
      */
-    private const CONVERTED = ['elegant-rose', 'midnight-ledger'];
+    private const CONVERTED = ['elegant-rose', 'fun-storybook', 'midnight-ledger'];
 
     /**
      * The rest. Converting a template moves it from here to the list above, and
@@ -28,7 +28,7 @@ class TemplateMultiLineTest extends TestCase
      *
      * @var array<int, string>
      */
-    private const PENDING = ['fun-storybook'];
+    private const PENDING = [];
 
     #[DataProvider('convertedTemplates')]
     public function test_multi_line_text_keeps_its_line_breaks(string $template): void
