@@ -141,8 +141,11 @@ class InvitationAdminFormTest extends TestCase
     {
         $registry = app(TemplateRegistry::class);
 
+        // All three templates honour it now. supportsSectionHeight still returns
+        // false for one that does not declare it.
         $this->assertTrue($registry->supportsSectionHeight('elegant-rose'));
-        $this->assertFalse($registry->supportsSectionHeight('fun-storybook'));
+        $this->assertTrue($registry->supportsSectionHeight('fun-storybook'));
+        $this->assertTrue($registry->supportsSectionHeight('midnight-ledger'));
     }
 
     /**

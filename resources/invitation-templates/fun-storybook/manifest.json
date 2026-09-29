@@ -6,6 +6,7 @@
     "entry_view": "fun-storybook.views.index",
     "preview": "preview.svg",
     "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "blocks", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
+    "section_height": true,
     "labels": {
         "hosts_title": "Tersangka Utama (Mempelai)",
         "events_title": "Waktunya Pesta!",

@@ -1162,3 +1162,11 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     border-radius: 1rem;
     font-size: .9rem;
 }
+
+/* -- Per section height ------------------------------------------------------
+   A share of the guest's viewport, never pixels, and a minimum: a section with
+   more content than that simply grows. Written against the base section class so
+   one rule per value covers every section. */
+.fsb-section[data-height="tall"] { min-height: 75svh; }
+.fsb-section[data-height="half"] { min-height: 50svh; }
+.fsb-section[data-height="auto"] { min-height: 0; }

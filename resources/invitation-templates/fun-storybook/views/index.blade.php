@@ -66,7 +66,7 @@
     <main id="invitation-content" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
-                <section class="fsb-section fsb-hero">
+                <section data-height="{{ $section_heights['opening'] ?? 'full' }}" class="fsb-section fsb-hero">
                     <div class="fsb-speech-bubble fsb-speech-bubble--hero">
                         <span>Gak Nyangka Kan? Kami Juga Gak Nyangka! 😆✨</span>
                     </div>
@@ -90,7 +90,7 @@
                 </section>
 
             @elseif ($section === 'hosts' && count($hosts))
-                <section class="fsb-section" id="hosts" aria-labelledby="hosts-title">
+                <section data-height="{{ $section_heights['hosts'] ?? 'full' }}" class="fsb-section" id="hosts" aria-labelledby="hosts-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['hosts_eyebrow'] }} 👑</span>
                         <h2 id="hosts-title">{{ $labels['hosts_title'] }}</h2>
@@ -140,7 +140,7 @@
                 </section>
 
             @elseif ($section === 'events' && count($events))
-                <section class="fsb-section fsb-section--tint" id="events" aria-labelledby="events-title">
+                <section data-height="{{ $section_heights['events'] ?? 'full' }}" class="fsb-section fsb-section--tint" id="events" aria-labelledby="events-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['events_eyebrow'] }} 📌</span>
                         <h2 id="events-title">{{ $labels['events_title'] }}</h2>
@@ -184,7 +184,7 @@
                 </section>
 
             @elseif ($section === 'countdown' && $primary_event && $primary_event['timestamp'])
-                <section class="fsb-section fsb-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
+                <section data-height="{{ $section_heights['countdown'] ?? 'full' }}" class="fsb-section fsb-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['countdown_eyebrow'] }} ⏳</span>
                         <h2>{{ $labels['countdown_title'] }}</h2>
@@ -200,7 +200,7 @@
                 </section>
 
             @elseif ($section === 'map' && $primary_event && $primary_event['map_embed_url'])
-                <section class="fsb-section" aria-labelledby="map-title">
+                <section data-height="{{ $section_heights['map'] ?? 'full' }}" class="fsb-section" aria-labelledby="map-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['map_eyebrow'] }} 🧭</span>
                         <h2 id="map-title">{{ $labels['map_title'] }}</h2>
@@ -222,7 +222,7 @@
                 </section>
 
             @elseif ($section === 'story' && count($stories))
-                <section class="fsb-section fsb-section--tint" id="story" aria-labelledby="story-title">
+                <section data-height="{{ $section_heights['story'] ?? 'full' }}" class="fsb-section fsb-section--tint" id="story" aria-labelledby="story-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['story_eyebrow'] }} 📖</span>
                         <h2 id="story-title">{{ $labels['story_title'] }}</h2>
@@ -246,7 +246,7 @@
                 </section>
 
             @elseif ($section === 'gallery' && count($gallery))
-                <section class="fsb-section" id="gallery" aria-labelledby="gallery-title">
+                <section data-height="{{ $section_heights['gallery'] ?? 'full' }}" class="fsb-section" id="gallery" aria-labelledby="gallery-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['gallery_eyebrow'] }} 📸</span>
                         <h2 id="gallery-title">{{ $labels['gallery_title'] }}</h2>
@@ -285,7 +285,7 @@
                 </div>
 
             @elseif ($section === 'gifts' && count($gifts))
-                <section class="fsb-section fsb-section--tint" aria-labelledby="gifts-title">
+                <section data-height="{{ $section_heights['gifts'] ?? 'full' }}" class="fsb-section fsb-section--tint" aria-labelledby="gifts-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['gifts_eyebrow'] }} 🎁</span>
                         <h2 id="gifts-title">{{ $labels['gifts_title'] }}</h2>
@@ -322,7 +322,7 @@
                 </section>
 
             @elseif ($section === 'contacts' && count($contacts))
-                <section class="fsb-section" aria-labelledby="contacts-title">
+                <section data-height="{{ $section_heights['contacts'] ?? 'full' }}" class="fsb-section" aria-labelledby="contacts-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['contacts_eyebrow'] }} 📞</span>
                         <h2 id="contacts-title">{{ $labels['contacts_title'] }}</h2>
@@ -343,7 +343,7 @@
                 </section>
 
             @elseif ($section === 'sharing')
-                <section class="fsb-section fsb-section--tint">
+                <section data-height="{{ $section_heights['sharing'] ?? 'full' }}" class="fsb-section fsb-section--tint">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">{{ $labels['sharing_eyebrow'] }} 💌</span>
                         <h2>{{ $labels['sharing_title'] }}</h2>
@@ -356,7 +356,7 @@
                 </section>
 
             @elseif ($section === 'closing')
-                <section class="fsb-section fsb-closing">
+                <section data-height="{{ $section_heights['closing'] ?? 'full' }}" class="fsb-section fsb-closing">
                     <div class="fsb-speech-bubble">
                         <span>Sampai Jumpa Di Hari Bahagia Kami! 👋❤️</span>
                     </div>
