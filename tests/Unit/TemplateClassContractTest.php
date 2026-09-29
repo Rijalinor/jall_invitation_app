@@ -146,14 +146,18 @@ class TemplateClassContractTest extends TestCase
     private function templateStylesheets(): array
     {
         $stylesheets = [];
+        $strip = fn (string $css): string => (string) preg_replace('#/\*.*?\*/#s', '', $css);
+
+        // The shared stylesheet loads before the template's own, so prepending it is
+        // how the cascade actually reaches the page. Leaving it out would let a rule
+        // in there lose to a template rule with nothing noticing.
+        $shared = $strip((string) file_get_contents(dirname(__DIR__, 2).'/resources/css/invitations.css'));
 
         foreach (glob(dirname(__DIR__, 2).'/resources/invitation-templates/*', GLOB_ONLYDIR) as $directory) {
             $path = $directory.'/assets/theme.css';
 
             if (is_file($path)) {
-                $stylesheets[basename($directory)] = (string) preg_replace(
-                    '#/\*.*?\*/#s', '', (string) file_get_contents($path)
-                );
+                $stylesheets[basename($directory)] = $shared.$strip((string) file_get_contents($path));
             }
         }
 
@@ -284,9 +288,20 @@ class TemplateClassContractTest extends TestCase
             }
         }
 
-        $beaten = [];
+        // The shared stylesheet and the template can both style the notice, and a
+        // template's own copy may be weaker than its paragraph rules even though the
+        // shared one wins. Judge the strongest, which is the rule the cascade uses.
+        $strongest = null;
 
         foreach ($notices as $notice) {
+            if ($strongest === null || $this->compareWeights($notice['weight'], $strongest['weight']) > 0) {
+                $strongest = $notice;
+            }
+        }
+
+        $beaten = [];
+
+        foreach ($strongest === null ? [] : [$strongest] as $notice) {
             foreach ($paragraphs as $paragraph) {
                 if ($this->compareWeights($notice['weight'], $paragraph['weight']) < 0) {
                     $beaten[] = $notice['selector'].' loses to '.$paragraph['selector'];
