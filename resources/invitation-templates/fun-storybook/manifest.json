@@ -6,6 +6,18 @@
     "entry_view": "fun-storybook.views.index",
     "preview": "preview.svg",
     "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
+    "labels": {
+        "hosts_title": "Tersangka Utama (Mempelai)",
+        "events_title": "Waktunya Pesta!",
+        "countdown_title": "Hitung Mundur Menuju Hari-H",
+        "map_title": "Biar Gak Nyasar!",
+        "story_title": "Kisah Random Kita",
+        "gallery_title": "Koleksi Foto Kece Kita",
+        "gifts_title": "Tanda Kasih & Amplop Digital",
+        "contacts_title": "Ada Yang Mau Ditanyain?",
+        "sharing_title": "Bagikan Ke Teman-Teman!",
+        "rsvp_intro": "Mohon berikan konfirmasi kehadiran Anda."
+    },
     "settings_schema": {
         "accent_color": {"type": "color", "default": "#ff6b81"},
         "bg_color": {"type": "color", "default": "#fdf6e4"},

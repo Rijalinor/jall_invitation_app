@@ -93,7 +93,7 @@
                 <section class="fsb-section" id="hosts" aria-labelledby="hosts-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">THE MAIN CHARACTERS 👑</span>
-                        <h2 id="hosts-title">Tersangka Utama (Mempelai)</h2>
+                        <h2 id="hosts-title">{{ $labels['hosts_title'] }}</h2>
                         <p>Dua sejoli yang akhirnya bakal sah di pelaminan!</p>
                     </div>
                     <div class="fsb-hosts" data-count="{{ count($hosts) }}">
@@ -143,7 +143,7 @@
                 <section class="fsb-section fsb-section--tint" id="events" aria-labelledby="events-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">SAVE THE DATE 📌</span>
-                        <h2 id="events-title">Waktunya Pesta!</h2>
+                        <h2 id="events-title">{{ $labels['events_title'] }}</h2>
                         <p>Jangan sampai salah kostum apalagi salah tanggal ya!</p>
                     </div>
                     <div class="fsb-events">
@@ -187,7 +187,7 @@
                 <section class="fsb-section fsb-countdown" data-countdown="{{ $primary_event['timestamp'] }}" aria-label="Hitung mundur menuju hari bahagia">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">COUNTDOWN ⏳</span>
-                        <h2>Hitung Mundur Menuju Hari-H</h2>
+                        <h2>{{ $labels['countdown_title'] }}</h2>
                     </div>
                     <div class="fsb-countdown__grid" data-countdown-output>
                         @foreach (['days' => 'Hari', 'hours' => 'Jam', 'minutes' => 'Menit', 'seconds' => 'Detik'] as $unit => $label)
@@ -203,7 +203,7 @@
                 <section class="fsb-section" aria-labelledby="map-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">MAP & LOCATION 🧭</span>
-                        <h2 id="map-title">Biar Gak Nyasar!</h2>
+                        <h2 id="map-title">{{ $labels['map_title'] }}</h2>
                     </div>
                     <div class="fsb-map-card">
                         <iframe src="{{ $primary_event['map_embed_url'] }}" title="Peta {{ $primary_event['venue'] ?: $primary_event['label'] }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -225,7 +225,7 @@
                 <section class="fsb-section fsb-section--tint" id="story" aria-labelledby="story-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">LOVE STORY 📖</span>
-                        <h2 id="story-title">Kisah Random Kita</h2>
+                        <h2 id="story-title">{{ $labels['story_title'] }}</h2>
                         <p>Dari cuma iseng ketemu sampai siap arungi hidup bareng!</p>
                     </div>
                     <div class="fsb-timeline">
@@ -249,7 +249,7 @@
                 <section class="fsb-section" id="gallery" aria-labelledby="gallery-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">PHOTO GALLERY 📸</span>
-                        <h2 id="gallery-title">Koleksi Foto Kece Kita</h2>
+                        <h2 id="gallery-title">{{ $labels['gallery_title'] }}</h2>
                     </div>
                     <div class="fsb-gallery">
                         @foreach (array_chunk($gallery, 4) as $page)
@@ -283,7 +283,7 @@
                 <section class="fsb-section fsb-section--tint" aria-labelledby="gifts-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">DIGITAL GIFT 🎁</span>
-                        <h2 id="gifts-title">Tanda Kasih & Amplop Digital</h2>
+                        <h2 id="gifts-title">{{ $labels['gifts_title'] }}</h2>
                         <p>Kehadiran dan doa kalian adalah hadiah terbaik! Tapi kalau mau kirim kado, boleh banget kok 😆</p>
                     </div>
                     <div class="fsb-gifts">
@@ -320,7 +320,7 @@
                 <section class="fsb-section" aria-labelledby="contacts-title">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">CONTACT US 📞</span>
-                        <h2 id="contacts-title">Ada Yang Mau Ditanyain?</h2>
+                        <h2 id="contacts-title">{{ $labels['contacts_title'] }}</h2>
                         <p>Bisa langsung hubungi kontak keluarga di bawah ini ya!</p>
                     </div>
                     <div class="fsb-contacts">
@@ -341,7 +341,7 @@
                 <section class="fsb-section fsb-section--tint">
                     <div class="fsb-section-header">
                         <span class="fsb-badge">SHARE THE LOVE 💌</span>
-                        <h2>Bagikan Ke Teman-Teman!</h2>
+                        <h2>{{ $labels['sharing_title'] }}</h2>
                         <p>Bantu sebarkan kabar bahagia ini ke temen-temen dan grup alumni kamu ya!</p>
                     </div>
                     <div class="fsb-actions fsb-actions--center">
