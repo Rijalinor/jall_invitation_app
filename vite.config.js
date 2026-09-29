@@ -8,6 +8,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/css/invitations.css',
                 'resources/invitation-templates/elegant-rose/assets/theme.css',
                 'resources/invitation-templates/elegant-rose/assets/theme.js',
                 'resources/invitation-templates/midnight-ledger/assets/theme.css',

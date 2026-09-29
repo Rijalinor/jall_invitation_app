@@ -1,0 +1,168 @@
+/*
+ * Shared invitation vocabulary.
+ *
+ * Every template renders the same `invitation-*` markup for the parts that are
+ * the same everywhere: the RSVP form, the guestbook, the operator's free blocks
+ * and the per-section height. Until now each template wrote that CSS again in
+ * its own theme.css, so a new capability meant writing it once per template.
+ *
+ * This file holds the structure and reads its colours from variables each
+ * template declares:
+ *
+ *     --inv-accent   accent for borders, buttons and captions
+ *     --inv-paper    surface behind a form, a quote or a note
+ *     --inv-ink      body text
+ *     --inv-line     hairline borders
+ *
+ * It is loaded BEFORE the template's own stylesheet on purpose. The template
+ * keeps the last word, so nothing here changes a template that already styles
+ * this markup itself — a new template gets it for free, and an existing one can
+ * hand a rule over by deleting its own copy.
+ */
+
+.invitation-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 40rem;
+    margin: 1.5rem auto 0;
+    padding: 1.5rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .12));
+    background: var(--inv-paper, #fff);
+}
+
+.invitation-form label {
+    display: grid;
+    gap: .4rem;
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+.invitation-form input,
+.invitation-form select,
+.invitation-form textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: .75rem .9rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .18));
+    background: #fff;
+    font: inherit;
+}
+
+.invitation-form textarea {
+    resize: vertical;
+}
+
+.invitation-form button {
+    justify-self: start;
+    min-height: 44px;
+    padding: .7rem 1.2rem;
+    border: 0;
+    color: #fff;
+    background: var(--inv-accent, #555);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.invitation-honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+}
+
+.invitation-notice {
+    max-width: 36rem;
+    margin: 1rem auto;
+    padding: 1rem;
+    border-left: 3px solid #397451;
+    color: #244c35;
+    background: #e3f2e8;
+}
+
+.invitation-errors {
+    padding: .75rem;
+    color: #761d2e;
+    background: #f9e0e4;
+}
+
+.invitation-wishes {
+    display: grid;
+    gap: .8rem;
+    max-width: 42rem;
+    margin: 2rem auto 0;
+    text-align: left;
+}
+
+.invitation-wishes blockquote {
+    margin: 0;
+    padding: 1.2rem;
+    border-left: 2px solid var(--inv-accent, #555);
+    background: var(--inv-paper, #fff);
+}
+
+.invitation-wishes cite {
+    color: var(--inv-ink, #555);
+    opacity: .75;
+}
+
+.invitation-block-quote {
+    max-width: 42rem;
+    margin: 1.5rem auto 0;
+    padding: 1.4rem;
+    border-left: 3px solid var(--inv-accent, #555);
+    background: var(--inv-paper, #fff);
+}
+
+.invitation-block-quote p {
+    margin: 0;
+    font-size: 1.05rem;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.invitation-block-quote cite {
+    display: block;
+    margin-top: .8rem;
+    color: var(--inv-accent, #555);
+    font-size: .7rem;
+    font-style: normal;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.invitation-block-image {
+    max-width: 34rem;
+    margin: 1.5rem auto 0;
+}
+
+.invitation-block-image img {
+    width: 100%;
+}
+
+.invitation-block-image figcaption {
+    margin-top: .6rem;
+    font-size: .75rem;
+    opacity: .75;
+}
+
+.invitation-block-note {
+    max-width: 38rem;
+    margin: 1.5rem auto 0;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .12));
+    background: var(--inv-paper, #fff);
+}
+
+/* A section told to fit its content, or to share the screen. Written without a
+   template prefix, so it is only a fallback: a template that writes its own rule
+   keeps winning, and a template that writes none gets this. */
+[data-height="tall"] {
+    min-height: 75svh;
+}
+
+[data-height="half"] {
+    min-height: 50svh;
+}
+
+[data-height="auto"] {
+    min-height: 0;
+}

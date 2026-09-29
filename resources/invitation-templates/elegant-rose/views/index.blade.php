@@ -7,7 +7,7 @@
     <title>{{ $title }}</title>
     {{-- Marks that scripting is available before the first paint. --}}
     <script>document.documentElement.classList.add('js-ready');</script>
-    @vite(['resources/invitation-templates/elegant-rose/assets/theme.css', 'resources/invitation-templates/elegant-rose/assets/theme.js'])
+    @vite(['resources/css/invitations.css', 'resources/invitation-templates/elegant-rose/assets/theme.css', 'resources/invitation-templates/elegant-rose/assets/theme.js'])
 </head>
 <body class="elegant-rose" style="--rose-accent: {{ $theme['accent_color'] }}" data-motion="{{ $theme['motion'] }}">
     @php

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     {{-- Marks that scripting is available before the first paint. --}}
     <script>document.documentElement.classList.add('js-ready');</script>
-    @vite(['resources/invitation-templates/midnight-ledger/assets/theme.css', 'resources/invitation-templates/midnight-ledger/assets/theme.js'])
+    @vite(['resources/css/invitations.css', 'resources/invitation-templates/midnight-ledger/assets/theme.css', 'resources/invitation-templates/midnight-ledger/assets/theme.js'])
 </head>
 <body class="midnight-ledger" style="--ml-accent: {{ $theme['accent_color'] }}; --ml-focal-x: {{ $theme['cover_focal_x'] }}%; --ml-focal-y: {{ $theme['cover_focal_y'] }}%; --ml-overlay: {{ $theme['cover_overlay_opacity'] / 100 }};" data-motion="{{ $theme['motion'] }}">
     @php

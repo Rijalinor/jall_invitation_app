@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     {{-- Marks that scripting is available before the first paint. --}}
     <script>document.documentElement.classList.add('js-ready');</script>
-    @vite(['resources/invitation-templates/fun-storybook/assets/theme.css', 'resources/invitation-templates/fun-storybook/assets/theme.js'])
+    @vite(['resources/css/invitations.css', 'resources/invitation-templates/fun-storybook/assets/theme.css', 'resources/invitation-templates/fun-storybook/assets/theme.js'])
 </head>
 <body class="fun-storybook" style="--fsb-accent: {{ $theme['accent_color'] ?? '#ff6b81' }}; --fsb-bg: {{ $theme['bg_color'] ?? '#fdf6e4' }};" data-motion="{{ $theme['motion'] ?? 'expressive' }}">
     @php
