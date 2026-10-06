@@ -6,6 +6,8 @@
 - Complete and partially filled invitations both render without errors.
 - Section visibility and ordering follow saved configuration.
 - Template switching changes presentation without damaging invitation data.
+- One published sample represents the catalogue; every design renders it and shows that design's own primary palette.
+- An explicit template override for a sample resets only colour settings, never content or wording.
 - Guest links work with spaces, punctuation, and Unicode names.
 - Missing recipient data uses a neutral fallback.
 - Countdown uses the intended timezone and event date.
@@ -27,7 +29,19 @@
 - No template contains customer-specific hard-coded content.
 - Unknown template IDs and view paths are rejected.
 - Template settings are validated against a schema.
+- Recommended colour presets are declared per template, validated as allow-listed hex, and led by the template default.
+- A setting is offered in the admin only when the selected template declares it.
 - An existing published invitation still renders after a new template is added.
+
+## Template Contract Checks
+
+- The cover control opens the invitation without scripting (a real anchor to the invitation root), and a CSS-only rule dismisses the cover.
+- Content is hidden only under a class the template script adds to the document root; with scripting blocked the whole invitation is visible.
+- Every structural class the entry view renders is styled by the template stylesheet.
+- The manifest labels and the view's label keys match exactly, including any key read by a shared partial.
+- The tinted-section background rule is the last rule that paints the section element.
+- The template is registered everywhere the platform keeps a template allow-list: asset build, section-height support, multi-line conversion, and similar lists.
+- Scoped template CSS cannot leak into another template or the admin panel.
 
 ## Responsive and Visual
 
@@ -36,6 +50,8 @@
 - Verify cover, navigation, forms, gallery, gift details, and floating controls.
 - Confirm contrast, focus visibility, heading order, labels, and alternative text.
 - Check that fixed elements respect safe-area insets and do not cover content.
+- Shared forms span their column, and their fields have a visible border and focus state.
+- A fixed bottom bar reserves padding for its height and steps aside while scrolling forward.
 
 ## Motion
 
@@ -50,6 +66,7 @@
 - `prefers-reduced-motion` produces the no-motion experience regardless of the setting.
 - No motion delays the first readable content or blocks navigation, forms, or audio controls.
 - Scroll effects do not hijack, trap, or smooth-scroll against the guest's intent.
+- The page scrolls normally and smoothly; vertical scroll snapping or one-screen jumps are not forced. Horizontal snapping inside a gallery carousel is fine.
 - Motion is not driven by a per-frame scroll handler that reads layout.
 - A motion library, when used, is loaded per template and does not block the first render.
 - Audio starts only from a user gesture and never restarts on re-render.

@@ -80,12 +80,13 @@ This is a shape, not a mandatory palette. Add or remove tokens to suit the conce
 - Prevent names, addresses, and long guest names from overflowing.
 - Avoid desktop artwork merely scaled down; recombine the composition for narrow screens.
 - Ensure the closed cover, open invitation, forms, gallery, map action, and music controls all work with one hand.
+- A form centred with `margin: auto` inside a `display: grid` section shrinks to its widest label. Give shared forms a definite width such as `width: min(100%, 40rem)`, and give fields a visible border and focus ring against the surface behind them.
 
 ## 5. Immersive Section Templates
 
 For premium wedding templates, prefer an immersive phone-first reading model unless the brief asks otherwise:
 
-- Make each major section occupy one full viewport and use scroll snapping so one deliberate scroll lands on the next section.
+- Make each major section occupy one full viewport, but keep the page scroll normal and free. Do not force vertical scroll snapping or jump the guest one screen at a time; reserve `scroll-behavior: smooth` for anchor and navigation links only. Horizontal snapping inside a gallery carousel is fine.
 - Fill the viewport with composed content, ornamental framing, media, or useful interaction. Do not leave large blank areas merely to satisfy full-screen height.
 - Keep section content focused. Reduce prose before shrinking readable text; details can move into compact cards, accordions, or secondary actions.
 - Preserve density across device heights. Test short phones, tall phones, and common desktop widths with responsive spacing rather than fixed vertical gaps.
@@ -96,8 +97,9 @@ For premium wedding templates, prefer an immersive phone-first reading model unl
 - For gallery sections, use an editorial mosaic or horizontal swipe pages that preserve the big/small photo rhythm. Avoid harsh subject cropping; use focal-position controls, `object-fit: cover` only where the composition survives it, and `object-fit: contain` or alternate aspect ratios for photos that must remain fully visible.
 - Keep floating controls, especially music, icon-first and compact. Use `aria-label` or visually hidden text instead of visible labels that wrap inside a circular button.
 - Support optional cover video with desktop/mobile sources, poster fallback, focal-position settings, overlay opacity, and reduced-motion fallback. Start audio only from a user gesture; video may be muted autoplay when permitted.
+- A fixed bottom navigation or dock overlaps the lower edge of a full-height section. Reserve bottom padding equal to its height plus its offset, and let it step aside while the guest scrolls forward so it never covers the actions it floats above.
 
-Use this pattern for designs similar to cinematic botanical gold, editorial vow, formal luxury, or any user request that says each scroll should reveal one full page.
+Use this pattern for designs similar to cinematic botanical gold, editorial vow, formal luxury, or any user request for full-screen sections that read on a normal scroll.
 
 ### Elegant Rose Benchmark Guidelines
 

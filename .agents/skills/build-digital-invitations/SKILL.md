@@ -7,6 +7,8 @@ description: Build, extend, review, or repair digital invitation websites and re
 
 Build invitation websites as a reusable product with independent data, features, and presentation layers. Preserve creative freedom: a new template may change composition, section order, navigation, illustration style, typography, transitions, and interaction patterns—not merely colors.
 
+Design **mobile-first**: the guest almost always opens the invitation on a phone, held one-handed, so the phone layout is the primary deliverable and desktop is the enhancement. Compose the narrow layout first and derive wider layouts from it — never design desktop and shrink it down.
+
 ## Route the Work
 
 1. Inspect the existing repository and its instructions before choosing tools or changing files.
@@ -63,7 +65,21 @@ Use **Elegant Rose** (`resources/invitation-templates/elegant-rose`) as the prim
 - **Section Standards**: Follow the section structure, numbered event cards, structured action buttons, floating pill navigation (`.er-nav`), audio toggle (`.er-music`), and card-based host profiles from `elegant-rose`.
 - **Template Refactoring**: When fixing or improving existing templates (such as `elegant-rose`, `midnight-ledger`, or `fun-storybook`), measure visual quality and mobile usability against `elegant-rose`.
 
-For premium wedding directions similar to Golden Vow or Elegant Rose, apply the immersive section pattern in `references/design-system.md`: one full-screen section per scroll, dense responsive mobile composition, side-by-side or cleanly stacked couple portraits, editorial photo treatment, compact icon-only music controls, and optional cover video support.
+Use **Coastal Vow** (`resources/invitation-templates/coastal-vow`) as the reference for a light, editorial, seaside direction: a horizon hero, a bottom-docked navigation that steps aside while reading, a horizontal gallery rail, and a single "tide rises" motion moment. It is the model for a warm, airy palette built from CSS layers rather than a dark cinematic treatment.
+
+For premium wedding directions similar to Golden Vow or Elegant Rose, apply the immersive section pattern in `references/design-system.md`: full-screen sections that read on a normal, smooth scroll, dense responsive mobile composition, side-by-side or cleanly stacked couple portraits, editorial photo treatment, compact icon-only music controls, and optional cover video support.
+
+## Design Mobile-First
+
+The phone is the canvas; desktop is the enhancement. Design the narrow layout first, judge it there, and only then widen it — a desktop-only view is not evidence that a template works.
+
+- Design at 360–390px first, then enhance at ~430px, tablet, and desktop. Check the shortest common phone height as well as the tallest; re-check after every change.
+- Treat vertical space as scarce. Compose each section to read in about one thumb-scroll, and never leave a large blank area merely to satisfy a full-height section.
+- Keep couples side by side on phones and keep names and headings on whole words — no one-word-per-line stacks and no narrow columns that squeeze important text, addresses, or venues.
+- Make every action a comfortable touch target (about 44px), reachable one-handed and clear of browser chrome and safe-area insets. Let a fixed bottom bar reserve its own space and step aside while the guest scrolls so it never covers the actions it floats above.
+- Prefer full-width stacked blocks and one readable column. Move secondary detail into cards, accordions, or dialogs instead of shrinking type.
+- Reflow, do not crop: choose aspect ratios and focal points that survive a phone portrait crop, and verify long Indonesian names, honorifics, and addresses at the narrowest width.
+- Use the template's own breakpoint consistently (for example `48rem`) and verify both sides of it; capture 393px and a desktop width when visual tooling is available.
 
 ## Build a Complete Invitation by Default
 
@@ -107,14 +123,14 @@ Keep every slice usable. Do not build a large template marketplace, reseller sys
 - Prefer an opaque guest token when tracking, RSVP identity, or privacy matters.
 - Permit a human-readable `to` query parameter for lightweight invitations.
 - Escape output and sanitize display values; never render raw query text as HTML.
-- Show a neutral fallback such as `Bapak/Ibu/Saudara/i` when no recipient exists.
+- Show a neutral fallback such as `Bapak/Ibu/Saudara/i` when no recipient exists, or leave the name field empty so the guest types their own. Never prefill a form with a placeholder the guest has to delete first, and only greet by name when there is a real name.
 - Keep the public invitation accessible when personalization fails unless the user explicitly requires private access.
 - URL-encode generated share links and preserve Unicode names correctly.
 - Do not expose private guest-list data through predictable numeric identifiers.
 
 ## Handle Media and Interaction
 
-- Design mobile-first and verify common narrow screens before desktop polish.
+- Design mobile-first (see **Design Mobile-First**) and verify common narrow screens before desktop polish.
 - Start music only after an intentional user interaction; provide visible play and pause controls.
 - Optimize uploads, generate responsive image sizes, prefer modern formats, and lazy-load off-screen media.
 - Treat motion as a designed layer with a named concept and one signature moment, never a decorative finish. Follow section 7 of `references/design-system.md`.
@@ -122,9 +138,20 @@ Keep every slice usable. Do not build a large template marketplace, reseller sys
 - Respect `prefers-reduced-motion` and always keep a genuine no-motion path.
 - Provide fallbacks when maps, audio, fonts, or third-party embeds fail.
 - Treat gift details and account numbers as sensitive editable content and reveal them intentionally.
+- A shared form centred with `margin: auto` inside a `display: grid` section collapses to its widest label. Give every form a real width (for example `width: min(100%, 40rem)`) and give its fields a visible border and focus ring.
+- A fixed bottom bar can cover the actions of a full-height section. Reserve bottom padding equal to its height plus offset, and let it step aside while the guest scrolls forward.
+
+## Ship a Reusable Catalogue and Theme Presets
+
+When the product has a public catalogue of designs:
+
+- Represent the whole catalogue with one published sample invitation. Render that same content through every template so an operator maintains one example, not one per design.
+- When a sample is shown through a template other than its own, reset that template's declared colour settings to the template defaults so each card shows its own primary palette. Keep wording, media, and motion as saved; never let one design's stored colour bleed into another design's preview.
+- Let every template declare recommended colour presets next to its colour setting. Validate them as allow-listed values, lead the list with the template default, and offer them in the admin as swatches beside the free colour picker.
+- Expose a setting in the admin only when the selected template declares it, so an operator never fills a field the design ignores.
 
 ## Finish with Evidence
 
-Run the repository's relevant tests, formatter, build, and static checks. Exercise at least one invitation with complete data and one with optional fields missing. Test recipient links containing spaces and non-ASCII characters. Render at least one template with JavaScript disabled to confirm the invitation is still fully visible and usable. Inspect representative mobile and desktop renders when visual tooling is available.
+Run the repository's relevant tests, formatter, build, and static checks. Exercise at least one invitation with complete data and one with optional fields missing. Test recipient links containing spaces and non-ASCII characters. Render at least one template with JavaScript disabled to confirm the invitation is still fully visible and usable. Inspect the **mobile** render first (360–390px) and only then a desktop width when visual tooling is available; the phone layout is the one most guests will actually see.
 
 Use `references/quality-checklist.md`; report what was verified, what could not be verified, and any assumptions that remain.

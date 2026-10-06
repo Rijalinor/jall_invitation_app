@@ -37,7 +37,7 @@ npm run build
 
 Run `composer test` once, sequentially: parallel runs corrupt `storage/framework/views` with access-denied rename errors.
 
-`public/build` is gitignored, so rebuild (`npm run build`) and re-upload it after any CSS/JS edit. On Windows, inline `php -r` mangles `$_`/`$c`; write a temporary PHP script under the system temp dir instead.
+`public/build` is gitignored, so rebuild (`npm run build`) and re-upload it after any CSS/JS edit. On cPanel that means both the path PHP reads (`~/PROJECT/public/build/manifest.json`) and the path the browser fetches (`~/public_html/build/assets/…`); updating only one leaves every invitation at 500 with *"Unable to locate file in Vite manifest"*. On Windows, inline `php -r` mangles `$_`/`$c`; write a temporary PHP script under the system temp dir instead.
 
 For local setup, follow [README.md](README.md). For deployment and production safety, follow [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md); never run development seeders in production and never expose the Laravel project root as the web document root.
 
@@ -64,5 +64,6 @@ Media URLs come from `Storage::disk('public')->url($path)` (`APP_URL` + `/storag
 - [docs/DATABASE.md](docs/DATABASE.md): data model
 - [docs/PRD.md](docs/PRD.md): product requirements
 - [docs/QUALITY_AUDIT.md](docs/QUALITY_AUDIT.md): known quality findings
+- [docs/DEMO_DATA.md](docs/DEMO_DATA.md): fictional sample data for a catalogue demo
 - [PROJECT_STATUS.md](PROJECT_STATUS.md): current implementation status
 - [SESSION_HANDOVER.md](SESSION_HANDOVER.md): recent handover context

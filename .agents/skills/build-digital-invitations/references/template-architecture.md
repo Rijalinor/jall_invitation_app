@@ -125,6 +125,7 @@ Use this sequence:
 5. Validate the selected template against the registry.
 6. Create an immutable presentation view model.
 7. Render the registered entry view.
+8. When the request explicitly selects a different template for a sample or preview, render the same invitation through that template and — only when the design differs from the entry's own — reset the template's declared colour settings to their defaults, so each design shows its own palette without changing stored content.
 
 Cache public rendering where useful, but vary cache keys by invitation, template version, locale, and recipient personalization. Do not leak one guest's personalized page to another through shared caching.
 
@@ -136,6 +137,21 @@ Provide two levels of customization:
 - **Developer template code:** composition, custom section views, decorative assets, responsive layout, advanced motion, and interaction patterns.
 
 Validate all settings against the manifest schema. Emit CSS custom properties from allow-listed values. Never place arbitrary customer CSS or JavaScript into the public page unless the product explicitly supports trusted developer access with isolation.
+
+Declare recommended values beside an allow-listed setting so an operator can pick something that suits the design instead of inventing it:
+
+```json
+"accent_color": {
+  "type": "color",
+  "default": "#2b7a78",
+  "presets": [
+    {"label": "Sea Glass", "value": "#2b7a78"},
+    {"label": "Sunset Coral", "value": "#c9683f"}
+  ]
+}
+```
+
+Validate presets as allow-listed values too (a six digit hex, or whatever the setting's type permits), and lead the list with the declared default so the stock look is always one click away. The admin surfaces them as swatches beside the free control; the free control stays for any value outside the list. Expose a setting only when the selected template declares it.
 
 Do not force all templates through one rigid DOM tree. Share data and feature contracts, while allowing each template to own its markup and visual composition.
 

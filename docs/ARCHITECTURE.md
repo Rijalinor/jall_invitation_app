@@ -78,7 +78,14 @@ Setiap template wajib memiliki file `manifest.json`:
     "gifts", "contacts", "livestream", "sharing", "closing"
   ],
   "settings_schema": {
-    "accent_color": { "type": "color", "default": "#b76e79" },
+    "accent_color": {
+      "type": "color",
+      "default": "#b76e79",
+      "presets": [
+        { "label": "Rose Wine", "value": "#7b2639" },
+        { "label": "Sage Garden", "value": "#5f7a5f" }
+      ]
+    },
     "secondary_color": { "type": "color", "default": "#f5e6e8" },
     "font_display": {
       "type": "select",

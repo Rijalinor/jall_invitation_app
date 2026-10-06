@@ -19,7 +19,7 @@ Do not declare an invitation complete merely because every section is visible. I
 
 ### Opening
 
-- Personalized recipient name with a neutral fallback.
+- Personalized recipient name; when none exists, hide the greeting or use a neutral fallback instead of a name.
 - Event title, hosts, primary date, and clear `Buka Undangan` action.
 - Music begins only after intentional interaction.
 - Cover works without audio and when media loading fails.
@@ -28,6 +28,7 @@ Do not declare an invitation complete merely because every section is visible. I
 
 - Couple or host names, photos, short profiles, and optional social links.
 - Parent or family names where culturally appropriate.
+- Keep the card to the name and one short line; move longer profile text, birth order, and social links behind a detail action (a dialog or disclosure) so a card never becomes a wall of text. Collapse them only under a class the script adds, so the details stay readable when scripting fails.
 - Configurable quotation, prayer, or introductory text; never invent religious text or personal information.
 
 ### Event Schedule
@@ -48,6 +49,7 @@ Do not declare an invitation complete merely because every section is visible. I
 
 - RSVP for attending, not attending, or tentative states as required.
 - Party-size limits based on the guest invitation allowance.
+- The name field starts empty for a general link, so the guest types their own name instead of deleting a placeholder the invitation filled in; a personal link pre-fills it.
 - Submission confirmation and prevention of accidental duplicates.
 - Moderated wishes or guestbook with spam controls.
 - Optional attendance deadline displayed in the visitor's expected timezone.
@@ -96,6 +98,7 @@ Provide an administrator with:
 - template selection without re-entering invitation content
 - content editing for every supported section
 - section enable/disable and ordering controls
+- alignment and layout controls for operator-built free blocks
 - safe theme controls declared by the template manifest
 - image, audio, and optional video management
 - guest creation and CSV or spreadsheet import when bulk guests are in scope

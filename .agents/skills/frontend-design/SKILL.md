@@ -33,6 +33,16 @@ Use non-user-triggered motion sparingly and deliberately, only to draw attention
 
 Consider written content carefully. Often a design brief may not contain real content, and it's up to you to come up with copy and placeholder content. Copy can make a design feel as templated as the design itself. See the below section on writing for more guidance.
 
+## Design mobile-first
+
+Most people meet the design on a phone, held one-handed. Make the narrow layout the primary deliverable and the wide layout the enhancement: design at 360–390px first, then widen — never design desktop and shrink it down.
+
+- Judge the phone layout before the desktop one; a desktop-only view does not prove the design works.
+- Treat vertical space as scarce. Compose each screen to read in about one thumb-scroll, and never leave a large blank area merely to fill the viewport.
+- Keep touch targets about 44px, reachable one-handed and clear of browser chrome and safe-area insets.
+- Reflow, do not crop: pick aspect ratios and focal points that survive a phone portrait, and check long names, headings, and addresses at the narrowest width.
+- Verify at the shortest and tallest common phone heights, and re-check after every change.
+
 ## Process: plan, review against the brief, build, critique
 
 For calibration, AI-generated design right now clusters around some traits:

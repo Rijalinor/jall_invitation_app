@@ -198,3 +198,26 @@
 - [x] Galeri preview template tersedia pada form undangan admin
 - [x] Pergantian template mempertahankan seluruh konten undangan
 - [x] Default warna dan motion mengikuti manifest template masing-masing
+
+## Fase 13: Template Coastal Vow
+
+### Completed
+
+- [x] Template `Coastal Vow` dengan konsep pesisir "Tide Lines"
+- [x] Hero cakrawala bertingkat, palet kaca laut, dan tipografi Fraunces/Karla berbeda dari template lain
+- [x] Navigasi dock bawah yang menyingkir saat membaca serta galeri horizontal berbasis swipe
+- [x] Motion "tide rises" dengan satu momen tanda tangan dan jalur tanpa animasi
+- [x] Manifest, preview SVG, CSS, dan JavaScript terisolasi serta terdaftar di Vite
+- [x] Satu undangan contoh dipakai untuk seluruh katalog; `?template=` merender data yang sama pada tiap desain
+- [x] Warna rekomendasi per template sebagai swatch di panel admin, dengan validasi hex enam digit
+- [x] Preview katalog memakai palet prime bawaan template saat contoh ditampilkan pada desain lain
+
+## Fase 14: Template Celestial Vow
+
+### Completed
+
+- [x] Template `Celestial Vow` dengan konsep langit malam "the sky writes your names"
+- [x] Rasi bintang di sampul yang menggambar sendiri saat undangan dibuka (momen tanda tangan)
+- [x] Navigasi titik bintang di tepi kanan, parallax bintang saat scroll, dan galeri grid vertikal
+- [x] Countdown dengan bulan, tipografi Marcellus/Manrope, serta jalur tanpa animasi dan `prefers-reduced-motion`
+- [x] Manifest, preview SVG, CSS, dan JavaScript terisolasi serta terdaftar di Vite

@@ -212,6 +212,35 @@ sisa proyek  ->  ~/jallinv/          (app/, config/, resources/, routes/, databa
 
 Jangan unggah `.env`, `node_modules/`, `.git/`, atau `tests/`.
 
+#### Build Vite (`public/build`) harus ada di dua lokasi
+
+`@vite(...)` tidak menyusun CSS/JS saat request. Di produksi ia membaca daftar
+hasil build di `public/build/manifest.json`, lalu browser mengunduh berkas
+berhash di `/build/assets/...`. Ketika document root memakai `public_html`, dua
+peran itu jatuh di folder berbeda:
+
+- `~/jallinv/public/build/manifest.json` — dibaca PHP.
+- `~/public_html/build/assets/...` — dilayani browser.
+
+Keduanya harus berisi build yang sama. Memperbarui hanya salah satunya membuat
+semua undangan menampilkan 500 walau berkas di sisi lain sudah benar. Setelah
+`npm run build` di lokal, salin ke dua tempat:
+
+```bash
+rm -rf ~/public_html/build
+cp -r ~/jallinv/public/build ~/public_html/build
+```
+
+Verifikasi (keduanya minimal 1):
+
+```bash
+grep -c "resources/css/invitations.css" ~/jallinv/public/build/manifest.json
+grep -c "resources/css/invitations.css" ~/public_html/build/manifest.json
+```
+
+`public/build` di-gitignored, jadi ia tidak pernah ikut `git pull`; setiap
+perubahan CSS/JS wajib di-build lalu diunggah ulang manual.
+
 ### Periksa symlink storage setiap kali update
 
 Proses unggah dapat menimpa symlink `storage` menjadi folder biasa, dan sejak itu
@@ -285,6 +314,29 @@ php artisan optimize:clear
 
 Periksa versi PHP, extension PHP, permission, kredensial database, dan apakah
 `public/build/manifest.json` tersedia.
+
+### Undangan error 500: "Unable to locate file in Vite manifest"
+
+Manifest build di server belum memuat berkas yang diminta template, biasanya
+`resources/css/invitations.css` atau aset template yang baru ditambahkan.
+Penyebab tersering: `public/build` belum di-upload ulang setelah ada perubahan
+CSS/JS, atau hanya di-upload ke satu lokasi ketika document root memakai
+`public_html` (PHP membaca `~/jallinv/public/build`, browser memakai
+`~/public_html/build`). Halaman katalog tetap tampak normal karena ia memakai CSS
+inline, bukan `@vite`, sehingga tidak menyentuh manifest.
+
+```bash
+grep -h "production.ERROR" storage/logs/laravel.log | tail -n 3
+grep -c "resources/css/invitations.css" public/build/manifest.json
+grep -c "resources/css/invitations.css" ../public_html/build/manifest.json
+```
+
+Bangun ulang di lokal (`npm run build`), salin `public/build` ke kedua lokasi di
+atas, lalu:
+
+```bash
+php artisan optimize:clear
+```
 
 ### Perubahan `.env` tidak terbaca
 

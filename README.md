@@ -20,7 +20,7 @@ Platform jasa pembuatan undangan digital berbasis web. Satu aplikasi untuk banya
 
 ## Fitur Utama
 
-- **Multi-template:** Elegant Rose dan Midnight Ledger memakai satu data undangan
+- **Multi-template:** Elegant Rose, Midnight Ledger, Fun Storybook, Coastal Vow, dan Celestial Vow memakai satu data undangan
 - **Pengelolaan pelanggan** melalui panel admin
 - **Undangan lengkap:** Cover personal, profil pasangan, jadwal acara, countdown, kalender, peta, galeri, love story, RSVP, buku ucapan, amplop digital, kontak keluarga, livestream
 - **Link personal per tamu** dengan token unik
