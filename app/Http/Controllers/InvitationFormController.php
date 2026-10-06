@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\GiftMethodType;
+use App\Enums\ModerationStatus;
+use App\Models\GuestbookEntry;
 use App\Models\Invitation;
+use App\Models\Rsvp;
 use App\Services\FormLinks;
+use App\Services\GuestCsvImporter;
 use App\Services\PublicImageUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,15 +18,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * The customer-facing content form, reached through a link issued from the
- * admin panel.
+ * The couple-facing form, reached through a private link issued from the admin
+ * panel.
  *
  * The invitation is always resolved from the token, never from the request
- * body, so a valid link can only ever edit its own invitation. The form writes
- * content only (hosts, events, stories, gallery); template, status, slug and
- * publication dates stay under the operator's control.
+ * body, so a valid link can only ever edit its own invitation. Besides its own
+ * content (hosts, events, stories, gallery, gifts, contacts), the couple can
+ * manage the audience: guests and their personal links, RSVP responses, and
+ * guestbook moderation. Template, status, slug and publication dates stay under
+ * the operator's control.
  */
 class InvitationFormController extends Controller
 {
@@ -38,6 +45,12 @@ class InvitationFormController extends Controller
 
     public const STEP_CONTACTS = 'kontak';
 
+    public const STEP_GUESTS = 'tamu';
+
+    public const STEP_RSVP = 'rsvp';
+
+    public const STEP_GUESTBOOK = 'ucapan';
+
     public const STEP_DONE = 'selesai';
 
     private const STEPS = [
@@ -47,6 +60,9 @@ class InvitationFormController extends Controller
         self::STEP_GALLERY => 'Galeri',
         self::STEP_GIFTS => 'Hadiah',
         self::STEP_CONTACTS => 'Kontak',
+        self::STEP_GUESTS => 'Tamu',
+        self::STEP_RSVP => 'RSVP',
+        self::STEP_GUESTBOOK => 'Ucapan',
         self::STEP_DONE => 'Selesai',
     ];
 
@@ -81,6 +97,8 @@ class InvitationFormController extends Controller
 
     private const MAX_CONTACTS = 5;
 
+    private const MAX_GUESTS = Invitation::MAX_GUESTS;
+
     public function show(
         FormLinks $links,
         string $token,
@@ -102,6 +120,9 @@ class InvitationFormController extends Controller
             'gallery' => $invitation->media()->orderBy('position')->orderBy('id')->get(),
             'gifts' => $invitation->giftMethods()->orderBy('position')->orderBy('id')->get(),
             'contacts' => $invitation->contacts()->orderBy('position')->orderBy('id')->get(),
+            'guests' => $invitation->guests()->orderBy('id')->get(),
+            'rsvps' => $invitation->rsvps()->orderByDesc('submitted_at')->get(),
+            'guestbookEntries' => $invitation->guestbookEntries()->orderByDesc('created_at')->get(),
             'hostRoles' => self::HOST_ROLES,
             'timezones' => self::TIMEZONES,
             'giftTypes' => self::giftTypes(),
@@ -111,6 +132,7 @@ class InvitationFormController extends Controller
             'maxGallery' => self::MAX_GALLERY,
             'maxGifts' => self::MAX_GIFTS,
             'maxContacts' => self::MAX_CONTACTS,
+            'maxGuests' => $invitation->guestLimit(),
             'remainingPhotoSlots' => $this->remainingPhotoSlots($invitation),
         ]);
     }
@@ -131,6 +153,7 @@ class InvitationFormController extends Controller
             self::STEP_GALLERY => $this->saveGallery($request, $invitation, $uploads, $token),
             self::STEP_GIFTS => $this->saveGifts($request, $invitation, $token),
             self::STEP_CONTACTS => $this->saveContacts($request, $invitation, $token),
+            self::STEP_GUESTS => $this->saveGuests($request, $invitation, $token),
             default => $this->toStep($token, self::STEP_DONE),
         };
     }
@@ -577,6 +600,185 @@ class InvitationFormController extends Controller
         });
 
         return $this->toStep($token, self::STEP_DONE);
+    }
+
+    private function saveGuests(Request $request, Invitation $invitation, string $token): RedirectResponse
+    {
+        $data = $request->validateWithBag('form', [
+            'tamu' => ['array', 'max:'.self::MAX_GUESTS],
+            'tamu.*.id' => ['nullable', 'integer'],
+            'tamu.*.remove' => ['nullable', 'boolean'],
+            'tamu.*.display_name' => ['nullable', 'string', 'max:255'],
+            'tamu.*.group' => ['nullable', 'string', 'max:255'],
+            'tamu.*.phone' => ['nullable', 'string', 'max:50'],
+            'tamu.*.invitation_limit' => ['nullable', 'integer', 'min:1', 'max:20'],
+        ]);
+
+        $rows = collect($data['tamu'] ?? [])
+            ->filter(fn (array $row): bool => filled($row['display_name'] ?? null))
+            ->reject(fn (array $row): bool => filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL))
+            ->take(self::MAX_GUESTS)
+            ->values();
+
+        $before = $invitation->guests()->count();
+        $limit = $invitation->guestLimit();
+
+        DB::transaction(function () use ($rows, $data, $invitation, $before, $limit): void {
+            $keptIds = [];
+
+            foreach ($rows as $row) {
+                $guest = filled($row['id'] ?? null)
+                    ? $invitation->guests()->find($row['id'])
+                    : null;
+
+                $guest ??= $invitation->guests()->make();
+
+                $guest->fill([
+                    'display_name' => $row['display_name'],
+                    'group' => $row['group'] ?? null,
+                    'phone' => $row['phone'] ?? null,
+                    'invitation_limit' => max(1, min(20, (int) ($row['invitation_limit'] ?? 2))),
+                ]);
+
+                $guest->save();
+                $keptIds[] = $guest->id;
+            }
+
+            $this->applyRemovals($invitation->guests(), $data['tamu'] ?? [], $keptIds);
+
+            // Only a save that pushes the list past the operator's cap is
+            // rejected. Editing or trimming a list that is already over it (after
+            // the cap was lowered) stays possible; thrown inside the transaction
+            // so an over-limit save rolls back whole.
+            $after = $invitation->guests()->count();
+
+            if ($after > $limit && $after > $before) {
+                $this->fail('Batas maksimum tamu undangan ini adalah '.$limit.'.');
+            }
+        });
+
+        // The "Simpan" button sends after=stay so the couple keeps their place on
+        // the guest list to add the next name; the primary button moves on.
+        $next = $request->input('after') === 'stay' ? self::STEP_GUESTS : self::STEP_RSVP;
+
+        return $this->toStep($token, $next);
+    }
+
+    /**
+     * Import guests from an uploaded CSV (name, group, phone, invitation_limit),
+     * the same shape the admin panel accepts.
+     */
+    public function importGuests(Request $request, FormLinks $links, string $token): RedirectResponse
+    {
+        $invitation = $this->invitation($links, $token);
+
+        $request->validateWithBag('form', [
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+        ]);
+
+        $file = $request->file('file');
+        $stream = $file !== null && $file->getRealPath() !== false ? fopen($file->getRealPath(), 'r') : false;
+
+        if (! is_resource($stream)) {
+            return $this->toStep($token, self::STEP_GUESTS);
+        }
+
+        $slots = $invitation->guestLimit() - $invitation->guests()->count();
+
+        if ($slots <= 0) {
+            fclose($stream);
+
+            $this->fail('Batas maksimum tamu undangan ini ('.$invitation->guestLimit().') sudah tercapai.');
+        }
+
+        $count = app(GuestCsvImporter::class)->import($invitation, $stream, $slots);
+        fclose($stream);
+
+        if ($count < 0) {
+            throw ValidationException::withMessages([
+                'form' => 'File CSV harus punya kolom "name" di baris pertama.',
+            ])->errorBag('form');
+        }
+
+        return $this->toStep($token, self::STEP_GUESTS)->with('imported_count', $count);
+    }
+
+    /**
+     * A ready-to-fill CSV template for the guest import, so the couple never has
+     * to guess the column names. The example rows are meant to be replaced.
+     */
+    public function guestCsvTemplate(FormLinks $links, string $token): StreamedResponse
+    {
+        $this->invitation($links, $token);
+
+        return response()->streamDownload(function (): void {
+            $stream = fopen('php://output', 'w');
+            fputcsv($stream, ['name', 'group', 'phone', 'invitation_limit']);
+            fputcsv($stream, ['Budi Santoso', 'Keluarga', '081234567890', 2]);
+            fputcsv($stream, ['Siti Aminah', 'Teman', '081298765432', 1]);
+            fclose($stream);
+        }, 'template-tamu.csv');
+    }
+
+    /**
+     * Download the invitation's RSVP responses as CSV, mirroring the admin export.
+     */
+    public function exportRsvps(FormLinks $links, string $token): StreamedResponse
+    {
+        $invitation = $this->invitation($links, $token);
+
+        return response()->streamDownload(function () use ($invitation): void {
+            $stream = fopen('php://output', 'w');
+            fputcsv($stream, ['Nama', 'Status', 'Jumlah Tamu', 'Catatan', 'Dikirim']);
+
+            $invitation->rsvps()->latest('submitted_at')->each(function ($rsvp) use ($stream): void {
+                fputcsv($stream, [
+                    $rsvp->name,
+                    $rsvp->status->label(),
+                    $rsvp->party_size,
+                    $rsvp->note,
+                    $rsvp->submitted_at?->format('Y-m-d H:i:s'),
+                ]);
+            });
+
+            fclose($stream);
+        }, 'rsvp-'.$invitation->slug.'.csv');
+    }
+
+    /**
+     * Remove one RSVP. The record is looked up through the invitation, so a
+     * response for another invitation can never be deleted through this link.
+     */
+    public function deleteRsvp(FormLinks $links, string $token, Rsvp $rsvp): RedirectResponse
+    {
+        $invitation = $this->invitation($links, $token);
+
+        $invitation->rsvps()->findOrFail($rsvp->id)->delete();
+
+        return $this->toStep($token, self::STEP_RSVP);
+    }
+
+    /**
+     * Approve, reject, or delete one guestbook entry, scoped to the invitation
+     * the token resolves to.
+     */
+    public function moderateGuestbook(Request $request, FormLinks $links, string $token, GuestbookEntry $entry): RedirectResponse
+    {
+        $invitation = $this->invitation($links, $token);
+
+        $data = $request->validateWithBag('form', [
+            'action' => ['required', Rule::in(['approve', 'reject', 'delete'])],
+        ]);
+
+        $entry = $invitation->guestbookEntries()->findOrFail($entry->id);
+
+        match ($data['action']) {
+            'approve' => $entry->update(['moderation_status' => ModerationStatus::APPROVED]),
+            'reject' => $entry->update(['moderation_status' => ModerationStatus::REJECTED]),
+            'delete' => $entry->delete(),
+        };
+
+        return $this->toStep($token, self::STEP_GUESTBOOK);
     }
 
     /**

@@ -3,8 +3,11 @@
 namespace App\ViewModels;
 
 use App\Enums\BlockType;
+use App\Enums\ModerationStatus;
+use App\Enums\RsvpStatus;
 use App\Models\Guest;
 use App\Models\Invitation;
+use App\Support\TimezoneLabel;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,7 +15,7 @@ final readonly class InvitationViewModel
 {
     public function __construct(public array $data) {}
 
-    public static function from(Invitation $invitation, string $recipient, array $manifest, ?Guest $guest = null): self
+    public static function from(Invitation $invitation, ?string $recipient, array $manifest, ?Guest $guest = null, bool $useTemplateDefaults = false): self
     {
         $safeUrl = fn (?string $url): ?string => $url && in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true) ? $url : null;
         $asset = fn (?string $path): ?string => $path ? Storage::disk('public')->url($path) : null;
@@ -37,6 +40,18 @@ final readonly class InvitationViewModel
             }
         }
         $settings = $invitation->settings_json ?? [];
+
+        // The catalogue shows one sample in every template's design. When that
+        // design is not the sample's own, drop the saved colour settings so the
+        // template's declared palette (its primary colour) is what a visitor sees.
+        if ($useTemplateDefaults) {
+            foreach (($manifest['settings_schema'] ?? []) as $key => $definition) {
+                if (($definition['type'] ?? null) === 'color') {
+                    unset($settings[$key]);
+                }
+            }
+        }
+
         $accentDefault = $manifest['settings_schema']['accent_color']['default'] ?? '#7b2639';
         $motionDefault = $manifest['settings_schema']['motion']['default'] ?? 'calm';
         $motionOptions = $manifest['settings_schema']['motion']['options'] ?? ['calm', 'expressive', 'off'];
@@ -52,15 +67,41 @@ final readonly class InvitationViewModel
         $shareUrl = $guest
             ? route('invitations.guest', [$invitation->slug, $guest->token])
             : route('invitations.show', $invitation->slug);
-        $shareMessage = str_replace('[nama]', $recipient, $invitation->share_message ?: 'Kepada Yth. [nama], kami mengundang Anda ke acara kami.');
+        // A general link carries no name at all, so the invitation shows no
+        // greeting and the forms start empty instead of a placeholder the guest
+        // would have to delete before typing.
+        $recipient = is_string($recipient) && trim($recipient) !== '' ? $recipient : null;
+        $shareTemplate = $invitation->share_message ?: 'Kepada Yth. [nama], kami mengundang Anda ke acara kami.';
+
+        if ($recipient !== null) {
+            $shareMessage = str_replace('[nama]', $recipient, $shareTemplate);
+        } else {
+            // A general link has no one to greet: drop the "[nama]" and any
+            // leading salutation it sat in, so the message does not read
+            // "Kepada Yth., ...". The operator can still set a name-free message.
+            $shareMessage = str_replace('[nama]', '', $shareTemplate);
+            $shareMessage = trim((string) preg_replace('/^\s*Kepada Yth\.?\s*,?\s*/iu', '', $shareMessage));
+            $shareMessage = trim((string) preg_replace('/\s+([,.!?])/u', '$1', $shareMessage));
+
+            if ($shareMessage !== '') {
+                $shareMessage = mb_strtoupper(mb_substr($shareMessage, 0, 1)).mb_substr($shareMessage, 1);
+            }
+        }
 
         $events = $invitation->events->map(function ($event) use ($safeUrl, $invitation) {
-            $startsAt = Carbon::parse(
-                $event->date->format('Y-m-d').' '.($event->start_time ?: '00:00'),
-                $event->timezone,
-            );
+            // A malformed stored timezone must not 500 the page: parse in the
+            // event's own zone when it is valid, otherwise in the app's zone.
+            $parse = function (string $value) use ($event) {
+                try {
+                    return Carbon::parse($value, $event->timezone);
+                } catch (\Throwable) {
+                    return Carbon::parse($value);
+                }
+            };
+
+            $startsAt = $parse($event->date->format('Y-m-d').' '.($event->start_time ?: '00:00'));
             $endsAt = $startsAt && $event->end_time
-                ? Carbon::parse($event->date->format('Y-m-d').' '.$event->end_time, $event->timezone)
+                ? $parse($event->date->format('Y-m-d').' '.$event->end_time)
                 : $startsAt?->copy()->addHours(2);
             $location = implode(', ', array_filter([$event->venue_name, $event->address]));
             $destination = $event->latitude !== null && $event->longitude !== null
@@ -73,6 +114,7 @@ final readonly class InvitationViewModel
                 'start_time' => $event->start_time ? substr($event->start_time, 0, 5) : null,
                 'end_time' => $event->end_time ? substr($event->end_time, 0, 5) : null,
                 'timezone' => $event->timezone,
+                'timezone_label' => TimezoneLabel::for($event->timezone),
                 'venue' => $event->venue_name,
                 'address' => $event->address,
                 'notes' => array_values(array_filter([$event->parking_notes, $event->entrance_notes, $event->landmark_notes])),
@@ -90,6 +132,10 @@ final readonly class InvitationViewModel
             ];
         })->all();
 
+        // Whether the RSVP recap is shown at all. Off means the aggregate query
+        // is skipped too, not merely hidden.
+        $showRsvpSummary = (bool) ($settings['show_rsvp_summary'] ?? $settingDefault('show_rsvp_summary', true));
+
         $theme = [
             'accent_color' => preg_match('/^#[0-9a-f]{6}$/i', $settings['accent_color'] ?? '') ? $settings['accent_color'] : $accentDefault,
             'motion' => in_array($settings['motion'] ?? null, $motionOptions, true) ? $settings['motion'] : $motionDefault,
@@ -102,10 +148,6 @@ final readonly class InvitationViewModel
                 $settings['cover_video_enabled'] ?? $settingDefault('cover_video_enabled', false),
                 FILTER_VALIDATE_BOOLEAN,
             ),
-            'opening_video_enabled' => filter_var(
-                $settings['opening_video_enabled'] ?? $settingDefault('opening_video_enabled', false),
-                FILTER_VALIDATE_BOOLEAN,
-            ),
             'cover_video_desktop' => $safeSettingMedia('cover_video_desktop'),
             'cover_video_mobile' => $safeSettingMedia('cover_video_mobile'),
             'cover_poster_image' => $safeSettingMedia('cover_poster_image'),
@@ -115,23 +157,57 @@ final readonly class InvitationViewModel
             'cover_text_position' => in_array($settings['cover_text_position'] ?? null, $settingOptions('cover_text_position'), true) ? $settings['cover_text_position'] : $settingDefault('cover_text_position', 'left'),
             'ornament_style' => in_array($settings['ornament_style'] ?? null, $settingOptions('ornament_style'), true) ? $settings['ornament_style'] : $settingDefault('ornament_style', 'olive-line'),
             'music_enabled' => (bool) ($settings['music_enabled'] ?? $settingDefault('music_enabled', true)),
+            'hide_timezone' => (bool) ($settings['hide_timezone'] ?? $settingDefault('hide_timezone', false)),
+            'merge_rsvp_guestbook' => (bool) ($settings['merge_rsvp_guestbook'] ?? $settingDefault('merge_rsvp_guestbook', false)),
+            'show_rsvp_summary' => $showRsvpSummary,
+            'auto_scroll' => (bool) ($settings['auto_scroll'] ?? $settingDefault('auto_scroll', false)),
         ] as $key => $value) {
             if (array_key_exists($key, $manifest['settings_schema'] ?? [])) {
                 $theme[$key] = $value;
             }
         }
 
+        // The image a shared link shows (og:image). The operator may pick one of
+        // the invitation's own photos in the admin; otherwise fall back to the
+        // cover poster, the first gallery photo, then the first host photo. A
+        // chosen file that no longer exists is ignored so the preview keeps working.
+        $chosenShare = $settings['share_image'] ?? null;
+        $chosenShare = is_string($chosenShare) && Storage::disk('public')->exists($chosenShare)
+            ? $asset($chosenShare)
+            : null;
+        $galleryCover = $invitation->media->firstWhere('type', 'image');
+        $hostCover = $invitation->hosts->first();
+        $shareImage = $chosenShare
+            ?? ($theme['cover_poster_image'] ?? null)
+            ?? ($galleryCover ? $asset($galleryCover->path) : null)
+            ?? ($hostCover ? $asset($hostCover->photo_path) : null);
+
+        // Attendance tally for the public RSVP recap. Counted per status in one
+        // grouped query, so no individual guest row — and no name — is loaded.
+        // Skipped entirely when the recap is switched off.
+        $rsvpCounts = $showRsvpSummary
+            ? $invitation->rsvps()
+                ->selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status')
+            : collect();
+
         return new self([
             'title' => $invitation->title,
+            'share_image' => $shareImage,
+            'couple_title' => self::coupleTitle($invitation),
             'recipient' => $recipient,
             'guest_token' => $guest?->token,
             'invitation_limit' => $guest?->invitation_limit ?? 2,
             'rsvp_url' => route('invitations.rsvp', $invitation->slug),
+            'confirmation_url' => route('invitations.confirmation', $invitation->slug),
             'guestbook_url' => route('invitations.guestbook', $invitation->slug),
             'share_url' => $shareUrl,
             'whatsapp_url' => 'https://wa.me/?text='.rawurlencode($shareMessage."\n".$shareUrl),
             'opening_text' => $invitation->opening_text,
             'closing_message' => $invitation->closing_message,
+            'closing_families' => self::closingFamilies($invitation),
+            'closing_footer' => self::settingText($invitation, 'closing_footer'),
             'music_url' => $asset($invitation->music_path),
             'livestream_url' => $safeUrl($invitation->livestream_url),
             'livestream_label' => $invitation->livestream_label ?: 'Saksikan Live Streaming',
@@ -168,9 +244,23 @@ final readonly class InvitationViewModel
                 'whatsapp_url' => 'https://wa.me/'.preg_replace('/\D/', '', preg_replace('/^0/', '62', $contact->phone)),
                 'phone_url' => 'tel:+'.preg_replace('/\D/', '', preg_replace('/^0/', '62', $contact->phone)),
             ])->all(),
+            // How many wishes the guestbook actually holds, so a template can
+            // show a "12 Ucapan" style tally. Counted on its own because the
+            // eager-loaded wishes list above is capped to the newest twenty.
+            'guestbook_count' => $invitation->guestbookEntries()
+                ->where('moderation_status', ModerationStatus::APPROVED->value)
+                ->count(),
             'wishes' => $invitation->guestbookEntries->map(fn ($entry) => [
                 'name' => $entry->name, 'message' => $entry->message,
             ])->all(),
+            // Anonymous attendance recap shown below the confirmation form: how
+            // many answered each way, never who. Referenced by enum value so the
+            // status vocabulary has one source of truth.
+            'rsvp_summary' => [
+                'attending' => (int) ($rsvpCounts[RsvpStatus::ATTENDING->value] ?? 0),
+                'tentative' => (int) ($rsvpCounts[RsvpStatus::TENTATIVE->value] ?? 0),
+                'not_attending' => (int) ($rsvpCounts[RsvpStatus::NOT_ATTENDING->value] ?? 0),
+            ],
             'blocks' => self::blocks($invitation, $asset),
             'block_sections' => self::blockSections($invitation, $asset),
             'section_heights' => $sectionHeights,
@@ -190,6 +280,77 @@ final readonly class InvitationViewModel
      *
      * @return array<string, string>
      */
+    /**
+     * A trimmed, tag-stripped value from the invitation settings, or null when
+     * it is missing or blank. Used for the optional closing text below the
+     * families.
+     */
+    private static function settingText(Invitation $invitation, string $key, int $limit = 400): ?string
+    {
+        $value = $invitation->settings_json[$key] ?? null;
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = mb_substr(trim(strip_tags($value)), 0, $limit);
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * The families shown side by side in the closing section.
+     *
+     * The operator adds one entry per family; the template lays them out next to
+     * each other (and stacks them on a narrow screen). Empty rows are dropped
+     * here so a template never renders an empty column.
+     *
+     * @return array<int, array{label: string, names: string}>
+     */
+    private static function closingFamilies(Invitation $invitation): array
+    {
+        $families = $invitation->settings_json['closing_families'] ?? [];
+
+        if (! is_array($families)) {
+            return [];
+        }
+
+        $clean = [];
+
+        foreach ($families as $family) {
+            if (! is_array($family)) {
+                continue;
+            }
+
+            $label = is_string($family['label'] ?? null) ? trim(strip_tags($family['label'])) : '';
+            $names = is_string($family['names'] ?? null) ? trim(strip_tags($family['names'])) : '';
+
+            if ($label === '' && $names === '') {
+                continue;
+            }
+
+            $clean[] = [
+                'label' => mb_substr($label, 0, 120),
+                'names' => mb_substr($names, 0, 400),
+            ];
+        }
+
+        return $clean;
+    }
+
+    /**
+     * The couple's names for a heading, with the invitation title as a fallback.
+     *
+     * The closing section used to repeat the full title ("Pernikahan Teddy &
+     * Anindya"); the names alone read better there and match the opening.
+     */
+    private static function coupleTitle(Invitation $invitation): string
+    {
+        $names = $invitation->hosts->take(2)->pluck('name')->filter()->values();
+
+        return $names->count() >= 2 ? $names->implode(' & ') : $invitation->title;
+    }
+
     private static function labels(Invitation $invitation, array $manifest): array
     {
         $labels = is_array($manifest['labels'] ?? null) ? $manifest['labels'] : [];
@@ -274,6 +435,8 @@ final readonly class InvitationViewModel
             return is_string($value) && trim($value) !== '' ? trim($value) : null;
         };
 
+        $align = $content['align'] ?? null;
+
         $normalised = [
             'type' => $block->type->value,
             'title' => $text('title'),
@@ -282,6 +445,7 @@ final readonly class InvitationViewModel
             'source' => $text('source'),
             'caption' => $text('caption'),
             'url' => $asset($text('path')),
+            'align' => is_string($align) && in_array($align, ['left', 'center', 'right', 'justify'], true) ? $align : null,
         ];
 
         $hasContent = match ($block->type) {

@@ -15,6 +15,12 @@ class Invitation extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * The hard ceiling on how many guests one invitation may hold. The operator
+     * can set a lower limit per invitation through settings_json.guest_limit.
+     */
+    public const MAX_GUESTS = 500;
+
+    /**
      * The form token hash is a credential; it must never end up in JSON.
      *
      * @var list<string>
@@ -106,7 +112,7 @@ class Invitation extends Model
     public static function defaultSectionKeys(): array
     {
         return [
-            'opening', 'hosts', 'events', 'countdown', 'calendar',
+            'opening', 'hosts', 'events', 'countdown',
             'map', 'story', 'gallery', 'blocks', 'rsvp', 'guestbook',
             'gifts', 'contacts', 'livestream', 'sharing', 'closing',
         ];
@@ -140,6 +146,20 @@ class Invitation extends Model
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class)->orderBy('position');
+    }
+
+    /**
+     * How many guests the couple may hold through their form link. Defaults to
+     * the hard ceiling, so behaviour is unchanged until an operator sets a lower
+     * limit in the admin panel.
+     */
+    public function guestLimit(): int
+    {
+        $value = $this->settings_json['guest_limit'] ?? null;
+
+        return is_numeric($value)
+            ? max(1, min(self::MAX_GUESTS, (int) $value))
+            : self::MAX_GUESTS;
     }
 
     public function missingPreviewRequirements(): array

@@ -93,6 +93,22 @@
     max-width: 42rem;
     margin: 2rem auto 0;
     text-align: left;
+    /* A long guestbook must not stretch the invitation: cap the list and let it
+       scroll inside, so the section stays about one screen whatever the count. */
+    max-height: min(45svh, 24rem);
+    overflow-y: auto;
+    padding-inline-end: .35rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--inv-accent, #555) 55%, transparent) transparent;
+}
+
+.invitation-wishes::-webkit-scrollbar {
+    width: .45rem;
+}
+
+.invitation-wishes::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--inv-accent, #555) 50%, transparent);
 }
 
 .invitation-wishes blockquote {
@@ -105,6 +121,138 @@
 .invitation-wishes cite {
     color: var(--inv-ink, #555);
     opacity: .75;
+}
+
+/* How many wishes the guestbook holds, e.g. "12 Ucapan". Scoped to the section
+   so a template's own paragraph rule cannot win over it. */
+.invitation-section .invitation-wishes__count {
+    display: inline-block;
+    margin: 0 auto .5rem;
+    padding: .35rem .95rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .12));
+    border-radius: 999px;
+    color: var(--inv-accent, #555);
+    background: color-mix(in srgb, var(--inv-accent, #555) 8%, transparent);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+/* Anonymous attendance recap -------------------------------------------------
+   Three tallies below the RSVP / confirmation form — hadir, ragu-ragu, tidak —
+   so the guest sees the room without ever seeing who. Names stay private. The
+   explicit width (not just max-width) is what makes it run to the same column as
+   the form: an auto margin on a grid item would otherwise shrink it to content. */
+.invitation-rsvp-summary {
+    width: min(100%, 40rem);
+    max-width: 40rem;
+    margin: 2rem auto 0;
+    padding: 1.2rem 1rem 1.1rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .12));
+    background: var(--inv-paper, #fff);
+    text-align: center;
+}
+
+/* Scoped to the section so a template's own `.invitation-section p` rule cannot
+   win, the same way the notice is guarded. */
+.invitation-section .invitation-rsvp-summary__title {
+    margin: 0 0 .9rem;
+    color: var(--inv-accent, #555);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.invitation-rsvp-summary__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.invitation-rsvp-summary__item {
+    display: grid;
+    gap: .2rem;
+    padding: .8rem .5rem;
+    border-radius: .7rem;
+}
+
+.invitation-rsvp-summary__item strong {
+    font-size: clamp(1.4rem, 6vw, 1.9rem);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.invitation-rsvp-summary__item span {
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .85;
+}
+
+/* A light semantic hue per answer: green to attend, amber when unsure, muted
+   red to decline. Translucent so it reads over every template's palette. */
+.invitation-rsvp-summary__item--attending {
+    color: #1f6b4a;
+    background: color-mix(in srgb, #2f9e68 14%, transparent);
+}
+
+.invitation-rsvp-summary__item--tentative {
+    color: #8a5a12;
+    background: color-mix(in srgb, #d9911f 16%, transparent);
+}
+
+.invitation-rsvp-summary__item--not-attending {
+    color: #8a2f3d;
+    background: color-mix(in srgb, #c05063 14%, transparent);
+}
+
+/* Gallery lightbox navigation -------------------------------------------------
+   Every thumbnail opens one shared dialog. The prev/next controls are injected
+   by the shared script; they are positioned here with two attribute selectors so
+   they beat each template's own `.er-lightbox button` top-right placement, while
+   the close button keeps its spot. */
+[data-lightbox] [data-lightbox-prev],
+[data-lightbox] [data-lightbox-next] {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / .55);
+    border-radius: 50%;
+    color: #fff;
+    background: rgb(0 0 0 / .38);
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+[data-lightbox] [data-lightbox-prev] {
+    left: .7rem;
+    right: auto;
+}
+
+[data-lightbox] [data-lightbox-next] {
+    right: .7rem;
+    left: auto;
+}
+
+[data-lightbox] [data-lightbox-prev]:hover,
+[data-lightbox] [data-lightbox-next]:hover {
+    color: #fff;
+    background: rgb(0 0 0 / .62);
+    border-color: #fff;
 }
 
 .invitation-block-quote {
@@ -168,4 +316,368 @@
 
 [data-height="auto"] {
     min-height: 0;
+}
+
+/* Operator-chosen alignment for the free blocks. Written here with enough
+   specificity to beat each template's own defaults, so "left / center / right"
+   behaves the same whatever design renders it. The value arrives as
+   `data-align` from the blocks partial. */
+.invitation-blocks[data-align="left"] { text-align: left; }
+.invitation-blocks[data-align="center"] { text-align: center; }
+.invitation-blocks[data-align="right"] { text-align: right; }
+.invitation-blocks[data-align="justify"] { text-align: justify; }
+
+.invitation-blocks [data-align="left"] { text-align: left; margin-inline: 0 auto; }
+.invitation-blocks [data-align="center"] { text-align: center; margin-inline: auto; }
+.invitation-blocks [data-align="right"] { text-align: right; margin-inline: auto 0; }
+.invitation-blocks [data-align="justify"] { text-align: justify; margin-inline: auto; }
+
+/* Host detail dialog ---------------------------------------------------------
+   A compact host card opens into a dialog with the full profile. The inline
+   details are collapsed only under `.hosts-armed`, a class the shared script
+   adds after it has wired the dialog, so a failed script leaves them visible.
+   The trigger reset needs to out-rank each theme's generic `button` rule, so it
+   is scoped by the `[data-host-open]` attribute. */
+.host-card__trigger[data-host-open] {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+}
+
+.host-card__trigger[data-host-open]:hover {
+    color: inherit;
+    background: transparent;
+    transform: none;
+}
+
+.hosts-armed [data-host] .host-card__details { display: none; }
+
+.host-card__details { display: grid; gap: .5rem; }
+
+.invitation-host-dialog {
+    width: min(92vw, 34rem);
+    padding: 0;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .15));
+    border-radius: 1.1rem;
+    color: var(--inv-ink, #1c1c1c);
+    background: var(--inv-paper, #fff);
+    box-shadow: 0 2rem 5rem rgb(0 0 0 / .45);
+}
+
+.invitation-host-dialog::backdrop { background: rgb(0 0 0 / .62); }
+
+.invitation-host-dialog__card {
+    position: relative;
+    display: grid;
+    gap: .55rem;
+    max-height: 82vh;
+    overflow-y: auto;
+    padding: 2.2rem 1.6rem 1.8rem;
+    text-align: center;
+}
+
+.invitation-host-dialog .invitation-host-dialog__close {
+    position: absolute;
+    top: .7rem;
+    right: .7rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .2));
+    border-radius: 50%;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.invitation-host-dialog .invitation-host-dialog__close:hover {
+    color: inherit;
+    background: color-mix(in srgb, var(--inv-ink, #000) 10%, transparent);
+    transform: none;
+}
+
+.invitation-host-dialog__role {
+    color: var(--inv-accent, #666);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.invitation-host-dialog__name {
+    margin: 0;
+    font-size: clamp(1.5rem, 6vw, 2rem);
+}
+
+.invitation-host-dialog__body { display: grid; gap: .55rem; }
+.invitation-host-dialog__body p { margin: 0; }
+.invitation-host-dialog__body small { opacity: .75; }
+
+/* Closing families -----------------------------------------------------------
+   Operator-built family blocks that sit beside each other in the closing
+   section, and stack once the screen is too narrow for two columns. */
+.closing-families {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(.9rem, 4vw, 2.5rem);
+    align-items: start;
+    width: min(100%, 40rem);
+    margin: clamp(1.4rem, 5vw, 2.4rem) auto 0;
+    text-align: center;
+}
+
+.closing-families__item { display: grid; gap: .35rem; }
+
+.closing-families__item small {
+    color: var(--inv-accent, #666);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.closing-families__item p { margin: 0; }
+
+/* Two tidy columns on a phone too, matching the Elegant Rose closing
+   composition instead of stacking: the labels sit on one line each so both
+   family blocks start at the same height, and the names wrap at word
+   boundaries rather than mid-word. */
+@media (max-width: 30rem) {
+    .closing-families { gap: .85rem; margin-top: 1.5rem; }
+    .closing-families__item { gap: .3rem; }
+    .closing-families__item small { font-size: .5rem; letter-spacing: .05em; line-height: 1.35; }
+    .closing-families__item p { margin: 0; font-size: .78rem; line-height: 1.45; overflow-wrap: break-word; }
+}
+
+/* Closing social row ---------------------------------------------------------
+   Optional follow row in the closing section: an Instagram link per host that
+   has one, plus the WhatsApp share action. Template-neutral, drawn from the
+   shared --inv-* tokens, and it renders nothing when there is nothing to link. */
+.closing-social {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .6rem;
+    width: min(100%, 40rem);
+    margin: 1.6rem auto .4rem;
+}
+
+.closing-social a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: .55rem 1.1rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .18));
+    border-radius: 999px;
+    color: var(--inv-accent, #555);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.closing-social a:hover {
+    color: #fff;
+    background: var(--inv-accent, #555);
+    border-color: var(--inv-accent, #555);
+}
+
+/* Gifts in one block --------------------------------------------------------
+   The shared "Kirim Hadiah" header the gifts section shows when an invitation
+   asks for a single block. Template-neutral, so every design gets the same
+   control and only has to keep its own colours. */
+.invitation-gift-intro {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    margin: 1.5rem auto;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .15));
+    border-radius: 50%;
+    color: var(--inv-accent, #555);
+    background: var(--inv-paper, #fff);
+}
+
+.invitation-gift-intro__icon {
+    width: 1.8rem;
+    height: 1.8rem;
+}
+
+/* Gift cards ----------------------------------------------------------------
+   Every template presents its gift methods the same way: a bank transfer drawn
+   as an ATM card whose face is the bank's brand colour, and a neutral card for
+   e-wallet / physical gifts. Coloured through the shared --inv-* tokens, so each
+   design keeps its own palette while the composition stays identical. */
+.invitation-gifts {
+    display: grid;
+    gap: 1rem;
+    max-width: 42rem;
+    margin: 2.5rem auto 0;
+    text-align: left;
+}
+
+.invitation-gift-method {
+    display: grid;
+    gap: .9rem;
+    padding: 1.3rem 1.4rem;
+    background: var(--inv-paper, #fff);
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .12));
+    border-radius: .9rem;
+    box-shadow: 0 .6rem 2rem rgb(0 0 0 / .06);
+}
+
+.invitation-gift-method__head { display: flex; align-items: center; gap: .7rem; }
+
+.invitation-gift-method__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: .6rem;
+    color: var(--inv-accent, #555);
+    background: color-mix(in srgb, var(--inv-accent, #555) 12%, transparent);
+}
+
+.invitation-gift-method__icon svg { width: 1.3rem; height: 1.3rem; }
+.invitation-gift-method__titles { display: grid; gap: .1rem; min-width: 0; }
+.invitation-gift-method__titles small { color: var(--inv-accent, #555); font-size: .6rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.invitation-gift-method__titles strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+.invitation-gift-method__number { display: grid; gap: .15rem; }
+.invitation-gift-method__number small { color: color-mix(in srgb, var(--inv-ink, #555) 70%, transparent); font-size: .58rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.invitation-gift-method__number strong { font-size: 1.3rem; letter-spacing: .06em; overflow-wrap: anywhere; }
+.invitation-gift-method__holder { margin: 0; color: color-mix(in srgb, var(--inv-ink, #555) 70%, transparent); font-size: .9rem; }
+.invitation-gift-method__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.invitation-gift-method__note { margin: 0; color: color-mix(in srgb, var(--inv-ink, #555) 70%, transparent); font-size: .85rem; }
+
+/* Scoped so a template's own `button` rule cannot turn these into its default
+   control; the cards keep the same small pill everywhere. */
+.invitation-gift-method .invitation-gift-method__actions button {
+    min-height: 40px;
+    padding: .5rem 1rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .18));
+    border-radius: 999px;
+    color: var(--inv-accent, #555);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.invitation-gift-method .invitation-gift-method__actions button:hover {
+    color: #fff;
+    background: var(--inv-accent, #555);
+    border-color: var(--inv-accent, #555);
+}
+
+.invitation-bank-card {
+    display: grid;
+    gap: 1.1rem;
+    width: min(100%, 26rem);
+    margin-inline: auto;
+    padding: 1.45rem 1.5rem 1.3rem;
+    border-radius: 1.15rem;
+    color: #fdfbf6;
+    text-align: left;
+    background: radial-gradient(120% 92% at 16% -12%, rgb(255 255 255 / .26), transparent 56%), linear-gradient(152deg, var(--inv-bank, var(--inv-accent, #555)), color-mix(in srgb, var(--inv-bank, var(--inv-accent, #555)) 46%, #0e1220));
+    box-shadow: 0 1.5rem 3rem color-mix(in srgb, var(--inv-bank, var(--inv-accent, #555)) 24%, rgb(0 0 0 / .32));
+}
+
+.invitation-bank-card__head { display: flex; align-items: center; gap: .65rem; }
+
+.invitation-bank-card__chip {
+    position: relative;
+    width: 2.55rem;
+    height: 1.85rem;
+    border-radius: .35rem;
+    background: linear-gradient(140deg, #f6dc93, #c49b3d);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / .38);
+}
+
+.invitation-bank-card__chip::before,
+.invitation-bank-card__chip::after {
+    content: '';
+    position: absolute;
+    left: .35rem;
+    right: .35rem;
+    height: 1px;
+    background: rgb(110 78 18 / .5);
+}
+
+.invitation-bank-card__chip::before { top: 34%; }
+.invitation-bank-card__chip::after { top: 66%; }
+.invitation-bank-card__contactless { display: inline-flex; color: rgb(255 255 255 / .82); }
+.invitation-bank-card__contactless svg { width: 1.45rem; height: 1.45rem; }
+.invitation-bank-card__logo { margin-left: auto; font: 700 1.05rem/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .04em; }
+.invitation-bank-card__body { display: grid; gap: .32rem; }
+.invitation-bank-card__label { display: block; color: rgb(255 255 255 / .68); font-size: .58rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+.invitation-bank-card__number { display: block; font: 600 clamp(1.15rem, 5.5vw, 1.7rem)/1.15 ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .12em; overflow-wrap: anywhere; }
+.invitation-bank-card__foot { display: flex; align-items: flex-end; justify-content: space-between; gap: .85rem; }
+.invitation-bank-card__holder { display: grid; gap: .2rem; min-width: 0; }
+.invitation-bank-card__holder small { color: rgb(255 255 255 / .62); font-size: .54rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+.invitation-bank-card__holder strong { font-size: .82rem; font-weight: 600; letter-spacing: .07em; overflow-wrap: anywhere; }
+
+.invitation-bank-card .invitation-bank-card__copy {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: .5rem .95rem;
+    border: 1px solid rgb(255 255 255 / .5);
+    border-radius: 999px;
+    color: #fdfbf6;
+    background: rgb(255 255 255 / .14);
+    font: inherit;
+    font-size: .66rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    cursor: pointer;
+}
+
+.invitation-bank-card .invitation-bank-card__copy:hover {
+    color: var(--inv-bank, var(--inv-accent, #555));
+    background: #fdfbf6;
+}
+
+.invitation-gifts .invitation-bank-card__note {
+    max-width: 26rem;
+    margin: .8rem auto 0;
+    color: color-mix(in srgb, var(--inv-ink, #555) 70%, transparent);
+    font-size: .72rem;
+}
+
+.invitation-bank-card__delivery {
+    display: grid;
+    gap: .45rem;
+    width: min(100%, 26rem);
+    margin: .9rem auto 0;
+    padding: 1rem 1.1rem;
+    text-align: left;
+    background: var(--inv-paper, #fff);
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .12));
+    border-radius: .85rem;
+}
+
+.invitation-bank-card__delivery small { color: var(--inv-accent, #555); font-size: .58rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.invitation-bank-card__delivery span { color: var(--inv-ink, #555); overflow-wrap: anywhere; }
+
+.invitation-bank-card__delivery .invitation-bank-card__delivery button {
+    justify-self: start;
+    min-height: 40px;
+    padding: .5rem 1rem;
+    border: 1px solid var(--inv-line, rgb(0 0 0 / .18));
+    border-radius: 999px;
+    color: var(--inv-accent, #555);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
 }

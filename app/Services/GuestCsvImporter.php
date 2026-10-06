@@ -7,8 +7,11 @@ use Illuminate\Support\Str;
 
 class GuestCsvImporter
 {
-    /** @param resource $stream */
-    public function import(Invitation $invitation, $stream): int
+    /**
+     * @param  resource  $stream
+     * @param  int|null  $max  Stop after this many rows, honouring a per-invitation cap.
+     */
+    public function import(Invitation $invitation, $stream, ?int $max = null): int
     {
         $headers = fgetcsv($stream);
         $headers = $headers ? array_map(fn ($value) => Str::lower(trim($value, " \t\n\r\0\x0B\xEF\xBB\xBF")), $headers) : [];
@@ -19,6 +22,10 @@ class GuestCsvImporter
 
         $count = 0;
         while (($row = fgetcsv($stream)) !== false) {
+            if ($max !== null && $count >= $max) {
+                break;
+            }
+
             $values = array_pad($row, count($headers), null);
             $item = array_combine($headers, array_slice($values, 0, count($headers)));
             $name = Str::squish(strip_tags((string) ($item['name'] ?? '')));

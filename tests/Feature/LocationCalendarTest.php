@@ -11,16 +11,37 @@ class LocationCalendarTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_location_actions_map_and_timezone_aware_calendar_are_rendered(): void
+    public function test_location_actions_and_timezone_are_rendered_without_calendar_buttons(): void
     {
-        [$invitation, $event] = $this->invitationWithEvent();
+        $this->invitationWithEvent();
 
         $this->get('/acara')->assertOk()
             ->assertSee('https://maps.google.com/maps?q=-6.20000000%2C106.81660000&amp;output=embed', false)
             ->assertSee('https://www.google.com/maps/dir/?api=1&amp;destination=-6.20000000%2C106.81660000', false)
             ->assertSee('Salin Alamat')
-            ->assertSee(route('invitations.calendar', [$invitation->slug, $event->id]), false)
-            ->assertSee('2027-01-10T08:00:00+07:00', false);
+            ->assertSee('2027-01-10T08:00:00+07:00', false)
+            // The calendar actions were removed from every design on purpose.
+            ->assertDontSee('Google Calendar')
+            ->assertDontSee('Unduh ICS');
+    }
+
+    public function test_the_invitation_shows_a_readable_timezone_label_not_the_iana_name(): void
+    {
+        [, $event] = $this->invitationWithEvent();
+
+        $this->get('/acara')->assertOk()
+            ->assertSee('08:00 – 10:00 WIB', false)
+            ->assertDontSee('Asia/Jakarta', false);
+
+        $event->update(['timezone' => 'Asia/Makassar']);
+        $this->get('/acara')->assertOk()
+            ->assertSee('WITA', false)
+            ->assertDontSee('Asia/Makassar', false);
+
+        $event->update(['timezone' => 'Asia/Jayapura']);
+        $this->get('/acara')->assertOk()
+            ->assertSee('WIT', false)
+            ->assertDontSee('Asia/Jayapura', false);
     }
 
     public function test_ics_download_uses_utc_and_rejects_foreign_or_unpublished_events(): void

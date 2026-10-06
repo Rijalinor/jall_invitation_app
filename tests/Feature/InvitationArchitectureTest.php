@@ -37,6 +37,41 @@ class InvitationArchitectureTest extends TestCase
         $this->get('/template-previews/not-a-real-template')->assertNotFound();
     }
 
+    /**
+     * Every template offers recommended colours, and the first swatch is always
+     * the template default, so an operator can always get back to the stock look.
+     * Only plain hex survives, so a manifest cannot inject a bad value.
+     */
+    public function test_template_colour_presets_are_validated_and_start_from_the_default(): void
+    {
+        $registry = app(TemplateRegistry::class);
+
+        foreach ($registry->all() as $id => $manifest) {
+            $presets = $registry->colorPresets($id, 'accent_color');
+
+            $this->assertNotEmpty($presets, 'Template "'.$id.'" declares no accent presets.');
+            $this->assertSame(
+                $manifest['settings_schema']['accent_color']['default'],
+                $presets[0]['value'],
+                'Template "'.$id.'" must lead its presets with the default colour.',
+            );
+
+            foreach ($presets as $preset) {
+                $this->assertMatchesRegularExpression('/^#[0-9a-f]{6}$/', $preset['value']);
+                $this->assertNotSame('', $preset['label']);
+            }
+        }
+
+        // fun-storybook is the only template with a background setting, so it is
+        // the only one that offers background presets.
+        $this->assertNotEmpty($registry->colorPresets('fun-storybook', 'bg_color'));
+        $this->assertSame([], $registry->colorPresets('coastal-vow', 'bg_color'));
+
+        // Unknown settings and unknown templates simply yield nothing.
+        $this->assertSame([], $registry->colorPresets('coastal-vow', 'tidak_ada'));
+        $this->assertSame([], $registry->colorPresets('tidak-ada', 'accent_color'));
+    }
+
     public function test_view_model_applies_safe_theme_and_section_contract(): void
     {
         $invitation = Invitation::create([
@@ -59,11 +94,82 @@ class InvitationArchitectureTest extends TestCase
             'accent_color' => '#7b2639',
             'motion' => 'calm',
             'cover_video_enabled' => true,
-            'opening_video_enabled' => false,
             'cover_video_desktop' => null,
             'cover_video_mobile' => null,
             'cover_poster_image' => null,
+            'hide_timezone' => false,
+            'merge_rsvp_guestbook' => false,
+            'show_rsvp_summary' => true,
         ], $data['theme']);
+    }
+
+    /**
+     * The RSVP recap is a per-invitation choice, and it has to exist in every
+     * template's schema or an operator could not switch it for that design.
+     */
+    public function test_every_template_declares_the_rsvp_recap_toggle(): void
+    {
+        $registry = app(TemplateRegistry::class);
+
+        foreach ($registry->all() as $id => $manifest) {
+            $definition = $manifest['settings_schema']['show_rsvp_summary'] ?? null;
+
+            $this->assertIsArray($definition, 'Template "'.$id.'" does not declare show_rsvp_summary.');
+            $this->assertSame('boolean', $definition['type'] ?? null, 'Template "'.$id.'" must declare it as a boolean.');
+        }
+    }
+
+    public function test_closing_families_are_cleaned_and_empty_rows_dropped(): void
+    {
+        $invitation = Invitation::create([
+            'customer_id' => Customer::create(['name' => 'Pelanggan'])->id,
+            'title' => 'Pernikahan Teddy & Anindya',
+            'slug' => 'undangan-keluarga',
+            'event_type' => 'wedding',
+            'template_id' => 'elegant-rose',
+            'status' => 'published',
+            'settings_json' => ['closing_families' => [
+                ['label' => 'Keluarga Mempelai Pria', 'names' => 'Bapak A & Ibu B'],
+                ['label' => '', 'names' => ''],
+                ['label' => '<b>Keluarga Wanita</b>', 'names' => "Bapak C\nIbu D"],
+            ]],
+        ]);
+
+        $data = InvitationViewModel::from(
+            $invitation->fresh(), 'Tamu', app(TemplateRegistry::class)->find('elegant-rose'),
+        )->data;
+
+        $this->assertSame([
+            ['label' => 'Keluarga Mempelai Pria', 'names' => 'Bapak A & Ibu B'],
+            ['label' => 'Keluarga Wanita', 'names' => "Bapak C\nIbu D"],
+        ], $data['closing_families']);
+    }
+
+    public function test_the_couple_title_uses_the_names_and_falls_back_to_the_title(): void
+    {
+        $invitation = Invitation::create([
+            'customer_id' => Customer::create(['name' => 'Pelanggan'])->id,
+            'title' => 'Pernikahan Teddy & Anindya',
+            'slug' => 'undangan-couple',
+            'event_type' => 'wedding',
+            'template_id' => 'elegant-rose',
+            'status' => 'published',
+        ]);
+        $manifest = app(TemplateRegistry::class)->find('elegant-rose');
+
+        // Without two hosts, the heading falls back to the invitation title.
+        $this->assertSame(
+            'Pernikahan Teddy & Anindya',
+            InvitationViewModel::from($invitation->fresh(), 'Tamu', $manifest)->data['couple_title'],
+        );
+
+        $invitation->hosts()->create(['role' => 'groom', 'name' => 'Teddy', 'position' => 0]);
+        $invitation->hosts()->create(['role' => 'bride', 'name' => 'Anindya', 'position' => 1]);
+
+        $this->assertSame(
+            'Teddy & Anindya',
+            InvitationViewModel::from($invitation->fresh(), 'Tamu', $manifest)->data['couple_title'],
+        );
     }
 
     /**

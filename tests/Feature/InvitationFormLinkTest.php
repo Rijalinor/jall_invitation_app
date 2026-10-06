@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ModerationStatus;
 use App\Models\Customer;
 use App\Models\Host;
 use App\Models\Invitation;
@@ -481,6 +482,396 @@ class InvitationFormLinkTest extends TestCase
             ->assertOk()
             ->assertSee('Bank BCA')
             ->assertSee('Dewi');
+    }
+
+    public function test_the_couple_can_manage_guests_from_the_link(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $guest = $invitation->guests()->create([
+            'display_name' => 'Budi Santoso',
+            'group' => 'Keluarga',
+            'phone' => '081234567890',
+            'invitation_limit' => 3,
+        ]);
+        $token = $links->issue($invitation);
+
+        // The guest step shows the existing guest and its personal link.
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->assertOk()
+            ->assertSee('Budi Santoso')
+            ->assertSee(route('invitations.guest', [$invitation->slug, $guest->token]), false);
+
+        // Edit the guest and add another in one submit.
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'tamu' => [
+                ['id' => $guest->id, 'display_name' => 'Budi Santoso', 'group' => 'Keluarga', 'phone' => '081234567890', 'invitation_limit' => 4],
+                ['display_name' => 'Siti Aminah', 'group' => 'Teman', 'invitation_limit' => 2],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'rsvp']));
+
+        $this->assertSame(2, $invitation->guests()->count());
+        $this->assertSame(4, $guest->fresh()->invitation_limit);
+        $this->assertSame('Siti Aminah', $invitation->guests()->where('display_name', 'Siti Aminah')->value('display_name'));
+    }
+
+    /**
+     * The guest list has its own "Simpan" that keeps the couple on the step, so
+     * they can add names one after another without being sent to RSVP.
+     */
+    public function test_the_guest_save_button_can_stay_on_the_step(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'after' => 'stay',
+            'tamu' => [
+                ['display_name' => 'Siti Aminah', 'group' => 'Teman', 'invitation_limit' => 2],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->assertSessionHas('form_saved');
+
+        $this->assertSame(1, $invitation->guests()->count());
+    }
+
+    /**
+     * The table's edit dialog posts one row carrying the guest id, so only that
+     * guest is touched and the couple stays on the step.
+     */
+    public function test_the_guest_dialog_updates_one_guest(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $guest = $invitation->guests()->create(['display_name' => 'Budi Santoso', 'invitation_limit' => 2]);
+        $invitation->guests()->create(['display_name' => 'Tetap Ada']);
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'after' => 'stay',
+            'tamu' => [
+                ['id' => $guest->id, 'display_name' => 'Budi Santoso', 'group' => 'Keluarga', 'phone' => '081234567890', 'invitation_limit' => 5],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $this->assertSame(5, $guest->fresh()->invitation_limit);
+        $this->assertSame('Keluarga', $guest->fresh()->group);
+        $this->assertSame(2, $invitation->guests()->count());
+    }
+
+    /**
+     * The row's delete button posts just that guest's id and the remove flag, so
+     * the other guests are left alone.
+     */
+    public function test_the_guest_delete_button_removes_one_guest(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $guest = $invitation->guests()->create(['display_name' => 'Budi Santoso']);
+        $keep = $invitation->guests()->create(['display_name' => 'Tetap Ada']);
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'after' => 'stay',
+            'tamu' => [
+                ['id' => $guest->id, 'remove' => 1],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $this->assertNull($guest->fresh());
+        $this->assertNotNull($keep->fresh());
+        $this->assertSame(1, $invitation->guests()->count());
+    }
+
+    /**
+     * The operator can cap how many guests the couple holds from the form. A save
+     * that would cross the cap is rejected whole, leaving the list untouched.
+     */
+    public function test_the_couple_cannot_add_guests_past_the_limit(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu', ['settings_json' => ['guest_limit' => 2]]);
+        $invitation->guests()->create(['display_name' => 'Satu']);
+        $invitation->guests()->create(['display_name' => 'Dua']);
+        $token = $links->issue($invitation);
+
+        $this->from(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+                'after' => 'stay',
+                'tamu' => [
+                    ['display_name' => 'Tiga'],
+                ],
+            ])->assertSessionHasErrors('form', null, 'form');
+
+        $this->assertSame(2, $invitation->guests()->count());
+    }
+
+    /**
+     * Lowering the cap under an existing list must not lock the couple out of
+     * editing or trimming it: only adding more is refused.
+     */
+    public function test_a_list_already_over_the_limit_can_still_be_edited_and_trimmed(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu', ['settings_json' => ['guest_limit' => 2]]);
+        $guest = $invitation->guests()->create(['display_name' => 'Satu']);
+        $invitation->guests()->create(['display_name' => 'Dua']);
+        $invitation->guests()->create(['display_name' => 'Tiga']);
+        $token = $links->issue($invitation);
+
+        // An edit that keeps the count the same is allowed.
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'after' => 'stay',
+            'tamu' => [['id' => $guest->id, 'display_name' => 'Satu (ubah)']],
+        ])->assertSessionHas('form_saved');
+
+        $this->assertSame('Satu (ubah)', $guest->fresh()->display_name);
+
+        // Trimming it back under the cap is allowed too.
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'after' => 'stay',
+            'tamu' => [['id' => $guest->id, 'remove' => 1]],
+        ])->assertSessionHas('form_saved');
+
+        $this->assertSame(2, $invitation->guests()->count());
+    }
+
+    public function test_the_couple_can_fill_the_list_up_to_the_limit(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu', ['settings_json' => ['guest_limit' => 2]]);
+        $token = $links->issue($invitation);
+
+        foreach (['Satu', 'Dua'] as $name) {
+            $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+                'after' => 'stay',
+                'tamu' => [['display_name' => $name]],
+            ])->assertSessionHas('form_saved');
+        }
+
+        $this->assertSame(2, $invitation->guests()->count());
+    }
+
+    /**
+     * Importing more rows than the remaining slots imports only what fits.
+     */
+    public function test_the_guest_import_stops_at_the_limit(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu', ['settings_json' => ['guest_limit' => 2]]);
+        $token = $links->issue($invitation);
+
+        $file = UploadedFile::fake()->createWithContent(
+            'tamu.csv',
+            "name,group\nA,Keluarga\nB,Teman\nC,Kantor\n",
+        );
+
+        $this->post(route('invitation-form.guests-import', ['token' => $token]), ['file' => $file])
+            ->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $this->assertSame(2, $invitation->guests()->count());
+        $this->assertSame(0, $invitation->guests()->where('display_name', 'C')->count());
+    }
+
+    public function test_the_guest_import_is_rejected_when_the_limit_is_full(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu', ['settings_json' => ['guest_limit' => 1]]);
+        $invitation->guests()->create(['display_name' => 'Satu']);
+        $token = $links->issue($invitation);
+
+        $file = UploadedFile::fake()->createWithContent('tamu.csv', "name,group\nB,Teman\n");
+
+        $this->from(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->post(route('invitation-form.guests-import', ['token' => $token]), ['file' => $file])
+            ->assertSessionHasErrors('form', null, 'form');
+
+        $this->assertSame(1, $invitation->guests()->count());
+    }
+
+    public function test_the_guest_step_only_touches_its_own_invitation(): void
+    {
+        $links = app(FormLinks::class);
+        $mine = $this->invitation('undangan-saya');
+        $theirs = $this->invitation('undangan-orang-lain');
+        $theirGuest = $theirs->guests()->create(['display_name' => 'Tamu Lain']);
+        $myGuest = $mine->guests()->create(['display_name' => 'Tamu Saya']);
+
+        $token = $links->issue($mine);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+            'tamu' => [
+                ['id' => $theirGuest->id, 'display_name' => 'Nama Selundupan'],
+                ['id' => $myGuest->id, 'display_name' => 'Tamu Saya', 'remove' => 1],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'rsvp']));
+
+        // The foreign id was ignored: a new guest landed on the right invitation.
+        $this->assertSame(1, $theirs->guests()->count());
+        $this->assertSame('Tamu Lain', $theirGuest->fresh()->display_name);
+        $this->assertSame(1, $mine->guests()->count());
+        $this->assertSame('Nama Selundupan', $mine->guests()->first()->display_name);
+
+        // The explicit removal deleted only the couple's own guest.
+        $this->assertNull($myGuest->fresh());
+    }
+
+    public function test_guests_can_be_imported_from_csv(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $file = UploadedFile::fake()->createWithContent(
+            'tamu.csv',
+            "name,group,phone,invitation_limit\nRangga,Keluarga,0812,3\nSinta,Teman,0813,2\n",
+        );
+
+        $this->post(route('invitation-form.guests-import', ['token' => $token]), ['file' => $file])
+            ->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $this->assertSame(2, $invitation->guests()->count());
+        $this->assertSame(3, $invitation->guests()->where('display_name', 'Rangga')->value('invitation_limit'));
+    }
+
+    public function test_a_csv_without_a_name_column_is_rejected(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $file = UploadedFile::fake()->createWithContent('tamu.csv', "foo,bar\n1,2\n");
+
+        $this->from(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->post(route('invitation-form.guests-import', ['token' => $token]), ['file' => $file])
+            ->assertSessionHasErrors('form', null, 'form');
+
+        $this->assertSame(0, $invitation->guests()->count());
+    }
+
+    public function test_the_guest_csv_template_downloads_with_the_expected_columns(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $csv = $this->get(route('invitation-form.guests-template', ['token' => $token]))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertStringContainsString('name,group,phone,invitation_limit', $csv);
+        $this->assertStringContainsString('Budi Santoso', $csv);
+    }
+
+    public function test_rsvp_export_and_delete_are_scoped_to_the_invitation(): void
+    {
+        $links = app(FormLinks::class);
+        $mine = $this->invitation('undangan-saya');
+        $theirs = $this->invitation('undangan-orang-lain');
+        $myRsvp = $mine->rsvps()->create(['name' => 'Budi', 'status' => 'attending', 'party_size' => 2]);
+        $theirRsvp = $theirs->rsvps()->create(['name' => 'Rahasia', 'status' => 'attending', 'party_size' => 1]);
+
+        $token = $links->issue($mine);
+
+        $csv = $this->get(route('invitation-form.rsvp-export', ['token' => $token]))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertStringContainsString('Budi', $csv);
+        $this->assertStringNotContainsString('Rahasia', $csv);
+
+        // A response that belongs to another invitation can never be deleted here.
+        $this->post(route('invitation-form.rsvp-delete', ['token' => $token, 'rsvp' => $theirRsvp]))
+            ->assertNotFound();
+        $this->assertNotNull($theirRsvp->fresh());
+
+        $this->post(route('invitation-form.rsvp-delete', ['token' => $token, 'rsvp' => $myRsvp]))
+            ->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'rsvp']));
+        $this->assertNull($myRsvp->fresh());
+    }
+
+    public function test_guestbook_moderation_is_scoped_to_the_invitation(): void
+    {
+        $links = app(FormLinks::class);
+        $mine = $this->invitation('undangan-saya');
+        $theirs = $this->invitation('undangan-orang-lain');
+        $entry = $mine->guestbookEntries()->create(['name' => 'Budi', 'message' => 'Selamat ya']);
+        $theirEntry = $theirs->guestbookEntries()->create(['name' => 'Lain', 'message' => 'Pesan lain']);
+
+        $token = $links->issue($mine);
+
+        $this->post(route('invitation-form.guestbook-moderate', ['token' => $token, 'entry' => $entry]), ['action' => 'approve'])
+            ->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'ucapan']));
+        $this->assertSame(ModerationStatus::APPROVED, $entry->fresh()->moderation_status);
+
+        $this->post(route('invitation-form.guestbook-moderate', ['token' => $token, 'entry' => $entry]), ['action' => 'reject']);
+        $this->assertSame(ModerationStatus::REJECTED, $entry->fresh()->moderation_status);
+
+        // The foreign entry is untouched and cannot be reached through this link.
+        $this->post(route('invitation-form.guestbook-moderate', ['token' => $token, 'entry' => $theirEntry]), ['action' => 'delete'])
+            ->assertNotFound();
+        $this->assertNotNull($theirEntry->fresh());
+
+        $this->post(route('invitation-form.guestbook-moderate', ['token' => $token, 'entry' => $entry]), ['action' => 'delete']);
+        $this->assertNull($entry->fresh());
+    }
+
+    public function test_an_expired_link_cannot_reach_the_audience_actions(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $rsvp = $invitation->rsvps()->create(['name' => 'Budi', 'status' => 'attending', 'party_size' => 1]);
+        $entry = $invitation->guestbookEntries()->create(['name' => 'Budi', 'message' => 'Hai']);
+
+        $token = $links->issue($invitation);
+        $invitation->forceFill(['form_token_expires_at' => now()->subMinute()])->save();
+
+        $this->get(route('invitation-form.rsvp-export', ['token' => $token]))->assertNotFound();
+        $this->get(route('invitation-form.guests-template', ['token' => $token]))->assertNotFound();
+        $this->post(route('invitation-form.rsvp-delete', ['token' => $token, 'rsvp' => $rsvp]))->assertNotFound();
+        $this->post(route('invitation-form.guestbook-moderate', ['token' => $token, 'entry' => $entry]), ['action' => 'approve'])->assertNotFound();
+        $this->post(route('invitation-form.guests-import', ['token' => $token]))->assertNotFound();
+    }
+
+    public function test_the_audience_steps_render_for_a_valid_link(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $invitation->guests()->create(['display_name' => 'Budi Santoso']);
+        $invitation->rsvps()->create(['name' => 'Rina', 'status' => 'attending', 'party_size' => 2, 'note' => 'Hadir sekeluarga']);
+        $invitation->guestbookEntries()->create(['name' => 'Dewi', 'message' => 'Semoga bahagia']);
+
+        $token = $links->issue($invitation);
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->assertOk()->assertSee('Budi Santoso')->assertSee('Unduh template CSV');
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'rsvp']))
+            ->assertOk()->assertSee('Rina')->assertSee('Hadir sekeluarga');
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'ucapan']))
+            ->assertOk()->assertSee('Dewi')->assertSee('Semoga bahagia');
+    }
+
+    /**
+     * A guest with no number must not have their personal link routed to the
+     * operator's own WhatsApp: the config fallback is meant for the public
+     * catalogue, so the guest row's link should open the contact picker instead.
+     */
+    public function test_a_guest_without_a_phone_link_opens_the_contact_picker(): void
+    {
+        config()->set('invitation.whatsapp', '08123456789');
+
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $invitation->guests()->create(['display_name' => 'Tanpa Nomor']);
+        $token = $links->issue($invitation);
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']))
+            ->assertOk()
+            ->assertSee('https://wa.me/?text=', false)
+            ->assertDontSee('https://wa.me/628123456789', false);
     }
 
     /**
