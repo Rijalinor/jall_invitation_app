@@ -5,7 +5,7 @@
     "event_types": ["wedding", "engagement"],
     "entry_view": "midnight-ledger.views.index",
     "preview": "preview.svg",
-    "sections": ["opening", "events", "countdown", "hosts", "story", "gallery", "blocks", "map", "calendar", "rsvp", "guestbook", "gifts", "livestream", "contacts", "sharing", "closing"],
+    "sections": ["opening", "events", "countdown", "hosts", "story", "gallery", "blocks", "map", "rsvp", "guestbook", "gifts", "livestream", "contacts", "sharing", "closing"],
     "section_height": true,
     "labels": {
         "cover_eyebrow": "Undangan Pernikahan",
@@ -30,11 +30,24 @@
         "rsvp_intro": "Mohon berikan konfirmasi kehadiran Anda.",
         "contacts_eyebrow": "Kontak",
         "contacts_title": "Ada pertanyaan?",
+        "livestream_eyebrow": "Siaran Langsung",
+        "sharing_eyebrow": "Bagikan Kabar",
+        "sharing_title": "Sebarkan Undangan",
+        "sharing_intro": "Bagikan undangan ini kepada keluarga dan orang terdekat.",
         "closing_eyebrow": "Dengan cinta,",
         "closing_kicker": "Terima kasih telah menjadi bagian dari cerita kami."
     },
     "settings_schema": {
-        "accent_color": {"type": "color", "default": "#c6a15b"},
+        "accent_color": {
+            "type": "color",
+            "default": "#c6a15b",
+            "presets": [
+                {"label": "Antique Gold", "value": "#c6a15b"},
+                {"label": "Champagne", "value": "#e0c58c"},
+                {"label": "Copper Rose", "value": "#b0704a"},
+                {"label": "Slate Blue", "value": "#6d8ba6"}
+            ]
+        },
         "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "calm"},
         "cover_video_enabled": {"type": "boolean", "default": true},
         "cover_video_desktop": {"type": "url", "default": null},
@@ -42,6 +55,9 @@
         "cover_poster_image": {"type": "url", "default": null},
         "cover_focal_x": {"type": "number", "min": 0, "max": 100, "default": 50},
         "cover_focal_y": {"type": "number", "min": 0, "max": 100, "default": 45},
-        "cover_overlay_opacity": {"type": "number", "min": 0, "max": 90, "default": 58}
+        "cover_overlay_opacity": {"type": "number", "min": 0, "max": 90, "default": 58},
+        "hide_timezone": {"type": "boolean", "default": false},
+        "merge_rsvp_guestbook": {"type": "boolean", "default": false},
+        "show_rsvp_summary": {"type": "boolean", "default": true}
     }
 }

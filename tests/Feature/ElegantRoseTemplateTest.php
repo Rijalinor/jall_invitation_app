@@ -273,26 +273,21 @@ class ElegantRoseTemplateTest extends TestCase
     }
 
     /**
-     * The opening section can carry the same upload as the cover, switched on
-     * separately so turning one on never changes the other.
+     * The opening section reuses the cover video automatically whenever one is
+     * uploaded; with no cover video it stays a plain section.
      */
-    public function test_the_opening_section_can_show_the_same_video_as_the_cover(): void
+    public function test_the_opening_section_reuses_the_cover_video_automatically(): void
     {
         $invitation = $this->invitation();
-        $invitation->update(['settings_json' => [
-            'cover_video_desktop' => 'invitations/cover-videos/latar.mp4',
-            'opening_video_enabled' => 'true',
-        ]]);
+        $invitation->update(['settings_json' => ['cover_video_desktop' => 'invitations/cover-videos/latar.mp4']]);
 
         $this->get('/undangan-elegan')
             ->assertOk()
             ->assertSee('class="er-hero__video"', false)
             ->assertSee('invitations/cover-videos/latar.mp4', false);
 
-        // Off by default, so an invitation that only uploaded a cover video keeps
-        // the opening section exactly as it was.
-        $plain = $this->invitation('undangan-elegan-tanpa-video');
-        $plain->update(['settings_json' => ['cover_video_desktop' => 'invitations/cover-videos/latar.mp4']]);
+        // No cover video, so the opening section has none either.
+        $this->invitation('undangan-elegan-tanpa-video');
 
         $this->get('/undangan-elegan-tanpa-video')
             ->assertOk()
@@ -327,6 +322,141 @@ class ElegantRoseTemplateTest extends TestCase
 
         $this->assertSame(1, substr_count($content, 'class="invitation-section invitation-blocks"'));
         $this->assertSame(0, substr_count($content, 'id="invitation-blocks-1"'), 'A band without a heading must not render an empty one.');
+    }
+
+    /**
+     * The customer wanted the two family blocks in the closing side by side
+     * instead of stacked, each one a column.
+     */
+    public function test_the_closing_shows_families_side_by_side(): void
+    {
+        $invitation = $this->invitation();
+        $invitation->update(['settings_json' => [
+            'closing_families' => [
+                ['label' => 'Keluarga besar Mempelai Pria', 'names' => 'Bapak Anang Asrani & Ibu Hj. Rahimah'],
+                ['label' => 'Keluarga besar Mempelai Wanita', 'names' => 'Bapak Nordiansyah & Ibu Dewi Sri Maryati'],
+            ],
+            'closing_footer' => "Turut mengundang:\nKeluarga besar dari Mempelai pria dan wanita",
+        ]]);
+
+        $response = $this->get('/undangan-elegan')
+            ->assertOk()
+            ->assertSee('class="closing-families"', false)
+            ->assertSee('Keluarga besar Mempelai Pria')
+            ->assertSee('Bapak Anang Asrani &amp; Ibu Hj. Rahimah', false)
+            ->assertSee('Keluarga besar Mempelai Wanita')
+            ->assertSee('Bapak Nordiansyah &amp; Ibu Dewi Sri Maryati', false)
+            ->assertSee("Turut mengundang:<br />\nKeluarga besar dari Mempelai pria dan wanita", false);
+
+        // The "turut mengundang" line sits below the family block, not above it.
+        $content = $response->getContent();
+
+        $this->assertGreaterThan(strpos($content, 'closing-families'), strpos($content, 'Turut mengundang'));
+    }
+
+    /**
+     * The couple-name cover, the "s/d Selesai" time and the single gift block
+     * are automatic; only hiding the timezone and merging RSVP with the
+     * guestbook remain as per-invitation toggles.
+     */
+    public function test_the_automatic_defaults_and_the_two_remaining_toggles(): void
+    {
+        $invitation = $this->invitation();
+
+        $invitation->hosts()->create(['role' => 'groom', 'name' => 'Teddy', 'position' => 0]);
+        $invitation->hosts()->create(['role' => 'bride', 'name' => 'Anindya', 'position' => 1]);
+        $invitation->events()->create([
+            'label' => 'Resepsi', 'date' => '2027-01-10', 'start_time' => '08:00',
+            'timezone' => 'Asia/Makassar', 'venue_name' => 'Gedung', 'is_primary' => true,
+        ]);
+        $invitation->giftMethods()->create([
+            'type' => 'bank_transfer', 'provider' => 'Bank Mandiri', 'account_name' => 'Anindya',
+            'account_number' => '1234567890', 'position' => 0,
+        ]);
+
+        // Automatic, with no settings at all: couple cover, "s/d Selesai",
+        // the timezone is shown, and gifts render as one block.
+        $this->get('/undangan-elegan')
+            ->assertOk()
+            ->assertSee('er-couple-title er-couple-title--cover', false)
+            ->assertSee('08:00 s/d Selesai', false)
+            ->assertSee('WITA', false)
+            ->assertSee('aria-label="Kirim hadiah"', false)
+            ->assertDontSee('Kirim Konfirmasi &amp; Ucapan', false);
+
+        // The two remaining toggles still work per invitation.
+        $invitation->update(['settings_json' => ['hide_timezone' => true, 'merge_rsvp_guestbook' => true]]);
+
+        $this->get('/undangan-elegan')
+            ->assertOk()
+            ->assertDontSee('WITA', false)
+            ->assertSee('Kirim Konfirmasi &amp; Ucapan', false)
+            ->assertDontSee('Buku Ucapan', false);
+    }
+
+    /**
+     * The closing section used to repeat the whole title ("Pernikahan Teddy &
+     * Anindya"). It now greets with the couple's names, like the opening.
+     */
+    public function test_the_closing_heading_uses_the_couple_names_not_the_event_title(): void
+    {
+        $invitation = $this->invitation();
+
+        $invitation->hosts()->create(['role' => 'groom', 'name' => 'Teddy', 'position' => 0]);
+        $invitation->hosts()->create(['role' => 'bride', 'name' => 'Anindya', 'position' => 1]);
+
+        $this->get('/undangan-elegan')
+            ->assertOk()
+            ->assertSee('<h2 class="er-couple-title er-couple-title--closing"><span>Teddy</span><i>&amp;</i><span>Anindya</span></h2>', false)
+            ->assertDontSee('<h2>Pernikahan Anindya', false);
+    }
+
+    /**
+     * An operator can align a free block (or a whole free section) without
+     * touching the template, and an unknown value never reaches the markup.
+     */
+    public function test_operator_blocks_can_be_aligned(): void
+    {
+        $invitation = $this->invitation();
+
+        $invitation->blocks()->createMany([
+            ['type' => 'section', 'content_json' => ['title' => 'Seksi Rata Tengah', 'align' => 'center'], 'position' => 0],
+            ['type' => 'text', 'content_json' => ['body' => 'Teks rata kanan', 'align' => 'right'], 'position' => 1],
+            ['type' => 'quote', 'content_json' => ['quote' => 'Kutipan', 'align' => 'liar'], 'position' => 2],
+        ]);
+
+        $this->get('/undangan-elegan')
+            ->assertOk()
+            ->assertSee('data-align="center"', false)
+            ->assertSee('data-align="right"', false)
+            ->assertDontSee('data-align="liar"', false);
+    }
+
+    /**
+     * The customer asked for the two host photos at the same level and for the
+     * gallery to read downward instead of sliding sideways.
+     */
+    public function test_the_host_portraits_are_sejajar_and_the_gallery_stacks(): void
+    {
+        $invitation = $this->invitation();
+
+        $invitation->hosts()->create(['role' => 'groom', 'name' => 'Rendra', 'position' => 0]);
+        $invitation->hosts()->create(['role' => 'bride', 'name' => 'Alya', 'position' => 1]);
+
+        for ($i = 1; $i <= 5; $i++) {
+            $invitation->media()->create(['type' => 'image', 'path' => 'invitations/media/foto'.$i.'.webp', 'alt_text' => 'Foto '.$i, 'position' => $i]);
+        }
+
+        $response = $this->get('/undangan-elegan')->assertOk();
+
+        // Every photo is on the page, in one grid, with no horizontal pages.
+        $this->assertSame(5, substr_count($response->getContent(), '<figure>'));
+        $response->assertDontSee('er-gallery__page', false);
+
+        // Neither portrait is pushed down any more.
+        $css = (string) file_get_contents(resource_path('invitation-templates/elegant-rose/assets/theme.css'));
+
+        $this->assertStringNotContainsString('er-host:nth-of-type(2) .er-host__portrait', $css);
     }
 
     /**

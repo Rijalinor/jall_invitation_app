@@ -19,9 +19,11 @@ class MidnightLedgerTemplateTest extends TestCase
     {
         $this->invitation();
 
-        $this->get('/undangan-uji')
+        // A personalized link greets by name; a general link stays without a name.
+        $this->get('/undangan-uji?to='.rawurlencode('Bapak Contoh'))
             ->assertOk()
             ->assertSee('Kepada Yth.')
+            ->assertSee('Bapak Contoh')
             ->assertSee('Buka Undangan')
             ->assertSee('Dengan cinta,')
             ->assertSee('Terima kasih telah menjadi bagian dari cerita kami.')
@@ -85,6 +87,24 @@ class MidnightLedgerTemplateTest extends TestCase
             '.midnight-ledger [data-height="half"] { min-height: 50svh; }',
             (string) file_get_contents(resource_path('invitation-templates/midnight-ledger/assets/theme.css')),
         );
+    }
+
+    /**
+     * livestream and sharing are declared sections, so enabling them must render
+     * a real body rather than only a navigation action.
+     */
+    public function test_livestream_and_sharing_render_as_sections(): void
+    {
+        $invitation = $this->invitation();
+        $invitation->update(['livestream_url' => 'https://youtube.com/watch?v=abc']);
+
+        $this->get('/undangan-uji')
+            ->assertOk()
+            ->assertSee('ml-livestream', false)
+            ->assertSee('Siaran Langsung')
+            ->assertSee('ml-sharing', false)
+            ->assertSee('Sebarkan Undangan')
+            ->assertSee('data-share', false);
     }
 
     private function invitation(): Invitation

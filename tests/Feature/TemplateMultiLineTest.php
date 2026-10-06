@@ -20,7 +20,7 @@ class TemplateMultiLineTest extends TestCase
      *
      * @var array<int, string>
      */
-    private const CONVERTED = ['elegant-rose', 'fun-storybook', 'midnight-ledger'];
+    private const CONVERTED = ['celestial-vow', 'coastal-vow', 'elegant-rose', 'fun-storybook', 'mahligai', 'midnight-ledger', 'sari-pura'];
 
     /**
      * The rest. Converting a template moves it from here to the list above, and

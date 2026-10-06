@@ -64,18 +64,6 @@ document.querySelector('[data-quick-actions-toggle]')?.addEventListener('click',
     if (panel) panel.hidden = !open;
 });
 
-const lightbox = document.querySelector('[data-lightbox]');
-if (lightbox) {
-    document.querySelectorAll('[data-lightbox-src]').forEach((btn) => btn.addEventListener('click', () => {
-        const img = lightbox.querySelector('[data-lightbox-image]');
-        img.src = btn.dataset.lightboxSrc;
-        img.alt = btn.dataset.lightboxAlt;
-        lightbox.showModal();
-    }));
-    lightbox.querySelector('[data-lightbox-close]')?.addEventListener('click', () => lightbox.close());
-    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.close(); });
-}
-
 const revealItems = document.querySelectorAll('[data-reveal], .ml-hosts article, .ml-story li, .ml-gallery figure');
 if ('IntersectionObserver' in window && !reducedMotion) {
     const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {

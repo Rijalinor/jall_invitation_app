@@ -1,11 +1,9 @@
 /* Fun Storybook Invitation Theme - Pop Art & Comic Style */
 
 :root {
-    --fsb-canvas: var(--fsb-bg, #fdf6e4);
     --fsb-surface: #ffffff;
     --fsb-text: #2b2d42;
     --fsb-muted: #5c5f79;
-    --fsb-pink: var(--fsb-accent, #ff6b81);
     /* A deeper mix of the accent, for accent-coloured text that has to pass
        contrast on white. The bright accent alone sits near 2.4:1. */
     --fsb-pink-ink: #b32842;
@@ -17,14 +15,24 @@
     --fsb-font-body: "Plus Jakarta Sans", sans-serif;
     --fsb-shadow: 4px 4px 0 #2b2d42;
     --fsb-shadow-lg: 6px 6px 0 #2b2d42;
+    /* Aliases consumed by shared components (host detail dialog, forms). */
+    --inv-accent: var(--fsb-pink-ink);
+    --inv-paper: var(--fsb-surface);
+    --inv-ink: var(--fsb-text);
+    --inv-line: color-mix(in srgb, var(--fsb-border) 35%, transparent);
 }
 
-html {
+html:has(body.fun-storybook) {
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
 }
 
 body.fun-storybook {
+    /* The template writes --fsb-accent/--fsb-bg on the body element, so the
+       aliases must resolve in the same scope to pick them up. Declared on :root
+       they would only ever see the fallbacks and ignore the admin's colours. */
+    --fsb-canvas: var(--fsb-bg, #fdf6e4);
+    --fsb-pink: var(--fsb-accent, #ff6b81);
     margin: 0;
     padding: 0;
     /* A faint dot grid so the page reads as printed paper rather than flat colour. */
@@ -177,6 +185,9 @@ body.fun-storybook {
    available; without it the invitation must stay reachable. */
 .js-ready [data-gate] { visibility: hidden; }
 .js-ready .invitation-open [data-gate] { visibility: visible; }
+/* Reveals the content when the cover anchor is followed even if the theme bundle
+   never ran: main is the anchor target, so :target alone un-gates it. */
+.js-ready [data-gate]:target { visibility: visible; }
 /* Opens without scripting as well: the cover control is a real anchor, so this
    rule alone dismisses the cover if the template script never loads. */
 body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
@@ -188,6 +199,21 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     object-fit: cover;
     opacity: .2;
     filter: saturate(1.4) blur(3px);
+}
+/* Optional cover video, kept faint so the paper card stays legible. */
+.fsb-cover__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .28;
+    filter: saturate(1.4);
+}
+.fsb-cover__video--desktop { display: none; }
+@media (min-width: 48rem) {
+    .fsb-cover__video--mobile { display: none; }
+    .fsb-cover__video--desktop { display: block; }
 }
 .fsb-cover__card {
     position: relative;
@@ -214,6 +240,19 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     /* A printed offset in the template accent reads as comic without the
        vibration a pale shadow causes behind heavy letterforms. */
     text-shadow: 3px 3px 0 var(--fsb-pink);
+}
+/* The optional couple-name cover: the two names stacked with a small ampersand. */
+.fsb-cover__title--couple {
+    display: grid;
+    gap: .05rem;
+    justify-items: center;
+    line-height: 1.05;
+}
+.fsb-cover__title--couple span { display: block; }
+.fsb-cover__amp {
+    font-size: .6em;
+    color: var(--fsb-pink);
+    text-shadow: 3px 3px 0 var(--fsb-border);
 }
 .fsb-cover__date {
     display: inline-block;
@@ -371,6 +410,22 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     font-weight: 700;
     box-shadow: 2px 2px 0 var(--fsb-border);
 }
+/* Optional opening-section video, reusing the cover upload. The text keeps a
+   higher stacking order so the moving image never covers it. */
+.fsb-hero__video {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.fsb-hero > *:not(.fsb-hero__video) { position: relative; z-index: 1; }
+.fsb-hero__video--desktop { display: none; }
+@media (min-width: 48rem) {
+    .fsb-hero__video--mobile { display: none; }
+    .fsb-hero__video--desktop { display: block; }
+}
 
 /* Mempelai Berdampingan (Side-by-Side Hosts) */
 .fsb-hosts {
@@ -463,8 +518,24 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     color: var(--fsb-muted);
     line-height: 1.35;
 }
-.fsb-host__bio {
+.fsb-host__family small {
+    display: block;
+    margin-bottom: .15rem;
+    color: var(--fsb-pink);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.fsb-host__family strong { display: block; }
+/* Collapsed only once the shared script has wired the dialog (the `.hosts-armed`
+   class), so a blocked script leaves the bio readable in the card. */
+.hosts-armed .fsb-host__bio {
     display: none !important;
+}
+/* The card keeps the profile short, but the host dialog shows it in full. */
+.invitation-host-dialog .fsb-host__bio {
+    display: block !important;
 }
 .fsb-hosts__divider {
     position: absolute;
@@ -498,15 +569,6 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     border: 3px solid var(--fsb-border);
     border-radius: 1.5rem;
     box-shadow: var(--fsb-shadow-lg);
-}
-.fsb-event__number {
-    position: absolute;
-    top: 1rem;
-    right: 1.2rem;
-    font-family: var(--fsb-font-display);
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: rgb(43 45 66 / .12);
 }
 .fsb-event__header h3 {
     margin: .4rem 0 .2rem;
@@ -907,42 +969,6 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     font-weight: 700 !important;
     box-shadow: 2px 2px 0 var(--fsb-border) !important;
     margin-top: .5rem !important;
-}
-
-/* Digital Gifts */
-.fsb-gifts {
-    display: grid;
-    gap: 1rem;
-}
-.fsb-gift-card {
-    background: #ffffff;
-    border: 3px solid var(--fsb-border);
-    border-radius: 1.25rem;
-    box-shadow: var(--fsb-shadow);
-    padding: 1rem 1.25rem;
-}
-.fsb-gift__summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: var(--fsb-font-display);
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    list-style: none;
-}
-.fsb-gift__summary::-webkit-details-marker { display: none; }
-.fsb-gift__body {
-    margin-top: 1rem;
-    padding-top: .85rem;
-    border-top: 2px dashed var(--fsb-border);
-}
-.fsb-gift__num {
-    display: block;
-    font-family: var(--fsb-font-display);
-    font-size: 1.75rem;
-    color: var(--fsb-pink);
-    margin-block: .2rem .6rem;
 }
 
 /* Contacts & Closing */

@@ -5,7 +5,7 @@
     "event_types": ["wedding", "engagement", "birthday"],
     "entry_view": "fun-storybook.views.index",
     "preview": "preview.svg",
-    "sections": ["opening", "hosts", "events", "countdown", "calendar", "map", "story", "gallery", "blocks", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
+    "sections": ["opening", "hosts", "events", "countdown", "map", "story", "gallery", "blocks", "rsvp", "guestbook", "gifts", "contacts", "livestream", "sharing", "closing"],
     "section_height": true,
     "labels": {
         "hosts_title": "Tersangka Utama (Mempelai)",
@@ -30,9 +30,34 @@
         "rsvp_intro": "Mohon berikan konfirmasi kehadiran Anda."
     },
     "settings_schema": {
-        "accent_color": {"type": "color", "default": "#ff6b81"},
-        "bg_color": {"type": "color", "default": "#fdf6e4"},
+        "accent_color": {
+            "type": "color",
+            "default": "#ff6b81",
+            "presets": [
+                {"label": "Bubblegum", "value": "#ff6b81"},
+                {"label": "Mint", "value": "#06d6a0"},
+                {"label": "Sunny", "value": "#ffc247"},
+                {"label": "Sky", "value": "#4cc9f0"},
+                {"label": "Grape", "value": "#9b5de5"}
+            ]
+        },
+        "bg_color": {
+            "type": "color",
+            "default": "#fdf6e4",
+            "presets": [
+                {"label": "Ivory", "value": "#fdf6e4"},
+                {"label": "Cloud", "value": "#f2f7fb"},
+                {"label": "Blush", "value": "#fff0f3"},
+                {"label": "Mint Cream", "value": "#eefaf3"}
+            ]
+        },
         "motion": {"type": "select", "options": ["calm", "expressive", "off"], "default": "expressive"},
-        "cover_poster_image": {"type": "url", "default": null}
+        "cover_video_enabled": {"type": "boolean", "default": true},
+        "cover_video_desktop": {"type": "url", "default": null},
+        "cover_video_mobile": {"type": "url", "default": null},
+        "cover_poster_image": {"type": "url", "default": null},
+        "hide_timezone": {"type": "boolean", "default": false},
+        "merge_rsvp_guestbook": {"type": "boolean", "default": false},
+        "show_rsvp_summary": {"type": "boolean", "default": true}
     }
 }

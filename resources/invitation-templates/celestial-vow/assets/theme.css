@@ -1,0 +1,1205 @@
+/* Celestial Vow — "the sky writes your names"
+ *
+ * A night-sky wedding theme. Motion concept: constellations draw themselves and
+ * the stars drift. Signature moment: opening the invitation draws the cover's
+ * constellation while the sky behind it begins to glow.
+ *
+ * Everything is scoped below .celestial-vow so the theme can never bleed into
+ * the admin panel or another template.
+ */
+
+.celestial-vow {
+    --cel-accent: #d8b26a;
+    --cel-bg: #070b18;
+    --cel-bg-2: #0d1428;
+    --cel-surface: #131b33;
+    --cel-paper: #f6f3ea;
+    --cel-ink: #e8ecf9;
+    --cel-muted: #9aa4c4;
+    --cel-starlight: #c9d4f0;
+    --cel-line: color-mix(in srgb, var(--cel-starlight) 20%, transparent);
+    --cel-soft: color-mix(in srgb, var(--cel-accent) 12%, transparent);
+    --cel-shadow: 0 1.4rem 4rem rgb(3 6 16 / .55);
+    --cel-display: 'Marcellus', 'Times New Roman', Georgia, serif;
+    --cel-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --cel-fast: .2s;
+    --cel-slow: .9s;
+    /* Consumed by the shared form partials so they inherit this palette. */
+    --inv-accent: var(--cel-accent);
+    --inv-paper: color-mix(in srgb, var(--cel-surface) 88%, #000);
+    --inv-ink: var(--cel-ink);
+    --inv-line: var(--cel-line);
+    margin: 0;
+    color: var(--cel-ink);
+    background: radial-gradient(circle at 50% -10%, var(--cel-bg-2), var(--cel-bg) 62%);
+    font: 400 1rem/1.7 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    font-synthesis: none;
+    -webkit-text-size-adjust: 100%;
+}
+
+html:has(body.celestial-vow) {
+    scroll-behavior: smooth;
+}
+
+.celestial-vow *,
+.celestial-vow *::before,
+.celestial-vow *::after {
+    box-sizing: border-box;
+}
+
+.celestial-vow h1,
+.celestial-vow h2,
+.celestial-vow h3 {
+    margin: 0 0 .9rem;
+    font-family: var(--cel-display);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: .01em;
+}
+
+.celestial-vow h1 { font-size: clamp(2.6rem, 11vw, 5.4rem); }
+.celestial-vow h2 { font-size: clamp(2rem, 8vw, 4rem); }
+.celestial-vow h3 { font-size: clamp(1.25rem, 4.4vw, 1.9rem); }
+.celestial-vow p { margin: .6rem 0; }
+.celestial-vow p,
+.celestial-vow a,
+.celestial-vow button,
+.celestial-vow small,
+.celestial-vow strong { overflow-wrap: anywhere; }
+.celestial-vow a { color: var(--cel-accent); }
+.celestial-vow img { display: block; max-width: 100%; }
+.celestial-vow a,
+.celestial-vow button,
+.celestial-vow input,
+.celestial-vow select,
+.celestial-vow textarea { font: inherit; }
+
+.celestial-vow a:focus-visible,
+.celestial-vow button:focus-visible,
+.celestial-vow input:focus-visible,
+.celestial-vow select:focus-visible,
+.celestial-vow textarea:focus-visible {
+    outline: 2px solid var(--cel-accent);
+    outline-offset: 3px;
+}
+
+/* ── Star field that sits behind every section ───────────────────────────── */
+.cel-sky {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.cel-sky__layer {
+    position: absolute;
+    inset: -12%;
+    background-repeat: repeat;
+    will-change: transform;
+}
+
+.cel-sky__layer--far {
+    background-image:
+        radial-gradient(1px 1px at 20px 30px, rgb(255 255 255 / .72), transparent 100%),
+        radial-gradient(1.4px 1.4px at 150px 96px, rgb(255 255 255 / .9), transparent 100%),
+        radial-gradient(1px 1px at 250px 44px, rgb(255 255 255 / .58), transparent 100%),
+        radial-gradient(1.2px 1.2px at 84px 204px, rgb(255 255 255 / .78), transparent 100%),
+        radial-gradient(1px 1px at 312px 186px, rgb(255 255 255 / .52), transparent 100%);
+    background-size: 340px 260px;
+    transform: translate3d(0, calc(var(--cel-scroll, 0) * 0.05 * 1px), 0);
+}
+
+.cel-sky__layer--near {
+    background-image:
+        radial-gradient(2px 2px at 62px 122px, color-mix(in srgb, var(--cel-accent) 80%, transparent), transparent 100%),
+        radial-gradient(1.6px 1.6px at 268px 62px, rgb(255 255 255 / .85), transparent 100%),
+        radial-gradient(1.8px 1.8px at 184px 226px, color-mix(in srgb, var(--cel-starlight) 80%, transparent), transparent 100%);
+    background-size: 380px 300px;
+    transform: translate3d(0, calc(var(--cel-scroll, 0) * 0.13 * 1px), 0);
+}
+
+/* ── Controls ────────────────────────────────────────────────────────────── */
+.celestial-vow button,
+.celestial-vow .cel-actions a,
+.celestial-vow .cel-cover [data-open-invitation] {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    padding: .72rem 1.2rem;
+    border: 1px solid color-mix(in srgb, var(--cel-accent) 70%, transparent);
+    border-radius: 999px;
+    color: var(--cel-accent);
+    background: transparent;
+    cursor: pointer;
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--cel-fast), background-color var(--cel-fast), border-color var(--cel-fast), transform var(--cel-fast);
+}
+
+.celestial-vow button:hover,
+.celestial-vow .cel-actions a:hover {
+    color: #0a0f1f;
+    background: var(--cel-accent);
+    transform: translateY(-1px);
+}
+
+.invitation-form button {
+    color: #0a0f1f;
+    background: var(--cel-accent);
+    border-color: var(--cel-accent);
+}
+
+/* ── Section shell & eyebrow ─────────────────────────────────────────────── */
+.invitation-section {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 64rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.25rem max(6.5rem, calc(env(safe-area-inset-bottom) + 5.5rem));
+    overflow: hidden;
+    text-align: center;
+    background: transparent;
+}
+
+.invitation-section::before {
+    content: '';
+    position: absolute;
+    inset: 1.1rem;
+    border: 1px solid var(--cel-line);
+    border-radius: 1rem;
+    pointer-events: none;
+}
+
+.invitation-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+.invitation-section > p {
+    max-width: 42rem;
+    margin-inline: auto;
+}
+
+.invitation-section p {
+    color: var(--cel-muted);
+}
+
+.invitation-section h2::after {
+    content: '';
+    display: block;
+    width: 3.2rem;
+    height: 1px;
+    margin: .8rem auto 0;
+    background: linear-gradient(90deg, transparent, var(--cel-accent), transparent);
+}
+
+.invitation-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    margin: 0 auto 1rem;
+    color: var(--cel-accent);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+}
+
+.invitation-eyebrow::before,
+.invitation-eyebrow::after {
+    content: '';
+    width: 1.6rem;
+    height: 1px;
+    background: currentColor;
+    opacity: .5;
+}
+
+/* ── Cover ───────────────────────────────────────────────────────────────── */
+.cel-cover {
+    position: fixed;
+    z-index: 30;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(1.4rem, env(safe-area-inset-top)) max(1.4rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.4rem, env(safe-area-inset-left));
+    overflow: hidden;
+    color: var(--cel-ink);
+    background:
+        radial-gradient(circle at 50% 118%, color-mix(in srgb, var(--cel-accent) 26%, transparent), transparent 46%),
+        radial-gradient(circle at 50% -8%, var(--cel-bg-2), var(--cel-bg) 68%);
+    transition: opacity var(--cel-slow) ease, visibility var(--cel-slow) ease;
+}
+
+.cel-cover__poster,
+.cel-cover__video {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--cel-focal-x, 50%) var(--cel-focal-y, 40%);
+    opacity: .4;
+}
+
+.cel-cover__video--desktop { display: none; }
+
+.cel-cover__shade {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(5 9 20 / calc(var(--cel-overlay, .6) - .2)), rgb(5 9 20 / var(--cel-overlay, .6)) 60%, rgb(5 9 20 / calc(var(--cel-overlay, .6) + .12)));
+    pointer-events: none;
+}
+
+.cel-cover__stars {
+    position: absolute;
+    z-index: 1;
+    inset: -12%;
+    background-image:
+        radial-gradient(1.4px 1.4px at 40px 60px, rgb(255 255 255 / .9), transparent 100%),
+        radial-gradient(1px 1px at 180px 120px, rgb(255 255 255 / .7), transparent 100%),
+        radial-gradient(1.8px 1.8px at 300px 40px, color-mix(in srgb, var(--cel-accent) 85%, transparent), transparent 100%),
+        radial-gradient(1px 1px at 240px 220px, rgb(255 255 255 / .6), transparent 100%),
+        radial-gradient(1.2px 1.2px at 90px 260px, color-mix(in srgb, var(--cel-starlight) 85%, transparent), transparent 100%);
+    background-size: 360px 300px;
+    animation: cel-drift 90s linear infinite;
+    opacity: .9;
+}
+
+.cel-cover__constellation {
+    position: absolute;
+    z-index: 2;
+    top: 8%;
+    left: 50%;
+    width: min(88%, 30rem);
+    height: auto;
+    transform: translateX(-50%);
+    color: color-mix(in srgb, var(--cel-accent) 85%, transparent);
+    opacity: .85;
+    pointer-events: none;
+}
+
+.cel-constellation__lines .cel-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 1.6s ease;
+}
+
+.invitation-open .cel-line { stroke-dashoffset: 0; }
+.invitation-open .cel-line:nth-child(2) { transition-delay: .35s; }
+.invitation-open .cel-line:nth-child(3) { transition-delay: .7s; }
+
+.cel-constellation__stars circle {
+    opacity: .55;
+    transition: opacity .8s ease;
+}
+
+.invitation-open .cel-constellation__stars circle { opacity: 1; }
+
+.cel-cover__inner {
+    position: relative;
+    z-index: 3;
+    width: min(100%, 34rem);
+    text-align: center;
+}
+
+.cel-cover__body h1,
+.cel-cover__inner h1 {
+    font-size: clamp(2.1rem, 8vw, 3.9rem);
+}
+
+.cel-cover .cel-couple span { max-width: none; }
+
+.cel-cover__date {
+    display: block;
+    margin: .1rem 0 1rem;
+    color: color-mix(in srgb, var(--cel-ink) 82%, transparent);
+    font-size: .74rem;
+    font-weight: 500;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+}
+
+.cel-cover__countdown {
+    margin: 0 auto 1.3rem;
+}
+
+.cel-cover__countdown-label {
+    display: block;
+    margin-bottom: .5rem;
+    color: color-mix(in srgb, var(--cel-ink) 70%, transparent);
+    font-size: .62rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.cel-cover__countdown > div {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .45rem;
+}
+
+.cel-cover__countdown > div > span {
+    display: grid;
+    gap: .1rem;
+    padding: .45rem .2rem;
+    border: 1px solid var(--cel-line);
+    border-radius: .7rem;
+    background: color-mix(in srgb, #050914 55%, transparent);
+}
+
+.cel-cover__countdown strong {
+    font-family: var(--cel-display);
+    font-size: 1.1rem;
+}
+
+.cel-cover__countdown small {
+    color: color-mix(in srgb, var(--cel-ink) 72%, transparent);
+    font-size: .5rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.cel-cover__recipient {
+    display: grid;
+    gap: .15rem;
+    margin-bottom: 1.5rem;
+}
+
+.cel-cover__recipient span {
+    color: color-mix(in srgb, var(--cel-ink) 70%, transparent);
+    font-size: .66rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.cel-cover__recipient strong {
+    font-family: var(--cel-display);
+    font-size: clamp(1.15rem, 5vw, 1.6rem);
+}
+
+.cel-cover .cel-cover__cta {
+    min-height: 50px;
+    padding: .85rem 1.7rem;
+    color: #0a0f1f;
+    background: var(--cel-accent);
+    border-color: var(--cel-accent);
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.cel-cover .cel-cover__cta:hover {
+    background: color-mix(in srgb, var(--cel-accent) 84%, white);
+    border-color: color-mix(in srgb, var(--cel-accent) 84%, white);
+}
+
+.invitation-open .cel-cover {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Kept out of the tab order while the cover is up, but only once scripting is
+   available; without it the invitation must stay reachable. */
+.js-ready [data-gate] {
+    visibility: hidden;
+}
+
+.js-ready .invitation-open [data-gate] {
+    visibility: visible;
+}
+
+/* Reveals the content when the cover anchor is followed even if the theme bundle
+   never ran: main is the anchor target, so :target alone un-gates it. */
+.js-ready [data-gate]:target {
+    visibility: visible;
+}
+
+/* Opens without scripting as well: the cover control is a real anchor, so this
+   rule alone dismisses the cover if the template script never loads. */
+body:has(main:target) .cel-cover {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+body:has(main:target) .cel-dots,
+body:has(main:target) .cel-mark {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
+/* ── Monogram & navigation dots ──────────────────────────────────────────── */
+.cel-mark {
+    position: fixed;
+    z-index: 20;
+    top: max(1rem, env(safe-area-inset-top));
+    left: max(1rem, env(safe-area-inset-left));
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 1px solid var(--cel-line);
+    border-radius: 50%;
+    color: var(--cel-accent);
+    background: color-mix(in srgb, #050914 55%, transparent);
+    font-family: var(--cel-display);
+    font-size: .9rem;
+    letter-spacing: .05em;
+    text-decoration: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-.6rem);
+    transition: opacity var(--cel-fast) ease, transform var(--cel-fast) ease;
+}
+
+.cel-dots {
+    position: fixed;
+    z-index: 20;
+    top: 50%;
+    right: max(.7rem, env(safe-area-inset-right));
+    display: grid;
+    gap: .55rem;
+    transform: translateY(-50%) translateX(.8rem);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .4s ease, transform .4s ease;
+}
+
+.invitation-open .cel-mark,
+.invitation-open .cel-dots {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
+.cel-dot {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 1.5rem;
+    text-decoration: none;
+}
+
+.cel-dot > span {
+    width: .5rem;
+    height: .5rem;
+    border: 1px solid var(--cel-line);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--cel-starlight) 30%, transparent);
+    transition: transform var(--cel-fast) ease, background-color var(--cel-fast) ease, box-shadow var(--cel-fast) ease;
+}
+
+.cel-dot:hover > span,
+.cel-dot.is-active > span {
+    background: var(--cel-accent);
+    box-shadow: 0 0 0 .4rem color-mix(in srgb, var(--cel-accent) 22%, transparent);
+    transform: scale(1.25);
+}
+
+/* ── Opening hero ────────────────────────────────────────────────────────── */
+.cel-hero {
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--cel-bg-2) 70%, transparent));
+    position: relative;
+    overflow: hidden;
+}
+
+/* Optional opening-section video, reusing the cover upload. The text keeps a
+   higher stacking order so the moving image never covers it. */
+.cel-hero__video {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.cel-hero > *:not(.cel-hero__video) { position: relative; z-index: 1; }
+.cel-hero__video--desktop { display: none; }
+@media (min-width: 48rem) {
+    .cel-hero__video--mobile { display: none; }
+    .cel-hero__video--desktop { display: block; }
+}
+
+.cel-couple {
+    display: grid;
+    justify-items: center;
+    gap: .1rem;
+}
+
+.cel-couple span { max-width: 14ch; }
+
+.cel-couple i {
+    color: var(--cel-accent);
+    font-size: .7em;
+    font-style: italic;
+}
+
+.cel-hero__date {
+    margin-top: 1.2rem !important;
+    color: var(--cel-accent) !important;
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+/* ── Hosts ───────────────────────────────────────────────────────────────── */
+.cel-hosts__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(.4rem, 2vw, 1.6rem);
+    max-width: 52rem;
+    margin: clamp(1.4rem, 5vw, 3rem) auto 0;
+}
+
+.cel-host {
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+}
+
+.cel-host__portrait {
+    position: relative;
+    width: min(100%, 15rem);
+    margin: 0 auto clamp(1rem, 4vw, 1.5rem);
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--cel-accent) 45%, transparent);
+    border-radius: 48% 48% 1rem 1rem;
+    background: color-mix(in srgb, var(--cel-surface) 80%, #000);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--cel-accent) 18%, transparent), 0 1.2rem 3rem rgb(3 6 16 / .5);
+}
+
+.cel-host__portrait::after {
+    content: '';
+    position: absolute;
+    inset: .5rem;
+    border: 1px solid color-mix(in srgb, var(--cel-starlight) 28%, transparent);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.cel-host__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.cel-host__portrait > span {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--cel-accent);
+    font-family: var(--cel-display);
+    font-size: clamp(3rem, 14vw, 6rem);
+}
+
+.cel-host__role {
+    display: block;
+    margin-bottom: .3rem;
+    color: var(--cel-accent);
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+}
+
+.cel-host h3 { margin-bottom: .4rem; }
+.cel-host p { margin: .2rem 0; font-size: .85rem; }
+
+.cel-host__parents small {
+    display: block;
+    margin-bottom: .15rem;
+    color: var(--cel-accent);
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.cel-host__parents span { display: block; }
+
+.cel-host__social {
+    display: inline-block;
+    min-height: 44px;
+    margin-top: .4rem;
+    padding-block: .9rem;
+    color: var(--cel-accent);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.cel-hosts__and {
+    align-self: center;
+    color: var(--cel-accent);
+    font-family: var(--cel-display);
+    font-size: clamp(1.6rem, 6vw, 3rem);
+    font-style: italic;
+}
+
+.cel-hosts__grid[data-count="1"] {
+    grid-template-columns: minmax(0, 20rem);
+    justify-content: center;
+}
+
+.cel-hosts__grid:not([data-count="1"]):not([data-count="2"]) {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+/* ── Events ──────────────────────────────────────────────────────────────── */
+.cel-events__list {
+    display: grid;
+    gap: 1rem;
+    max-width: 58rem;
+    margin: clamp(1.4rem, 4vw, 2.6rem) auto 0;
+    text-align: left;
+}
+
+.cel-event {
+    position: relative;
+    padding: clamp(1.3rem, 4vw, 2.1rem);
+    background: color-mix(in srgb, var(--cel-surface) 82%, transparent);
+    border: 1px solid var(--cel-line);
+    border-radius: 1rem;
+    box-shadow: var(--cel-shadow);
+}
+
+.cel-event::before {
+    content: '';
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    width: .4rem;
+    height: .4rem;
+    border-radius: 50%;
+    background: var(--cel-accent);
+    box-shadow: 0 0 0 .3rem color-mix(in srgb, var(--cel-accent) 18%, transparent);
+}
+
+.cel-event h3 { margin-bottom: .5rem; text-transform: capitalize; }
+
+.cel-event__date {
+    color: var(--cel-ink) !important;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+.cel-event__time { color: var(--cel-muted); }
+
+.cel-event__venue {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--cel-line);
+}
+
+.cel-event__venue strong { display: block; }
+.cel-event__venue p { margin-top: .2rem; }
+
+.cel-event__notes { margin-top: 1rem; }
+
+.cel-event__notes small {
+    display: block;
+    color: var(--cel-muted);
+    line-height: 1.6;
+}
+
+.cel-event__notes small + small { margin-top: .5rem; }
+
+.cel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+    margin-top: 1.2rem;
+}
+
+.cel-actions > * { max-width: 100%; }
+.cel-actions--center { justify-content: center; }
+.cel-event .cel-actions > :first-child { color: #0a0f1f; background: var(--cel-accent); }
+
+/* ── Countdown ───────────────────────────────────────────────────────────── */
+.cel-countdown {
+    background:
+        radial-gradient(circle at 50% 24%, color-mix(in srgb, var(--cel-starlight) 16%, transparent), transparent 34%),
+        color-mix(in srgb, var(--cel-bg-2) 70%, transparent);
+}
+
+.cel-moon {
+    justify-self: center;
+    width: clamp(5rem, 22vw, 9rem);
+    aspect-ratio: 1;
+    margin-bottom: 1.4rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 32%, #fdf6e2, #d8c9a2 62%, #a89a76);
+    box-shadow: 0 0 3rem color-mix(in srgb, var(--cel-accent) 30%, transparent), inset -1.2rem -1rem 2rem rgb(90 78 50 / .45);
+}
+
+.cel-countdown__units {
+    width: min(100%, 56rem);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(.5rem, 2vw, 1.2rem);
+    margin: 1.6rem auto 0;
+}
+
+.cel-countdown__units > span {
+    display: grid;
+    align-content: center;
+    gap: .3rem;
+    min-height: clamp(6rem, 18vh, 9rem);
+    padding: .8rem;
+    border: 1px solid var(--cel-line);
+    border-radius: .9rem;
+    background: color-mix(in srgb, #050914 45%, transparent);
+}
+
+.cel-countdown__units strong {
+    color: var(--cel-ink);
+    font-family: var(--cel-display);
+    font-size: clamp(2.2rem, 12vw, 4.6rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 1.4rem color-mix(in srgb, var(--cel-accent) 40%, transparent);
+}
+
+.cel-countdown__units small {
+    color: var(--cel-accent);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+/* ── Location ────────────────────────────────────────────────────────────── */
+.cel-map__frame {
+    position: relative;
+    width: 100%;
+    margin: clamp(1.4rem, 4vw, 2.4rem) 0 1.2rem;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    border: 1px solid var(--cel-line);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--cel-surface) 80%, #000);
+    box-shadow: var(--cel-shadow);
+}
+
+.cel-map__frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    filter: saturate(.7) brightness(.9);
+}
+
+.cel-map__address { max-width: 42rem; margin-inline: auto; }
+
+/* ── Story ───────────────────────────────────────────────────────────────── */
+.cel-story__list {
+    max-width: 44rem;
+    margin: clamp(1.6rem, 4vw, 2.8rem) auto 0;
+    padding: 0 0 0 1.6rem;
+    list-style: none;
+    text-align: left;
+    border-left: 1px solid var(--cel-line);
+}
+
+.cel-story__list li {
+    position: relative;
+    padding-bottom: 2.6rem;
+}
+
+.cel-story__list li:last-child { padding-bottom: 0; }
+
+.cel-story__list li::before {
+    content: '';
+    position: absolute;
+    top: .3rem;
+    left: calc(-1.6rem - 5px);
+    width: .7rem;
+    height: .7rem;
+    border-radius: 50%;
+    background: var(--cel-accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--cel-accent) 16%, transparent);
+}
+
+.cel-story__list img {
+    width: 100%;
+    max-height: 24rem;
+    margin-bottom: 1rem;
+    object-fit: cover;
+    border-radius: .8rem;
+    border: 1px solid var(--cel-line);
+}
+
+.cel-story__list small {
+    color: var(--cel-accent);
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.cel-story__list h3 { margin: .3rem 0 .4rem; }
+
+/* ── Gallery (vertical grid, no side scroll) ─────────────────────────────── */
+.cel-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+    max-width: 58rem;
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+}
+
+.cel-gallery__grid figure {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border: 1px solid var(--cel-line);
+    border-radius: .8rem;
+    background: color-mix(in srgb, var(--cel-surface) 80%, #000);
+    box-shadow: var(--cel-shadow);
+}
+
+.cel-gallery__grid figure:first-child {
+    grid-column: span 2;
+    aspect-ratio: 4/3;
+}
+
+.cel-gallery__grid button {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+}
+
+.cel-gallery__grid button:hover { background: transparent; transform: none; }
+.cel-gallery__grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s ease; }
+.cel-gallery__grid button:hover img { transform: scale(1.05); }
+
+.cel-gallery__grid figcaption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1.8rem .7rem .6rem;
+    color: #fff;
+    background: linear-gradient(transparent, rgb(5 9 20 / .8));
+    font-size: .74rem;
+    pointer-events: none;
+}
+
+.cel-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 0; background: #05080f; }
+.cel-lightbox::backdrop { background: rgb(3 6 12 / .9); }
+.cel-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.cel-lightbox button { position: absolute; top: .5rem; right: .5rem; color: var(--cel-ink); border-color: var(--cel-line); }
+
+/* ── Contacts ────────────────────────────────────────────────────────────── */
+.cel-contacts__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 1rem;
+    width: min(100%, 48rem);
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+}
+
+.cel-contact {
+    display: grid;
+    gap: .4rem;
+    align-content: center;
+    min-height: 10rem;
+    padding: 1.5rem 1.3rem;
+    background: color-mix(in srgb, var(--cel-surface) 82%, transparent);
+    border: 1px solid var(--cel-line);
+    border-radius: 1rem;
+    box-shadow: var(--cel-shadow);
+}
+
+.cel-contact small {
+    color: var(--cel-accent);
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.cel-contact h3 { margin: 0; }
+.cel-contact .cel-actions { justify-content: center; margin-top: .6rem; }
+.cel-contact .cel-actions a:first-child { color: #0a0f1f; background: var(--cel-accent); }
+
+/* ── Livestream, sharing, closing ────────────────────────────────────────── */
+.cel-livestream .cel-actions { margin-top: 1.6rem; }
+.cel-sharing .cel-actions { margin-top: 1.4rem; }
+.cel-sharing .cel-actions > :first-child { color: #0a0f1f; background: var(--cel-accent); }
+
+.cel-closing {
+    background: radial-gradient(circle at 50% 84%, color-mix(in srgb, var(--cel-accent) 14%, transparent), transparent 42%);
+}
+
+.cel-closing__glyph {
+    justify-self: center;
+    margin-bottom: 1rem;
+    color: var(--cel-accent);
+    font-size: 1.6rem;
+}
+
+.cel-closing__kicker {
+    max-width: 34rem;
+    margin: 1.4rem auto 0 !important;
+    color: var(--cel-accent) !important;
+    font-family: var(--cel-display);
+    font-size: clamp(1.05rem, 3vw, 1.4rem);
+    font-style: italic;
+}
+
+/* ── Shared feature sections (blocks, RSVP, guestbook) ───────────────────── */
+.cel-shared .invitation-section {
+    width: 100%;
+    max-width: none;
+    padding-inline: 1.25rem;
+}
+
+.cel-shared .invitation-form {
+    width: min(100%, 40rem);
+    padding: clamp(1.2rem, 5vw, 2rem);
+    text-align: left;
+    background: color-mix(in srgb, var(--cel-surface) 88%, #000);
+    border: 1px solid var(--cel-line);
+    border-top: 3px solid var(--cel-accent);
+    border-radius: 1rem;
+    box-shadow: var(--cel-shadow);
+}
+
+.cel-shared .invitation-form label {
+    gap: .4rem;
+    color: var(--cel-ink);
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.cel-shared .invitation-form input,
+.cel-shared .invitation-form select,
+.cel-shared .invitation-form textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: .7rem .85rem;
+    border: 1px solid color-mix(in srgb, var(--cel-accent) 55%, transparent);
+    border-radius: .7rem;
+    color: var(--cel-ink);
+    background: color-mix(in srgb, #050914 60%, transparent);
+    transition: border-color var(--cel-fast), box-shadow var(--cel-fast);
+}
+
+.cel-shared .invitation-form textarea { min-height: 6rem; resize: vertical; }
+
+.cel-shared .invitation-form input:focus,
+.cel-shared .invitation-form select:focus,
+.cel-shared .invitation-form textarea:focus {
+    border-color: var(--cel-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cel-accent) 22%, transparent);
+    outline: 0;
+}
+
+.cel-shared .invitation-form button {
+    justify-self: start;
+    color: #0a0f1f;
+    background: var(--cel-accent);
+    border-color: var(--cel-accent);
+}
+
+/* ── Music ───────────────────────────────────────────────────────────────── */
+.cel-music {
+    position: fixed;
+    z-index: 21;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    padding: 0 !important;
+    border: 1px solid color-mix(in srgb, var(--cel-accent) 70%, transparent) !important;
+    border-radius: 50% !important;
+    color: #0a0f1f !important;
+    background: var(--cel-accent) !important;
+    box-shadow: 0 .7rem 1.8rem rgb(3 6 16 / .5);
+    font-size: 1rem !important;
+}
+
+/* ── Motion: "constellations draw, stars drift" ──────────────────────────── */
+/* Hidden content waits for `.cel-armed`, a class the script adds. Without it
+   the whole invitation is already visible and readable. */
+.celestial-vow[data-motion="expressive"] {
+    --cel-reveal-travel: 2rem;
+    --cel-reveal-blur: 3px;
+}
+
+.cel-armed [data-reveal] {
+    opacity: 0;
+    filter: blur(var(--cel-reveal-blur, 0));
+    transform: translateY(var(--cel-reveal-travel, 1.1rem));
+    transition:
+        opacity .8s ease,
+        filter .8s ease,
+        transform .9s cubic-bezier(.2, .7, .2, 1);
+    transition-delay: calc(var(--cel-reveal-i, 0) * 90ms);
+}
+
+.cel-armed [data-reveal].is-visible {
+    opacity: 1;
+    filter: none;
+    transform: none;
+}
+
+.celestial-vow[data-motion="off"] *,
+.celestial-vow[data-motion="off"] *::before,
+.celestial-vow[data-motion="off"] *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+@keyframes cel-drift {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-40px, -30px, 0); }
+}
+
+/* ── Operator-built blocks ───────────────────────────────────────────────── */
+.invitation-block-quote {
+    max-width: 42rem;
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    padding: clamp(1.2rem, 4vw, 2rem) clamp(1.3rem, 5vw, 2.4rem);
+    text-align: left;
+    background: color-mix(in srgb, var(--cel-surface) 82%, transparent);
+    border: 1px solid var(--cel-line);
+    border-left: 3px solid var(--cel-accent);
+    border-radius: .9rem;
+}
+
+.invitation-block-quote p {
+    margin: 0;
+    font-family: var(--cel-display);
+    font-size: clamp(1.05rem, 3.2vw, 1.4rem);
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.invitation-block-quote cite {
+    display: block;
+    margin-top: .8rem;
+    color: var(--cel-accent);
+    font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    font-size: .74rem;
+    font-style: normal;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.invitation-block-image {
+    max-width: min(100%, 34rem);
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    overflow: hidden;
+    border-radius: .9rem;
+    border: 1px solid var(--cel-line);
+}
+
+.invitation-block-image img { width: 100%; }
+
+.invitation-block-image figcaption {
+    margin-top: .6rem;
+    color: var(--cel-muted);
+    font-size: .78rem;
+}
+
+.invitation-block-note {
+    max-width: 38rem;
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    padding: 1.1rem 1.3rem;
+    color: var(--cel-ink);
+    text-align: left;
+    font-size: .92rem;
+    background: color-mix(in srgb, var(--cel-surface) 82%, transparent);
+    border: 1px solid var(--cel-line);
+    border-radius: .9rem;
+}
+
+/* ── Per-section height ──────────────────────────────────────────────────── */
+.invitation-section[data-height="tall"] { min-height: 75svh; }
+.invitation-section[data-height="half"] { min-height: 50svh; }
+.invitation-section[data-height="auto"] { min-height: 0; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 47.99rem) {
+    .celestial-vow { font-size: .92rem; line-height: 1.6; }
+    /* The fixed monogram badge would sit over section content on a phone. */
+    .cel-mark { display: none; }
+    .celestial-vow h1 { font-size: clamp(2.1rem, 12vw, 3.2rem); }
+    .celestial-vow h2 { font-size: clamp(1.9rem, 9.5vw, 2.8rem); }
+    .invitation-section {
+        padding-top: 4.2rem;
+        padding-bottom: max(6.5rem, calc(env(safe-area-inset-bottom) + 5.5rem));
+    }
+    .invitation-section::before { inset: .6rem; }
+    .invitation-eyebrow { margin-bottom: .8rem; font-size: .58rem; letter-spacing: .18em; }
+    .cel-cover__constellation { top: 6%; width: 96%; }
+    .cel-cover__countdown strong { font-size: 1rem; }
+    .cel-host__portrait { aspect-ratio: 4/5; }
+    .cel-host h3 { overflow-wrap: normal; word-break: normal; }
+    .cel-gallery__grid figcaption { padding: 1.4rem .55rem .5rem; font-size: .64rem; }
+    .cel-dot { width: 2.75rem; height: 1.9rem; }
+    .cel-music { bottom: max(1rem, env(safe-area-inset-bottom)); }
+}
+
+@media (min-width: 48rem) {
+    .cel-countdown__units { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .cel-cover__video--mobile { display: none; }
+    .cel-cover__video--desktop { display: block; }
+    .cel-events__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cel-gallery__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .invitation-section { padding-inline: 2rem; }
+}
+
+@media (max-height: 43rem) {
+    .invitation-section { padding-top: 3.6rem; padding-bottom: 6.6rem; }
+    .invitation-section h2 { font-size: clamp(1.8rem, 8vw, 2.5rem); }
+    .cel-host__portrait { aspect-ratio: 1; }
+    .cel-cover { padding-block: max(1rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-bottom)); }
+    .cel-cover__constellation { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.celestial-vow) { scroll-behavior: auto; }
+    .celestial-vow *,
+    .celestial-vow *::before,
+    .celestial-vow *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+    }
+    .cel-cover__stars { animation: none; }
+}
+
+/* ── Tint ────────────────────────────────────────────────────────────────────
+   Declared last on purpose: it must be the final background rule that paints
+   .invitation-section, or a later rule would silently cancel the tinted band. */
+.invitation-section--tint {
+    width: 100%;
+    max-width: none;
+    background: color-mix(in srgb, var(--cel-surface) 42%, transparent);
+}

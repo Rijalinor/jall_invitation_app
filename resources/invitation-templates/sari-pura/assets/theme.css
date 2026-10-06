@@ -1,0 +1,642 @@
+/* Sari Pura — "Prada"
+ *
+ * A Bali-inspired luxury wedding theme. The concept is prada: the Balinese
+ * craft of gilding carved temple wood with gold leaf. An ivory paper carries
+ * the reading sections, deep temple emerald carries the ceremonial bands, and
+ * a metallic gold — never a flat brass — draws the frames, dividers and seal.
+ *
+ * Motion concept: one signature moment. When the invitation opens, a gold
+ * sheen sweeps once across the gilded cover frame. Everything else is quiet;
+ * kamboja petals gilded gold drift slowly behind and in front of the content.
+ *
+ * Everything is scoped below .sari-pura so the theme can never bleed into the
+ * admin panel or another template.
+ */
+
+.sari-pura {
+    --sp-accent: #a9543b;
+    --sp-paper: #f6efe1;
+    --sp-surface: #fffaf0;
+    --sp-ink: #2b2620;
+    --sp-muted: #7a6d5c;
+    --sp-leaf: #1c4633;
+    --sp-leaf-deep: #0e2a20;
+    --sp-gold-1: #f6e6b8;
+    --sp-gold-2: #d8b45a;
+    --sp-gold-3: #9a7326;
+    --sp-gold: linear-gradient(135deg, var(--sp-gold-3), var(--sp-gold-2) 38%, var(--sp-gold-1) 52%, var(--sp-gold-2) 68%, var(--sp-gold-3));
+    --sp-gold-ink: #8a6a22;
+    --sp-brass: #b9944e;
+    --sp-brass-bright: #ecd9a3;
+    --sp-gold-line: color-mix(in srgb, var(--sp-gold-3) 38%, transparent);
+    --sp-line: color-mix(in srgb, var(--sp-gold-3) 30%, transparent);
+    --sp-soft: color-mix(in srgb, var(--sp-gold-3) 9%, var(--sp-paper));
+    --sp-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+    --sp-body: 'Jost', ui-sans-serif, system-ui, sans-serif;
+    --sp-shadow: 0 1.4rem 3.2rem rgb(14 42 32 / .16);
+    --sp-fast: 180ms;
+    --sp-base: 700ms;
+    --sp-slow: 1100ms;
+    --ease-enter: cubic-bezier(.2, .7, .2, 1);
+    /* Consumed by the shared form partials so they inherit this palette. */
+    --inv-accent: var(--sp-accent);
+    --inv-paper: var(--sp-surface);
+    --inv-ink: var(--sp-ink);
+    --inv-line: var(--sp-line);
+    margin: 0;
+    color: var(--sp-ink);
+    background: var(--sp-paper);
+    font: 400 1rem/1.75 var(--sp-body);
+    font-synthesis: none;
+    -webkit-text-size-adjust: 100%;
+}
+
+html:has(body.sari-pura) { scroll-behavior: smooth; }
+
+.sari-pura *,
+.sari-pura *::before,
+.sari-pura *::after { box-sizing: border-box; }
+
+/* ── Type ────────────────────────────────────────────────────────────────── */
+.sari-pura h1,
+.sari-pura h2,
+.sari-pura h3 {
+    margin: 0 0 .85rem;
+    font-family: var(--sp-display);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: .002em;
+}
+
+.sari-pura h1 { font-size: clamp(3rem, 9vw, 6.6rem); }
+.sari-pura h2 { font-size: clamp(2.4rem, 6.8vw, 4.8rem); }
+.sari-pura h3 { font-size: clamp(1.5rem, 3.6vw, 2.5rem); }
+.sari-pura p { margin: .6rem 0; }
+.sari-pura p,
+.sari-pura a,
+.sari-pura button,
+.sari-pura small,
+.sari-pura strong { overflow-wrap: anywhere; }
+.sari-pura img { display: block; max-width: 100%; }
+.sari-pura a { color: var(--sp-accent); }
+.sari-pura a,
+.sari-pura button,
+.sari-pura input,
+.sari-pura select,
+.sari-pura textarea { font: inherit; }
+
+.sari-pura a:focus-visible,
+.sari-pura button:focus-visible,
+.sari-pura input:focus-visible,
+.sari-pura select:focus-visible,
+.sari-pura textarea:focus-visible { outline: 3px solid var(--sp-gold-2); outline-offset: 3px; }
+
+/* ── Gold type & controls ────────────────────────────────────────────────── */
+.sari-pura .sp-kicker {
+    display: block;
+    margin: 0 0 .9rem;
+    color: var(--sp-gold-ink);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+}
+
+.sari-pura .sp-gilt {
+    background: var(--sp-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.sari-pura button,
+.sari-pura .sp-actions a,
+.sari-pura .sp-button {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    padding: .72rem 1.35rem;
+    border: 1px solid var(--sp-gold-ink);
+    border-radius: 0;
+    color: var(--sp-gold-ink);
+    background: transparent;
+    cursor: pointer;
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--sp-fast) ease, background-color var(--sp-fast) ease, border-color var(--sp-fast) ease, transform var(--sp-fast) ease;
+}
+
+.sari-pura button:hover,
+.sari-pura .sp-actions a:hover { color: #21180a; background: var(--sp-gold-2); border-color: var(--sp-gold-2); }
+.sari-pura .sp-button--solid { color: #21180a; background: var(--sp-gold); border-color: transparent; }
+.sari-pura .sp-button--solid:hover { background: var(--sp-gold-1); }
+.sari-pura .invitation-form button { color: #21180a; background: var(--sp-gold); border-color: transparent; }
+
+/* ── Section shell ───────────────────────────────────────────────────────── */
+.sari-pura .invitation-section {
+    position: relative;
+    width: min(100%, 78rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    margin: 0 auto;
+    padding: clamp(4.8rem, 11vw, 7.5rem) clamp(1.2rem, 6vw, 5rem) max(7.5rem, calc(env(safe-area-inset-bottom) + 6.5rem));
+    overflow: hidden;
+    text-align: center;
+    background: var(--sp-paper);
+}
+
+.sari-pura .invitation-section > * { position: relative; z-index: 1; }
+.sari-pura .invitation-section > p { width: min(100%, 42rem); color: var(--sp-muted); }
+
+/* The tinted band: a warm ivory panel behind airy sections. Declared last on
+   purpose so nothing after it repaints these sections. */
+.sari-pura .invitation-section--tint {
+    width: 100%;
+    max-width: none;
+    background: var(--sp-surface);
+}
+
+/* The shared notice keeps its own voice even though the paragraph rule above
+   colours every bare `p` in a section. */
+.sari-pura .invitation-section .invitation-notice {
+    color: #1c4633;
+    background: color-mix(in srgb, var(--sp-gold-2) 20%, var(--sp-surface));
+    border-left-color: var(--sp-gold-3);
+}
+
+.sari-pura .sp-section-heading { width: min(100%, 42rem); }
+.sari-pura .sp-section-heading h2 { margin: 0 auto; }
+.sari-pura .sp-section-heading > p { width: min(100%, 40rem); margin-inline: auto; }
+
+/* A small gold kamboja diamond opens every heading. */
+.sari-pura .sp-section-heading::before {
+    content: '';
+    display: block;
+    width: .5rem;
+    height: .5rem;
+    margin: 0 auto .95rem;
+    background: var(--sp-gold);
+    transform: rotate(45deg);
+}
+
+/* The heading rule: a gilded stroke that draws itself on reveal. */
+.sari-pura .sp-section-heading::after {
+    content: '';
+    display: block;
+    width: clamp(3.2rem, 11vw, 6rem);
+    height: 2px;
+    margin: 1.35rem auto 0;
+    background: var(--sp-gold);
+    transform-origin: left center;
+}
+
+/* ── Gilded seal ─────────────────────────────────────────────────────────── */
+.sp-seal {
+    display: inline-grid;
+    place-items: center;
+    width: 3.7rem;
+    aspect-ratio: 1;
+    margin: 0 auto 1.15rem;
+    border: 1px solid var(--sp-gold-line);
+    border-radius: 50%;
+    box-shadow: 0 0 0 .3rem rgb(255 250 240 / .06), inset 0 0 0 1px var(--sp-gold-line);
+    color: var(--sp-brass-bright);
+    font-family: var(--sp-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+}
+
+/* ── Cover: a gilded carved door ─────────────────────────────────────────── */
+.sp-cover {
+    position: fixed;
+    z-index: 30;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(1.5rem, env(safe-area-inset-top)) 1.25rem max(1.5rem, env(safe-area-inset-bottom));
+    color: #f7f1e2;
+    background: var(--sp-leaf-deep);
+    transition: opacity var(--sp-slow) ease, visibility var(--sp-slow) ease;
+}
+
+.sp-cover__image { position: absolute; inset: 0; overflow: hidden; background: var(--sp-leaf-deep); transition: transform var(--sp-slow) var(--ease-enter); }
+.sp-cover__poster,
+.sp-cover__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--sp-focal-x, 50%) var(--sp-focal-y, 42%); }
+.sp-cover__video--desktop { display: none; }
+.sp-cover__video--mobile { display: block; }
+.sp-cover__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(10 30 24 / .5), rgb(10 30 24 / var(--sp-overlay, .52)) 52%, rgb(8 24 19 / .93)); }
+.sp-cover__engraving { position: absolute; inset: 0; margin: auto; width: min(78%, 24rem); height: 86%; color: var(--sp-brass-bright); opacity: .3; }
+.sp-cover__engraving path { stroke-dasharray: 1200; stroke-dashoffset: 0; }
+.sp-cover__engraving.is-drawing path { animation: sp-engrave 1.5s var(--ease-enter) both; }
+.sp-cover__engraving.is-drawing path:nth-child(2) { animation-delay: 200ms; }
+.sp-cover__engraving.is-drawing path:nth-child(3) { animation-delay: 400ms; }
+@keyframes sp-engrave { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+
+.sp-cover__paper {
+    position: relative;
+    width: min(100%, 34rem);
+    padding: clamp(1.9rem, 7vw, 3.6rem) clamp(1.4rem, 6vw, 3rem);
+    overflow: hidden;
+    text-align: center;
+    border: 1px solid var(--sp-gold-line);
+    background: color-mix(in srgb, var(--sp-leaf-deep) 44%, transparent);
+    backdrop-filter: blur(7px);
+    transition: opacity var(--sp-base) ease var(--sp-fast), transform var(--sp-slow) var(--ease-enter) var(--sp-fast);
+}
+.sp-cover__paper::before { content: ''; position: absolute; inset: .6rem; border: 1px solid var(--sp-gold-line); pointer-events: none; }
+/* Signature motion: a single gold sheen crosses the gilded frame on entry. */
+.sp-cover__paper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 34%, rgb(246 230 184 / .34) 49%, transparent 64%);
+    opacity: 0;
+    transform: translateX(-130%);
+    pointer-events: none;
+    animation: sp-sheen 2.6s var(--ease-enter) .5s both;
+}
+@keyframes sp-sheen {
+    0% { opacity: 0; transform: translateX(-130%); }
+    18% { opacity: 1; }
+    55% { opacity: 0; transform: translateX(130%); }
+    100% { opacity: 0; transform: translateX(130%); }
+}
+.sp-cover__paper > * { position: relative; z-index: 1; }
+
+.sp-couple { display: grid; justify-items: center; gap: .02em; text-align: center; }
+.sp-couple span { max-width: 13ch; }
+.sp-couple i { color: var(--sp-gold-2); font-size: .6em; font-style: italic; line-height: .6; }
+
+.sp-cover__paper h1 { max-width: none; margin-bottom: 1.25rem; color: #fbf6ea; }
+.sp-cover .sp-kicker { color: var(--sp-brass-bright); }
+.sp-cover__date { display: grid; gap: .35rem; margin: 0 0 1.35rem; color: rgb(247 241 226 / .72); font-size: .76rem; letter-spacing: .06em; }
+.sp-cover__date strong { color: #fbf6ea; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+.sp-cover__date span { padding-top: .1rem; }
+.sp-cover__recipient { display: grid; gap: .15rem; margin: 0 0 1.35rem; }
+.sp-cover__recipient span { color: rgb(247 241 226 / .6); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; }
+.sp-cover__recipient strong { font-family: var(--sp-display); font-size: 1.45rem; font-weight: 500; }
+.sp-cover .sp-button { width: min(100%, 20rem); }
+.sp-cover__countdown { margin-top: 1.7rem; color: rgb(247 241 226 / .6); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; }
+.sp-cover__countdown > span { display: block; margin-bottom: .55rem; }
+.sp-cover__countdown > div { display: flex; justify-content: center; gap: .5rem; }
+.sp-cover__countdown > div > span { display: grid; min-width: 3.5rem; padding: .5rem .5rem .4rem; border: 1px solid var(--sp-gold-line); background: rgb(255 250 240 / .05); }
+.sp-cover__countdown strong { color: var(--sp-brass-bright); font-family: var(--sp-display); font-size: 1.25rem; font-weight: 600; }
+.sp-cover__countdown small { color: rgb(247 241 226 / .55); font-size: .5rem; letter-spacing: .14em; }
+
+.invitation-open .sp-cover { opacity: 0; visibility: hidden; }
+.invitation-open .sp-cover__image { transform: scale(1.05); }
+.invitation-open .sp-cover__paper { opacity: 0; transform: translateY(1.25rem); }
+
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .sp-cover { visibility: hidden; pointer-events: none; }
+body:has(main:target) .sp-index { opacity: 1; pointer-events: auto; }
+
+/* ── Section index: a numbered rail; a dock on phones ────────────────────── */
+.sp-index {
+    position: fixed;
+    z-index: 20;
+    top: 50%;
+    right: max(1rem, env(safe-area-inset-right));
+    display: grid;
+    gap: .2rem;
+    min-width: 9.5rem;
+    padding: .55rem;
+    border: 1px solid var(--sp-gold-line);
+    background: color-mix(in srgb, var(--sp-leaf-deep) 84%, transparent);
+    backdrop-filter: blur(14px);
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .45s ease, transform .55s var(--ease-enter);
+}
+
+.invitation-open .sp-index { opacity: 1; pointer-events: auto; }
+.sp-index a { min-height: 42px; display: flex; align-items: center; gap: .6rem; padding: .3rem .6rem; color: var(--sp-brass-bright); font-size: .7rem; letter-spacing: .08em; text-decoration: none; transition: background-color var(--sp-fast), color var(--sp-fast); }
+.sp-index a:hover { background: rgb(246 230 184 / .12); color: #fdf7ec; }
+.sp-index a.is-active { background: var(--sp-gold); color: #21180a; }
+.sp-index__num { color: rgb(246 230 184 / .5); font-size: .62rem; font-variant-numeric: tabular-nums; }
+.sp-index a.is-active .sp-index__num, .sp-index a:hover .sp-index__num { color: #21180a; }
+.sp-index .sp-index__home { min-width: 42px; margin-bottom: .2rem; border-bottom: 1px solid var(--sp-gold-line); color: #fdf7ec; font-family: var(--sp-display); font-size: 1.2rem; }
+
+/* ── Drifting kamboja, gilded ────────────────────────────────────────────── */
+.sp-atmosphere { position: fixed; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; }
+.sp-atmosphere--front { z-index: 6; }
+.sp-petal { position: absolute; top: -14svh; width: clamp(1.7rem, 3.4vw, 3rem); aspect-ratio: 1; border-radius: 62% 38% 55% 45% / 55% 45% 62% 38%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--sp-gold-1) 85%, transparent), color-mix(in srgb, var(--sp-gold-2) 45%, transparent) 62%, transparent 80%); will-change: transform; animation: sp-fall var(--sp-duration, 30s) linear infinite; }
+.sp-petal--a { left: 8%; --sp-duration: 34s; animation-delay: 0s; }
+.sp-petal--b { left: 24%; width: clamp(1.3rem, 2.6vw, 2.3rem); --sp-duration: 27s; animation-delay: -9s; }
+.sp-petal--c { left: 68%; --sp-duration: 31s; animation-delay: -15s; }
+.sp-petal--d { left: 86%; width: clamp(1.1rem, 2.2vw, 2rem); --sp-duration: 24s; animation-delay: -21s; }
+.sp-atmosphere--front .sp-petal { width: clamp(1rem, 2vw, 1.7rem); opacity: .3; }
+.sp-petal--e { left: 14%; --sp-duration: 36s; animation-delay: -5s; }
+.sp-petal--f { left: 76%; --sp-duration: 29s; animation-delay: -18s; }
+@keyframes sp-fall { 0% { transform: translate3d(0, -12svh, 0) rotate(0deg); } 100% { transform: translate3d(-5rem, 112svh, 0) rotate(210deg); } }
+
+/* ── Opening ─────────────────────────────────────────────────────────────── */
+.sp-opening__frame { width: min(100%, 34rem); margin-bottom: 1.7rem; overflow: hidden; border: 1px solid var(--sp-gold-line); padding: .4rem; background: var(--sp-surface); box-shadow: var(--sp-shadow); }
+.sp-opening__video { width: 100%; aspect-ratio: 16 / 10; height: auto; object-fit: cover; display: block; }
+.sp-opening__video--desktop { display: none; }
+.sp-opening__video--mobile { display: block; }
+.sp-motif { width: clamp(5.5rem, 17vw, 8.5rem); margin-bottom: .5rem; color: var(--sp-gold-2); }
+.sp-motif svg { display: block; width: 100%; }
+.sp-motif svg * { stroke: currentColor; stroke-width: 1.3; fill: none; }
+.sp-motif svg circle { fill: none; }
+.sp-couple--opening { max-width: 11ch; gap: 0; justify-items: center; }
+.sp-couple--opening i { font-size: .55em; }
+.sp-opening__text { color: var(--sp-muted); }
+.sp-opening__date { margin-top: .4rem !important; color: var(--sp-gold-ink) !important; font-size: .76rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+
+/* ── Hosts: arched, gilded portraits ─────────────────────────────────────── */
+.sp-hosts__grid {
+    position: relative;
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--sp-hosts-and-col) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sp-hosts-gap);
+    width: min(100%, 62rem);
+    --sp-hosts-and-col: clamp(1.75rem, 5vw, 3rem);
+    --sp-hosts-gap: clamp(.5rem, 4vw, 3.5rem);
+    /* height ÷ width of the portrait, so the ampersand can find its centre. */
+    --sp-hosts-ratio: 1.3333;
+}
+.sp-host { min-width: 0; display: grid; justify-items: center; }
+.sp-host__trigger { width: min(100%, 19rem); min-height: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+.sp-host__trigger:hover { background: transparent !important; }
+.sp-host__portrait { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 11rem 11rem .3rem .3rem; background: var(--sp-soft); box-shadow: 0 0 0 1px var(--sp-gold-line), 0 1.4rem 2.6rem rgb(14 42 32 / .18); transition: transform var(--sp-base) var(--ease-enter); }
+.sp-host__portrait::after { content: ''; position: absolute; inset: .5rem; border: 1px solid rgb(246 230 184 / .55); border-radius: inherit; pointer-events: none; }
+.sp-host__trigger:hover .sp-host__portrait { transform: translateY(-.3rem); }
+.sp-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.sp-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--sp-gold-ink); font-family: var(--sp-display); font-size: clamp(4rem, 12vw, 7rem); }
+.sp-host__role { margin-top: 1.1rem; color: var(--sp-gold-ink); font-size: .62rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+.sp-host h3 { max-width: 14ch; margin: .5rem 0; }
+.sp-host__family { display: grid; gap: .15rem; max-width: 30ch; color: var(--sp-muted); font-size: .84rem; }
+.sp-host__family small { color: var(--sp-gold-ink); font-size: .6rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+.sp-host__social { min-height: 44px; padding-block: .5rem; color: var(--sp-gold-ink); font-size: .72rem; letter-spacing: .1em; }
+.sp-host__details { width: min(100%, 19rem); padding-top: .4rem; }
+.sp-host__details p { color: var(--sp-muted); font-size: .8rem; }
+/* The ampersand is out of flow, so keep the two hosts in the outer columns. */
+.sp-hosts__grid[data-count="2"] .sp-host:first-child { grid-column: 1; }
+.sp-hosts__grid[data-count="2"] .sp-host:last-child { grid-column: 3; }
+.sp-hosts__and { position: absolute; left: 50%; top: calc((100cqw - var(--sp-hosts-and-col) - 2 * var(--sp-hosts-gap)) / 2 * var(--sp-hosts-ratio) / 2); transform: translate(-50%, -50%); color: var(--sp-gold-ink); font-family: var(--sp-display); font-size: clamp(1.9rem, 5.4vw, 3.2rem); font-style: italic; }
+.sp-hosts__grid[data-count="1"] { grid-template-columns: minmax(0, 21rem); justify-content: center; }
+.sp-hosts__grid:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
+
+/* ── Events: an emerald ledger framed in gold ────────────────────────────── */
+.sari-pura .sp-events {
+    width: 100%;
+    max-width: none;
+    color: #f7f1e2;
+    border-block: 1px solid var(--sp-gold-line);
+    background: linear-gradient(180deg, var(--sp-leaf-deep), var(--sp-leaf) 55%, var(--sp-leaf-deep));
+}
+
+.sp-events .sp-kicker { color: var(--sp-brass-bright); }
+.sp-events__list { width: min(100%, 66rem); text-align: left; counter-reset: sp-event; }
+.sp-event { counter-increment: sp-event; display: grid; grid-template-columns: minmax(8rem, .38fr) minmax(0, 1fr); gap: clamp(1rem, 4vw, 3.5rem); padding: clamp(1.6rem, 4vw, 2.5rem) .4rem; border-top: 1px solid var(--sp-gold-line); }
+.sp-event:last-child { border-bottom: 1px solid var(--sp-gold-line); }
+.sp-event__date { display: grid; align-content: start; gap: .5rem; font-size: .76rem; letter-spacing: .06em; color: rgb(247 241 226 / .78); }
+.sp-event__date::before { content: counter(sp-event, decimal-leading-zero); display: grid; place-items: center; width: 2.3rem; aspect-ratio: 1; margin-bottom: .2rem; border: 1px solid var(--sp-gold-line); border-radius: 50%; color: var(--sp-brass-bright); font-family: var(--sp-display); font-size: .9rem; letter-spacing: .04em; }
+.sp-event__date strong { color: #fbf6ea; font-family: var(--sp-display); font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 600; line-height: 1.2; }
+.sp-event__date span { color: var(--sp-brass-bright); }
+.sp-event__details h3 { margin-bottom: .35rem; color: #fbf6ea; }
+.sp-event__venue { margin: .2rem 0 0; }
+.sp-event__venue strong { color: #fbf6ea; font-weight: 500; }
+.sp-event__details > p { color: rgb(247 241 226 / .76); }
+.sp-event__notes { margin-top: .8rem; }
+.sp-event__notes small { display: block; padding-left: .8rem; border-left: 2px solid var(--sp-gold-2); color: rgb(247 241 226 / .66); line-height: 1.65; }
+.sp-event__notes small + small { margin-top: .45rem; }
+.sp-event .sp-actions a,
+.sp-event .sp-actions button { color: var(--sp-brass-bright); border-color: var(--sp-gold-line); }
+.sp-event .sp-actions a:hover,
+.sp-event .sp-actions button:hover { color: #21180a; background: var(--sp-gold-2); border-color: var(--sp-gold-2); }
+
+/* ── Countdown ───────────────────────────────────────────────────────────── */
+.sari-pura .sp-countdown {
+    width: 100%;
+    max-width: none;
+    min-height: 62svh !important;
+    color: #f7f1e2;
+    border-block: 1px solid var(--sp-gold-line);
+    background: radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--sp-gold-2) 26%, transparent), transparent 46%), linear-gradient(180deg, var(--sp-leaf-deep), var(--sp-leaf));
+}
+
+.sp-countdown .sp-kicker { color: var(--sp-brass-bright); }
+.sp-countdown__units { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.7rem, 3vw, 2.2rem); width: min(100%, 52rem); margin-top: 1.6rem; }
+.sp-countdown__units > span { display: grid; gap: .3rem; padding-top: .9rem; border-top: 1px solid var(--sp-gold-line); }
+.sp-countdown__units strong { color: #fbf6ea; font-family: var(--sp-display); font-size: clamp(2.4rem, 9vw, 4.8rem); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.sp-countdown__units small { color: var(--sp-brass-bright); font-size: .62rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+
+/* ── Map ─────────────────────────────────────────────────────────────────── */
+.sp-map__frame { position: relative; width: min(100%, 66rem); aspect-ratio: 16 / 8; overflow: hidden; border: 1px solid var(--sp-gold-line); padding: .4rem; background: var(--sp-surface); }
+.sp-map__frame iframe { width: 100%; height: 100%; border: 0; filter: saturate(.7); }
+.sp-map__address { margin-top: 1.2rem !important; }
+
+/* ── Story: a gilded timeline ────────────────────────────────────────────── */
+.sp-story__list { position: relative; display: grid; gap: 0; width: min(100%, 60rem); margin: 0; padding: 0 0 0 1.7rem; list-style: none; text-align: left; }
+.sp-story__list::before { content: ''; position: absolute; top: .6rem; bottom: .6rem; left: 0; width: 1px; background: linear-gradient(180deg, transparent, var(--sp-gold-3) 12%, var(--sp-gold-3) 88%, transparent); }
+.sp-story__list li { position: relative; display: grid; grid-template-columns: minmax(7rem, .38fr) minmax(0, 1fr); align-items: center; gap: clamp(1rem, 4vw, 3rem); padding: clamp(1.2rem, 3vw, 1.8rem) 0; }
+.sp-story__list li::before { content: ''; position: absolute; top: 1.6rem; left: -1.7rem; width: .6rem; height: .6rem; background: var(--sp-gold); transform: translateX(-.3rem) rotate(45deg); }
+.sp-story__list img { width: 100%; max-height: 16rem; aspect-ratio: 4 / 3; height: auto; object-fit: cover; border: 1px solid var(--sp-gold-line); }
+/* A milestone without a photo drops the empty image column so the words use the
+   full row instead of being squeezed into the narrow first track. */
+.sp-story__list li > .sp-story__body:only-child { grid-column: 1 / -1; max-width: 46rem; }
+.sp-story__body small { color: var(--sp-gold-ink); font-size: .64rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+.sp-story__body h3 { margin: .35rem 0; }
+.sp-story__body p { color: var(--sp-muted); }
+
+/* ── Gallery: mounted, gilt-framed prints ────────────────────────────────── */
+.sp-gallery__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: clamp(7.5rem, 34vw, 14rem); gap: .8rem; width: min(100%, 70rem); }
+.sp-gallery__grid figure { position: relative; min-width: 0; margin: 0; overflow: hidden; border: .32rem solid var(--sp-surface); background: var(--sp-gold-3); box-shadow: 0 0 0 1px var(--sp-gold-line), 0 .7rem 1.8rem rgb(14 42 32 / .12); }
+/* The first image is the feature: a full-width pair of rows, so the remaining
+   tiles always start on a clean row instead of leaving a hole beside it. */
+.sp-gallery__grid figure:first-child { grid-column: span 2; grid-row: span 2; }
+.sp-gallery__grid button { width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; background: transparent; }
+.sp-gallery__grid button:hover { transform: none; }
+.sp-gallery__grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease-enter); }
+.sp-gallery__grid button:hover img { transform: scale(1.035); }
+.sp-gallery__grid figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 1.6rem .75rem .6rem; color: #fdf7ec; background: linear-gradient(transparent, rgb(14 42 32 / .78)); font-size: .72rem; letter-spacing: .04em; pointer-events: none; }
+
+/* ── Contacts, gifts intro, actions ──────────────────────────────────────── */
+.sp-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem; margin-top: 1.1rem; justify-self: center; }
+.sp-events .sp-actions { justify-content: flex-start; justify-self: start; }
+.sp-gifts__intro { width: min(100%, 46rem); }
+.sp-contacts__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; width: min(100%, 54rem); }
+.sp-contacts__grid article { position: relative; display: grid; align-content: center; gap: .35rem; padding: 1.6rem 1.3rem; border: 1px solid var(--sp-gold-line); background: var(--sp-surface); box-shadow: var(--sp-shadow); }
+.sp-contacts__grid article::before { content: ''; position: absolute; inset: .45rem; border: 1px solid color-mix(in srgb, var(--sp-gold-3) 22%, transparent); pointer-events: none; }
+.sp-contacts__grid small { color: var(--sp-gold-ink); font-size: .64rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+.sp-contacts__grid h3 { margin: .4rem 0; }
+
+/* ── Closing ─────────────────────────────────────────────────────────────── */
+.sari-pura .sp-closing { width: 100%; max-width: none; color: #f7f1e2; border-block: 1px solid var(--sp-gold-line); background: radial-gradient(circle at 50% 110%, color-mix(in srgb, var(--sp-gold-2) 22%, transparent), transparent 52%), linear-gradient(180deg, var(--sp-leaf-deep), var(--sp-leaf)); }
+.sp-closing .sp-kicker { color: var(--sp-brass-bright); }
+.sp-closing h2 { max-width: 14ch; color: #fbf6ea; }
+.sp-closing__mark { width: clamp(3rem, 8vw, 4.5rem); margin-bottom: .8rem; color: var(--sp-brass-bright); }
+.sp-closing__mark svg { display: block; width: 100%; }
+.sp-closing__mark svg path { fill: none; stroke: currentColor; stroke-width: 1.6; }
+.sp-closing__mark svg circle { fill: var(--sp-brass-bright); stroke: none; }
+.sp-closing__message { color: rgb(247 241 226 / .84) !important; }
+.sp-closing__footer { color: rgb(247 241 226 / .68) !important; font-size: .84rem; }
+.sp-closing__kicker { max-width: 34rem; margin-top: 1.6rem !important; color: var(--sp-brass-bright) !important; font-family: var(--sp-display); font-size: clamp(1.2rem, 3.2vw, 1.6rem); font-style: italic; }
+
+/* ── Shared feature sections (blocks, RSVP, guestbook, gifts cards) ──────── */
+.sp-shared .invitation-section { width: min(100%, 78rem); }
+.sp-shared .invitation-form { width: min(100%, 40rem); padding: clamp(1.2rem, 5vw, 2rem); text-align: left; background: var(--sp-surface); border: 1px solid var(--sp-gold-line); border-top: 3px solid var(--sp-gold-2); box-shadow: var(--sp-shadow); }
+.sp-shared .invitation-form label { color: var(--sp-ink); font-size: .85rem; font-weight: 500; letter-spacing: .04em; }
+.sp-shared .invitation-form input,
+.sp-shared .invitation-form select,
+.sp-shared .invitation-form textarea { width: 100%; min-height: 46px; padding: .7rem .85rem; border: 1px solid color-mix(in srgb, var(--sp-gold-3) 45%, transparent); color: var(--sp-ink); background: #fffdf6; }
+.sp-shared .invitation-form input:focus,
+.sp-shared .invitation-form select:focus,
+.sp-shared .invitation-form textarea:focus { border-color: var(--sp-gold-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sp-gold-2) 22%, transparent); outline: 0; }
+.sp-shared .invitation-form textarea { min-height: 6rem; resize: vertical; }
+.sp-shared .invitation-blocks { width: 100%; }
+.sp-shared .invitation-block-image { border: .32rem solid var(--sp-surface); box-shadow: 0 0 0 1px var(--sp-gold-line), var(--sp-shadow); }
+.sp-shared .invitation-block-quote { border-color: var(--sp-gold-line); border-left: 3px solid var(--sp-gold-2); background: var(--sp-surface); }
+.sp-shared .invitation-block-quote p { margin: 0; font-family: var(--sp-display); font-size: clamp(1.25rem, 3.4vw, 1.6rem); font-style: italic; line-height: 1.5; }
+.sp-shared .invitation-block-quote cite { display: block; margin-top: .7rem; color: var(--sp-gold-ink); font-family: var(--sp-body); font-size: .7rem; font-style: normal; letter-spacing: .16em; text-transform: uppercase; }
+.sp-shared .invitation-block-note { color: var(--sp-ink); border-color: var(--sp-gold-line); background: var(--sp-surface); }
+
+/* ── Music & lightbox ────────────────────────────────────────────────────── */
+.sp-music { position: fixed; z-index: 21; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 48px; height: 48px; display: grid; place-items: center; padding: 0 !important; border-radius: 50% !important; color: var(--sp-brass-bright) !important; background: var(--sp-leaf-deep) !important; border-color: var(--sp-gold-line) !important; box-shadow: 0 0 0 1px var(--sp-gold-line), var(--sp-shadow); font-size: 1rem !important; }
+.sp-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 1px solid var(--sp-gold-line); background: var(--sp-leaf-deep); }
+.sp-lightbox::backdrop { background: rgb(8 24 19 / .9); }
+.sp-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.sp-lightbox button { position: absolute; top: .5rem; right: .5rem; color: #fdf7ec; border-color: var(--sp-gold-line); }
+
+/* ── Motion: gilded lines draw, content arrives quietly ────────────────────
+ * Hidden content waits for `.sp-armed`, a class the script adds. Without it
+ * the whole invitation is already visible and readable.
+ */
+.sp-armed [data-reveal] {
+    opacity: 0;
+    transform: translateY(1.1rem);
+    transition:
+        opacity .7s ease,
+        transform .85s var(--ease-enter);
+    transition-delay: calc(var(--sp-reveal-i, 0) * 95ms);
+}
+
+.sp-armed [data-reveal].is-visible { opacity: 1; transform: none; }
+
+.sp-armed .sp-section-heading::after { transform: scaleX(0); transition: transform 1s var(--ease-enter) .3s; }
+.sp-armed .sp-section-heading.is-visible::after { transform: scaleX(1); }
+
+.sari-pura[data-motion="off"] *,
+.sari-pura[data-motion="off"] *::before,
+.sari-pura[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+
+/* ── Per-section height ──────────────────────────────────────────────────── */
+.sari-pura .invitation-section[data-height="tall"] { min-height: 75svh; }
+.sari-pura .invitation-section[data-height="half"] { min-height: 50svh; }
+.sari-pura .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 47.99rem) {
+    .sari-pura { font-size: .94rem; line-height: 1.7; }
+    .sari-pura h1 { font-size: clamp(2.5rem, 10.5vw, 3.9rem); }
+    .sari-pura h2 { font-size: clamp(2rem, 9.5vw, 3.1rem); }
+    .sari-pura h3 { font-size: clamp(1.4rem, 6vw, 1.9rem); }
+
+    .sp-cover__engraving { width: 86%; height: 74%; }
+    .sp-cover__paper { padding: 1.7rem 1.15rem; }
+    .sp-cover__paper h1 { font-size: clamp(2.1rem, 9vw, 3.2rem); }
+    .sp-couple span { max-width: 11ch; }
+    .sp-cover__date { font-size: .7rem; }
+    .sp-cover__recipient strong { font-size: 1.24rem; }
+    .sp-cover .sp-button { width: 100%; }
+    .sp-cover__countdown > div { flex-wrap: wrap; gap: .35rem; }
+    .sp-cover__countdown > div > span { min-width: 2.7rem; padding: .35rem .45rem; }
+    .sp-cover__countdown strong { font-size: 1.05rem; }
+
+    .sp-index { top: auto; right: 50%; bottom: max(.6rem, env(safe-area-inset-bottom)); display: flex; min-width: 0; width: min(96vw, 28rem); padding: .3rem; gap: 0; transform: translateX(50%); box-shadow: 0 .7rem 1.8rem rgb(8 24 19 / .3); }
+    .sp-index a { min-height: 44px; flex: 1 1 0; justify-content: center; padding: .25rem .2rem; font-size: .56rem; letter-spacing: .02em; }
+    .sp-index__num { display: none; }
+    .sp-index .sp-index__home { min-width: 40px; margin-bottom: 0; border-bottom: 0; border-right: 1px solid var(--sp-gold-line); }
+    .sp-index.is-hidden { transform: translateX(50%) translateY(calc(100% + 1.4rem)); }
+
+    .sari-pura .invitation-section { min-height: 88svh; padding: 4.2rem 1.1rem max(7.8rem, calc(env(safe-area-inset-bottom) + 6.8rem)); }
+
+    .sp-opening__frame { width: min(100%, 30rem); margin-bottom: 1.2rem; }
+    .sp-couple--opening span { max-width: 12ch; }
+
+    .sp-hosts__grid { --sp-hosts-gap: .5rem; }
+    .sp-host__portrait { aspect-ratio: 3 / 4; }
+    .sp-host__role { margin-top: .8rem; font-size: .54rem; letter-spacing: .14em; }
+    .sp-host h3 { font-size: clamp(1.3rem, 6.2vw, 1.8rem); }
+    .sp-host__family { font-size: .68rem; }
+    .sp-hosts__and { font-size: 1.5rem; }
+
+    .sp-event { grid-template-columns: minmax(5rem, .4fr) minmax(0, 1fr); gap: .75rem; padding: 1.2rem .1rem; }
+    .sp-event__date { font-size: .64rem; }
+    .sp-event__date::before { width: 2rem; font-size: .8rem; }
+    .sp-event__date strong { font-size: 1.12rem; }
+    .sp-event__details > p { font-size: .78rem; }
+    .sp-event .sp-actions { gap: .35rem; }
+    .sp-event .sp-actions a,
+    .sp-event .sp-actions button { min-height: 42px; padding: .5rem .6rem; font-size: .62rem; }
+
+    .sp-countdown__units { gap: .5rem; }
+    .sp-countdown__units strong { font-size: clamp(1.8rem, 9vw, 2.8rem); }
+    .sp-countdown__units small { font-size: .54rem; }
+    .sp-countdown { min-height: 56svh !important; }
+
+    .sp-map__frame { aspect-ratio: 4 / 3; }
+
+    .sp-story__list { padding-left: 1.35rem; }
+    .sp-story__list li { grid-template-columns: minmax(5.2rem, .42fr) minmax(0, 1fr); gap: .75rem; }
+    .sp-story__list li::before { left: -1.35rem; }
+    .sp-story__body small { font-size: .56rem; }
+    .sp-story__body p { font-size: .78rem; }
+
+    .sp-gallery__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: clamp(7rem, 32vw, 12rem); gap: .6rem; width: 100%; }
+    .sp-gallery__grid figure { border-width: .28rem; }
+    .sp-gallery__grid figcaption { padding: 1.2rem .5rem .35rem; font-size: .58rem; }
+
+    .sp-contacts__grid { grid-template-columns: minmax(0, 1fr); width: min(100%, 26rem); }
+    .sari-pura .sp-actions a,
+    .sari-pura .sp-actions button { min-height: 44px; font-size: .68rem; }
+    .sp-atmosphere--front { display: none; }
+}
+
+@media (min-width: 48rem) {
+    .sp-cover__video--desktop { display: block; }
+    .sp-cover__video--mobile { display: none; }
+    .sp-opening__video--desktop { display: block; }
+    .sp-opening__video--mobile { display: none; }
+    .sp-hosts__grid { --sp-hosts-ratio: 1.25; }
+    .sp-contacts__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sp-gallery__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: clamp(9rem, 21vw, 16.5rem); }
+}
+
+@media (max-width: 22rem) {
+    .sp-cover__paper { padding: 1.1rem .85rem; }
+    .sp-cover__paper h1 { font-size: 1.9rem; }
+    .sp-cover__countdown > div > span { min-width: 2.2rem; }
+    .sp-index a { padding-inline: .15rem; font-size: .5rem; }
+    .sp-index { width: max-content; min-width: 0; }
+}
+
+@media (max-height: 43rem) and (min-width: 48rem) {
+    .sari-pura .invitation-section { padding-top: 3.5rem; padding-bottom: 5.5rem; }
+    .sari-pura h2 { font-size: clamp(1.9rem, 7.5vw, 3rem); }
+    .sp-cover__engraving { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.sari-pura) { scroll-behavior: auto; }
+    .sari-pura *,
+    .sari-pura *::before,
+    .sari-pura *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; }
+    .sp-atmosphere { display: none; }
+    .sp-cover__engraving path { stroke-dashoffset: 0; }
+}

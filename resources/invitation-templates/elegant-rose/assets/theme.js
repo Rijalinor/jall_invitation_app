@@ -36,16 +36,6 @@ document.querySelectorAll('[data-share]').forEach((button) => button.addEventLis
     else await navigator.clipboard.writeText(url).catch(() => {});
 }));
 
-const lightbox = document.querySelector('[data-lightbox]');
-document.querySelectorAll('[data-lightbox-src]').forEach((button) => button.addEventListener('click', () => {
-    const image = lightbox.querySelector('[data-lightbox-image]');
-    image.src = button.dataset.lightboxSrc;
-    image.alt = button.dataset.lightboxAlt;
-    lightbox.showModal();
-}));
-document.querySelector('[data-lightbox-close]')?.addEventListener('click', () => lightbox.close());
-lightbox?.addEventListener('click', (event) => { if (event.target === lightbox) lightbox.close(); });
-
 document.querySelectorAll('[data-countdown]').forEach((element) => {
     const output = element.querySelector('[data-countdown-output]');
     const update = () => {

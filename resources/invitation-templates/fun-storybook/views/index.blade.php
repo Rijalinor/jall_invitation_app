@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{ $title }}">
     <title>{{ $title }}</title>
+    @include('invitations.shared.og')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     {{-- Marks that scripting is available before the first paint. --}}
     <script>document.documentElement.classList.add('js-ready');</script>
-    @vite(['resources/css/invitations.css', 'resources/invitation-templates/fun-storybook/assets/theme.css', 'resources/invitation-templates/fun-storybook/assets/theme.js'])
+    @vite(['resources/css/invitations.css', 'resources/js/invitation-hosts.js', 'resources/js/invitation-forms.js', 'resources/js/invitation-lightbox.js', 'resources/invitation-templates/fun-storybook/assets/theme.css', 'resources/invitation-templates/fun-storybook/assets/theme.js'])
 </head>
 <body class="fun-storybook" style="--fsb-accent: {{ $theme['accent_color'] ?? '#ff6b81' }}; --fsb-bg: {{ $theme['bg_color'] ?? '#fdf6e4' }};" data-motion="{{ $theme['motion'] ?? 'expressive' }}">
     @php
@@ -23,6 +24,13 @@
         ];
         $visibleNav = collect($sections)->filter(fn ($section) => isset($navItems[$section]))->mapWithKeys(fn ($section) => [$section => $navItems[$section]])->all();
         $coverImage = ($theme['cover_poster_image'] ?? null) ?: ($gallery[0]['url'] ?? ($hosts[0]['photo_url'] ?? null));
+        $groomName = collect($hosts)->firstWhere('role', 'groom')['name'] ?? ($hosts[0]['name'] ?? null);
+        $brideName = collect($hosts)->firstWhere('role', 'bride')['name'] ?? ($hosts[1]['name'] ?? null);
+        $coverVideo = ($theme['cover_video_enabled'] ?? true) ? ($theme['cover_video_desktop'] ?? null) : null;
+        $coverVideoMobile = ($theme['cover_video_enabled'] ?? true) ? (($theme['cover_video_mobile'] ?? null) ?: $coverVideo) : null;
+        // The opening section reuses the cover video whenever one is uploaded.
+        $openingVideo = $coverVideo;
+        $openingVideoMobile = $coverVideoMobile;
         $displayNames = collect($hosts)->pluck('nickname')->filter()->whenEmpty(fn ($c) => collect($hosts)->pluck('name'))->take(2)->join(' & ') ?: $title;
     @endphp
 
@@ -31,16 +39,28 @@
         @if ($coverImage)
             <img class="fsb-cover__bg" src="{{ $coverImage }}" alt="" aria-hidden="true">
         @endif
+        @if ($coverVideo)
+            <video class="fsb-cover__video fsb-cover__video--desktop" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $coverVideo }}"></video>
+        @endif
+        @if ($coverVideoMobile)
+            <video class="fsb-cover__video fsb-cover__video--mobile" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $coverVideoMobile }}"></video>
+        @endif
         <div class="fsb-cover__card">
             <span class="fsb-badge fsb-badge--pop">{{ $labels['cover_eyebrow'] }} 🥳</span>
-            <h1 class="fsb-cover__title">{{ $displayNames }}</h1>
+            @if ($groomName && $brideName)
+                <h1 class="fsb-cover__title fsb-cover__title--couple"><span>{{ $groomName }}</span><span class="fsb-cover__amp" aria-hidden="true">&amp;</span><span>{{ $brideName }}</span></h1>
+            @else
+                <h1 class="fsb-cover__title">{{ $displayNames }}</h1>
+            @endif
             @if ($primary_event)
                 <div class="fsb-cover__date">📅 {{ $primary_event['date'] }}</div>
             @endif
-            <div class="fsb-speech-bubble">
-                <small>Spesial Buat Kamu:</small>
-                <strong>{{ $recipient }}</strong>
-            </div>
+            @if ($recipient)
+                <div class="fsb-speech-bubble">
+                    <small>Spesial Buat Kamu:</small>
+                    <strong>{{ $recipient }}</strong>
+                </div>
+            @endif
             <a class="fsb-btn fsb-btn--primary fsb-btn--lg" href="#invitation-content" data-open-invitation>
                 🚀 Buka Undangan!
             </a>
@@ -67,6 +87,14 @@
         @foreach ($sections as $section)
             @if ($section === 'opening')
                 <section data-height="{{ $section_heights['opening'] ?? 'full' }}" class="fsb-section fsb-hero">
+                    @if ($openingVideo)
+                        @if ($openingVideoMobile !== $openingVideo)
+                            <video class="fsb-hero__video fsb-hero__video--desktop" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $openingVideo }}"></video>
+                            <video class="fsb-hero__video fsb-hero__video--mobile" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $openingVideoMobile }}"></video>
+                        @else
+                            <video class="fsb-hero__video" muted loop playsinline preload="metadata" poster="{{ $coverImage }}" data-cover-video><source src="{{ $openingVideo }}"></video>
+                        @endif
+                    @endif
                     <div class="fsb-speech-bubble fsb-speech-bubble--hero">
                         <span>Gak Nyangka Kan? Kami Juga Gak Nyangka! 😆✨</span>
                     </div>
@@ -82,7 +110,7 @@
                     @if ($opening_text)
                         <p class="fsb-hero__text">{!! nl2br(e($opening_text)) !!}</p>
                     @else
-                        <p class="fsb-hero__text">Dengan menyebut nama Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu di hari bahagia kami!</p>
+                        <p class="fsb-hero__text">Dengan menyebut nama Allah SWT, kami mengundang Anda untuk hadir dan memberikan doa restu di hari bahagia kami!</p>
                     @endif
                     @if ($primary_event)
                         <div class="fsb-tag">🗓️ {{ $primary_event['date'] }}</div>
@@ -98,29 +126,28 @@
                     </div>
                     <div class="fsb-hosts" data-count="{{ count($hosts) }}">
                         @foreach ($hosts as $host)
-                            <article class="fsb-host">
-                                <div class="fsb-host__frame">
-                                    <div class="fsb-host__portrait">
-                                        @if ($host['photo_url'])
-                                            <img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">
-                                        @else
-                                            <span aria-hidden="true">{{ mb_substr($host['name'], 0, 1) }}</span>
-                                        @endif
+                            <article class="fsb-host" data-host>
+                                <button type="button" class="host-card__trigger fsb-host__trigger" data-host-open data-host-name="{{ $host['name'] }}" data-host-role="{{ match ($host['role']) { 'groom' => 'Mempelai Pria', 'bride' => 'Mempelai Wanita', default => 'Mempelai' } }}" aria-haspopup="dialog" aria-label="Lihat profil {{ $host['name'] }}">
+                                    <div class="fsb-host__frame">
+                                        <div class="fsb-host__portrait">
+                                            @if ($host['photo_url'])
+                                                <img src="{{ $host['photo_url'] }}" alt="Foto {{ $host['name'] }}" loading="lazy" decoding="async">
+                                            @else
+                                                <span aria-hidden="true">{{ mb_substr($host['name'], 0, 1) }}</span>
+                                            @endif
+                                        </div>
+                                        <span class="fsb-host__role-badge">
+                                            {{ match ($host['role']) { 'groom' => '🕺 Mempelai Pria', 'bride' => '💃 Mempelai Wanita', default => '✨ Mempelai' } }}
+                                        </span>
                                     </div>
-                                    <span class="fsb-host__role-badge">
-                                        {{ match ($host['role']) { 'groom' => '🕺 Mempelai Pria', 'bride' => '💃 Mempelai Wanita', default => '✨ Mempelai' } }}
-                                    </span>
-                                </div>
+                                </button>
                                 <div class="fsb-host__details">
                                     <h3 class="fsb-host__name">{{ $host['name'] }}</h3>
-                                    @if ($host['birth_order'])
-                                        <span class="fsb-host__order">{{ $host['birth_order'] }}</span>
-                                    @endif
                                     @if ($host['family'])
-                                        <p class="fsb-host__family">{{ match ($host['role']) { 'groom' => 'Putra kesayangan dari', 'bride' => 'Putri tercinta dari', default => 'Putra/putri dari' } }} <strong>{{ $host['family'] }}</strong></p>
-                                    @endif
-                                    @if ($host['bio'])
-                                        <p class="fsb-host__bio">"{!! nl2br(e($host['bio'])) !!}"</p>
+                                        <p class="fsb-host__family">
+                                            <small>{{ match ($host['role']) { 'groom' => 'Putra kesayangan dari', 'bride' => 'Putri tercinta dari', default => 'Putra/putri dari' } }}</small>
+                                            <strong>{{ $host['family'] }}</strong>
+                                        </p>
                                     @endif
                                     @if ($host['instagram'])
                                         <a class="fsb-btn fsb-btn--outline fsb-btn--sm" href="{{ $host['instagram'] }}" target="_blank" rel="noopener noreferrer">
@@ -128,6 +155,14 @@
                                             @<span>{{ Str::after($host['instagram'], 'instagram.com/') ?: 'Instagram' }}</span>
                                         </a>
                                     @endif
+                                    <div class="host-card__details" data-host-details>
+                                        @if ($host['birth_order'])
+                                            <span class="fsb-host__order">{{ $host['birth_order'] }}</span>
+                                        @endif
+                                        @if ($host['bio'])
+                                            <p class="fsb-host__bio">"{!! nl2br(e($host['bio'])) !!}"</p>
+                                        @endif
+                                    </div>
                                 </div>
                             </article>
                             @if (count($hosts) === 2 && ! $loop->last)
@@ -149,12 +184,11 @@
                     <div class="fsb-events">
                         @foreach ($events as $event)
                             <article class="fsb-event">
-                                <span class="fsb-event__number">0{{ $loop->iteration }}</span>
                                 <div class="fsb-event__header">
                                     <span class="fsb-badge fsb-badge--accent">{{ $event['label'] }}</span>
                                     <h3>{{ $event['date'] }}</h3>
                                     @if ($event['start_time'])
-                                        <p class="fsb-event__time">⏰ {{ $event['start_time'] }}{{ $event['end_time'] ? ' - '.$event['end_time'] : '' }} {{ $event['timezone'] }}</p>
+                                        <p class="fsb-event__time">⏰ {{ $event['start_time'] }}{{ $event['end_time'] ? ' - '.$event['end_time'] : ' s/d Selesai' }}{{ ($theme['hide_timezone'] ?? false) ? '' : ' '.$event['timezone_label'] }}</p>
                                     @endif
                                 </div>
                                 @if ($event['venue'] || $event['address'])
@@ -170,9 +204,6 @@
                                 <div class="fsb-actions">
                                     @if (in_array('map', $sections) && $event['directions_url'])
                                         <a class="fsb-btn fsb-btn--primary" href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">🗺️ Petunjuk Maps</a>
-                                    @endif
-                                    @if (in_array('calendar', $sections) && $event['calendar_url'])
-                                        <a class="fsb-btn fsb-btn--secondary" href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">📅 Remind via Calendar</a>
                                     @endif
                                     @if ($event['address'])
                                         <button type="button" class="fsb-btn fsb-btn--outline" data-copy="{{ $event['address'] }}">📋 Salin Alamat</button>
@@ -275,14 +306,20 @@
                 </div>
 
             @elseif ($section === 'rsvp')
-                <div class="fsb-section-wrapper" id="rsvp">
-                    @include('invitations.shared.rsvp')
-                </div>
+                @if ($theme['merge_rsvp_guestbook'] ?? false)
+                    <div class="fsb-section-wrapper">@include('invitations.shared.confirmation')</div>
+                @else
+                    <div class="fsb-section-wrapper" id="rsvp">
+                        @include('invitations.shared.rsvp')
+                    </div>
+                @endif
 
             @elseif ($section === 'guestbook')
-                <div class="fsb-section-wrapper" id="guestbook">
-                    @include('invitations.shared.guestbook')
-                </div>
+                @unless ($theme['merge_rsvp_guestbook'] ?? false)
+                    <div class="fsb-section-wrapper" id="guestbook">
+                        @include('invitations.shared.guestbook')
+                    </div>
+                @endunless
 
             @elseif ($section === 'gifts' && count($gifts))
                 <section data-height="{{ $section_heights['gifts'] ?? 'full' }}" class="fsb-section fsb-section--tint" aria-labelledby="gifts-title">
@@ -291,34 +328,7 @@
                         <h2 id="gifts-title">{{ $labels['gifts_title'] }}</h2>
                         <p>Kehadiran dan doa kalian adalah hadiah terbaik! Tapi kalau mau kirim kado, boleh banget kok 😆</p>
                     </div>
-                    <div class="fsb-gifts">
-                        @foreach ($gifts as $gift)
-                            <details class="fsb-gift-card">
-                                <summary class="fsb-gift__summary">
-                                    <span>💳 {{ $gift['type_label'] }} · {{ $gift['provider'] }}</span>
-                                    <span class="fsb-gift__arrow">▼</span>
-                                </summary>
-                                <div class="fsb-gift__body">
-                                    @if ($gift['account_number'])
-                                        <p><small>Nomor Rekening / E-Wallet:</small></p>
-                                        <strong class="fsb-gift__num">{{ $gift['account_number'] }}</strong>
-                                        <button type="button" class="fsb-btn fsb-btn--sm fsb-btn--primary" data-copy="{{ $gift['account_number'] }}">📋 Salin Nomor</button>
-                                    @endif
-                                    @if ($gift['account_name'])
-                                        <p>Atas nama: <strong>{{ $gift['account_name'] }}</strong></p>
-                                    @endif
-                                    @if ($gift['delivery_address'])
-                                        <p>Alamat Pengiriman Kado:</p>
-                                        <p><strong>{{ $gift['delivery_address'] }}</strong></p>
-                                        <button type="button" class="fsb-btn fsb-btn--sm fsb-btn--outline" data-copy="{{ $gift['delivery_address'] }}">📋 Salin Alamat</button>
-                                    @endif
-                                    @if ($gift['notes'])
-                                        <p class="fsb-muted">{!! nl2br(e($gift['notes'])) !!}</p>
-                                    @endif
-                                </div>
-                            </details>
-                        @endforeach
-                    </div>
+                    @include('invitations.shared.gifts')
                 </section>
 
             @elseif ($section === 'contacts' && count($contacts))
@@ -364,6 +374,10 @@
                     @if ($closing_message)
                         <p>{!! nl2br(e($closing_message)) !!}</p>
                     @endif
+                    @include('invitations.shared.closing-families')
+                    @if ($closing_footer)
+                        <p>{!! nl2br(e($closing_footer)) !!}</p>
+                    @endif
                     <a class="fsb-btn fsb-btn--outline fsb-btn--sm" href="#invitation-content">⬆️ Kembali Ke Atas</a>
                 </section>
             @endif
@@ -381,5 +395,6 @@
         <button type="button" data-lightbox-close aria-label="Tutup galeri">✕ Tutup</button>
         <img data-lightbox-image alt="">
     </dialog>
+    @include('invitations.shared.host-dialog')
 </body>
 </html>

@@ -11,6 +11,18 @@
     --rose-soft: color-mix(in srgb, var(--rose-accent) 9%, var(--rose-paper));
     --rose-line: color-mix(in srgb, var(--rose-accent) 20%, transparent);
     --rose-shadow: 0 1.5rem 4rem rgb(70 43 48 / .10);
+    /* Floral frame. Every tone is mixed from the accent, so the garland always
+       matches whatever colour the couple picked. */
+    --er-petal: color-mix(in srgb, var(--rose-accent) 56%, #fff);
+    --er-petal-deep: color-mix(in srgb, var(--rose-accent) 82%, #fff);
+    --er-bloom-core: color-mix(in srgb, var(--rose-accent) 30%, #ffe7cf);
+    --er-leaf: color-mix(in srgb, var(--rose-sage) 58%, #fff);
+    --er-leaf-line: color-mix(in srgb, var(--rose-sage) 85%, #33402f);
+    /* Aliases consumed by shared components (host detail dialog, forms). */
+    --inv-accent: var(--rose-action);
+    --inv-paper: var(--rose-paper);
+    --inv-ink: var(--rose-ink);
+    --inv-line: var(--rose-line);
     margin: 0;
     color: var(--rose-ink);
     background: var(--rose-canvas);
@@ -58,6 +70,9 @@ html:has(body.elegant-rose) { scroll-behavior: smooth; }
    available; without it the invitation must stay reachable. */
 .js-ready [data-gate] { visibility: hidden; }
 .js-ready .invitation-open [data-gate] { visibility: visible; }
+/* Reveals the content when the cover anchor is followed even if the theme bundle
+   never ran: main is the anchor target, so :target alone un-gates it. */
+.js-ready [data-gate]:target { visibility: visible; }
 /* Opens without scripting as well: the cover control is a real anchor, so this
    rule alone dismisses the cover if the template script never loads. */
 body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
@@ -80,6 +95,43 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 .er-petal--two { left: 46%; top: -12%; animation: er-petal-fall 22s linear 5s infinite; }
 .er-petal--three { left: 72%; top: -10%; animation: er-petal-fall 20s linear 2s infinite; }
 .er-petal--four { left: 86%; top: -14%; animation: er-petal-fall 24s linear 8s infinite; }
+.er-petal--five { left: 30%; top: -11%; animation: er-petal-fall 21s linear 11s infinite; }
+.er-petal--six { left: 63%; top: -13%; animation: er-petal-fall 26s linear 15s infinite; }
+/* Foreground petals that share the floral frame layer: a touch larger, drifting
+   the other way, so the near layer separates from the one behind the sections. */
+.er-garlands .er-petal { width: clamp(.8rem, 2.3vw, 1.25rem); }
+.er-petal--f1 { left: 10%; top: -9%; animation: er-petal-fall-front 19s linear 3s infinite; }
+.er-petal--f2 { left: 38%; top: -14%; animation: er-petal-fall-front 24s linear 9s infinite; }
+.er-petal--f3 { left: 58%; top: -11%; animation: er-petal-fall-front 20s linear 1s infinite; }
+.er-petal--f4 { left: 80%; top: -15%; animation: er-petal-fall-front 23s linear 6s infinite; }
+.er-petal--f5 { left: 92%; top: -10%; animation: er-petal-fall-front 27s linear 13s infinite; }
+
+/* -- Floral frame ------------------------------------------------------------
+   Corner bouquets that stay put while the guest scrolls, so every section is
+   bordered by the same flowers. The layer sits above the sections but below the
+   navigation, and each blossom sways from its own rotated resting angle. */
+.er-garlands { position: fixed; z-index: 8; inset: 0; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 1s ease; }
+.invitation-open .er-garlands { opacity: .92; }
+.er-garlands__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.er-garland { position: absolute; width: clamp(8.5rem, 27vw, 13.5rem); aspect-ratio: 1; }
+.er-garland--tl { top: max(3.5rem, calc(env(safe-area-inset-top) + 2.9rem)); left: -.9rem; }
+.er-garland--tr { top: max(3.5rem, calc(env(safe-area-inset-top) + 2.9rem)); right: -.9rem; transform: scaleX(-1); }
+.er-garland--bl { bottom: -.9rem; left: -.9rem; transform: scaleY(-1); }
+.er-garland--br { right: -.9rem; bottom: -.9rem; transform: scale(-1); }
+
+.er-bloom, .er-leaf { position: absolute; height: auto; transform: rotate(var(--rot, 0deg)); transform-origin: 50% 50%; animation: er-garland-sway var(--sway, 11s) ease-in-out var(--sway-delay, 0s) infinite alternate; }
+.er-bloom { width: var(--bloom, 3rem); aspect-ratio: 1; }
+.er-leaf { width: var(--leaf, 2.2rem); aspect-ratio: 100 / 40; }
+.er-bloom--lg { --bloom: clamp(2.4rem, 9vw, 4.3rem); top: 3%; left: 3%; --rot: -14deg; --sway: 13s; filter: drop-shadow(0 .3rem .55rem rgb(70 43 48 / .16)); }
+.er-bloom--md { --bloom: clamp(1.7rem, 6vw, 2.9rem); top: 33%; left: 36%; --rot: 28deg; --sway: 10.5s; --sway-delay: -3s; }
+.er-bloom--sm { --bloom: clamp(1.2rem, 4vw, 1.9rem); top: 13%; left: 55%; --rot: 64deg; --sway: 14s; --sway-delay: -6s; }
+.er-leaf--a { --leaf: clamp(1.7rem, 5.6vw, 2.8rem); top: 30%; left: 0%; --rot: 60deg; --sway: 12s; }
+.er-leaf--b { --leaf: clamp(1.5rem, 4.8vw, 2.4rem); top: 4%; left: 32%; --rot: 116deg; --sway: 10s; --sway-delay: -4s; }
+.er-leaf--c { --leaf: clamp(1.4rem, 4.4vw, 2.2rem); top: 47%; left: 23%; --rot: 24deg; --sway: 15s; --sway-delay: -8s; }
+@keyframes er-garland-sway {
+    from { transform: rotate(calc(var(--rot, 0deg) - 4deg)) scale(.97); }
+    to { transform: rotate(calc(var(--rot, 0deg) + 4deg)) scale(1.04); }
+}
 
 .invitation-section { position: relative; width: min(100%, 64rem); min-height: 100svh; display: grid; align-content: center; margin: auto; padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem)); overflow: hidden; text-align: center; }
 .invitation-section::before { content: ''; position: absolute; inset: .9rem; border: 1px solid color-mix(in srgb, var(--rose-accent) 24%, transparent); pointer-events: none; }
@@ -102,14 +154,15 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 .er-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.5rem); max-width: 58rem; margin: clamp(1.4rem, 5vw, 3rem) auto 0; }
 .er-host { min-width: 0; padding: 0; }
 .er-host__portrait { position: relative; width: min(100%, 18rem); margin: 0 auto clamp(1.2rem, 4vw, 2rem); aspect-ratio: 4/5; overflow: hidden; border-radius: 48% 48% 1rem 1rem; background: color-mix(in srgb, var(--rose-accent) 10%, var(--rose-paper)); box-shadow: var(--rose-shadow); }
-.er-host:nth-of-type(2) .er-host__portrait { margin-top: clamp(1.5rem, 5vw, 3.5rem); }
 .er-host__portrait::after { content: ''; position: absolute; inset: .55rem; border: 1px solid rgb(255 255 255 / .7); border-radius: inherit; pointer-events: none; }
 .er-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
 .er-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--rose-accent); font: 600 clamp(3rem, 14vw, 7rem)/1 'Playfair Display', serif; }
 .er-host h3 { margin-bottom: .65rem; overflow-wrap: anywhere; }
-.er-host p { max-width: 24ch; margin-inline: auto; color: var(--rose-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.er-host p { max-width: 28ch; margin-inline: auto; color: var(--rose-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.er-host__parents small { display: block; margin-bottom: .2rem; color: var(--rose-action); font-size: .62rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.er-host__parents span { display: block; }
 .er-host a { display: inline-block; min-height: 44px; padding-block: 1rem; margin-top: .55rem; color: var(--rose-action); font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-underline-offset: .25rem; text-transform: uppercase; }
-.er-hosts__and { align-self: center; margin-top: clamp(7rem, 20vw, 13rem); color: var(--rose-accent); font: italic 600 clamp(1.7rem, 6vw, 3.3rem)/1 'Playfair Display', serif; }
+.er-hosts__and { align-self: center; color: var(--rose-accent); font: italic 600 clamp(1.7rem, 6vw, 3.3rem)/1 'Playfair Display', serif; }
 .er-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
 .er-hosts[data-count="1"] .er-host__portrait { margin-top: 0; }
 .er-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
@@ -119,7 +172,6 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 .er-event:hover { box-shadow: var(--rose-shadow); transform: translateY(-.2rem); }
 .er-event::after { content: ''; position: absolute; inset: .65rem; border: 1px solid var(--rose-line); pointer-events: none; }
 .er-event > * { position: relative; z-index: 1; }
-.er-event__number { display: block; margin-bottom: 1.2rem; color: var(--rose-action); font-size: .7rem; font-weight: 600; letter-spacing: .16em; }
 .er-event h3 { font-size: clamp(1.8rem, 5vw, 2.6rem); text-transform: capitalize; }
 .er-event__schedule, .er-event__venue, .er-event__notes { padding-block: 1.1rem; }
 .er-event__schedule { margin-top: .2rem; }
@@ -145,10 +197,9 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 .er-timeline img { width: 100%; max-height: 26rem; margin-bottom: 1.25rem; object-fit: cover; border-radius: .25rem; box-shadow: var(--rose-shadow); }
 .er-timeline small { color: var(--rose-action); font-weight: 600; letter-spacing: .08em; }
 
-.er-gallery { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; gap: 1rem; max-width: 58rem; margin: clamp(1.25rem, 4vw, 2.5rem) auto 0; overflow-x: auto; padding: .2rem .2rem 1rem; scroll-snap-type: x mandatory; scrollbar-color: var(--rose-accent) #e5d7d1; }
-.er-gallery__page { display: grid; grid-template-columns: 1.2fr .8fr; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: .65rem; min-height: min(50svh, 30rem); scroll-snap-align: start; }
-.er-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; border: .42rem solid var(--rose-paper); background: var(--rose-paper); box-shadow: 0 .8rem 2rem rgb(70 43 48 / .08); }
-.er-gallery figure:first-child { grid-row: span 2; }
+.er-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; max-width: 58rem; margin: clamp(1.25rem, 4vw, 2.5rem) auto 0; }
+.er-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; aspect-ratio: 1; border: .42rem solid var(--rose-paper); background: var(--rose-paper); box-shadow: 0 .8rem 2rem rgb(70 43 48 / .08); }
+.er-gallery figure:first-child { grid-column: span 2; aspect-ratio: 4/3; }
 .er-gallery button { width: 100%; height: 100%; min-height: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; }
 .er-gallery button:hover { background: transparent; transform: none; }
 .er-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.22, 1, .36, 1); }
@@ -159,15 +210,16 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 .er-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
 .er-lightbox button { position: absolute; top: .5rem; right: .5rem; color: white; border-color: white; }
 
-.er-gifts { display: grid; gap: .8rem; max-width: 42rem; margin: 2.5rem auto 0; text-align: left; }
-.er-gift { overflow: hidden; background: var(--rose-paper); box-shadow: 0 .6rem 2rem rgb(70 43 48 / .05); }
-.er-gift summary { padding: 1.25rem 1.4rem; color: var(--rose-action); font-weight: 600; cursor: pointer; }
-.er-gift > div { padding: 0 1.4rem 1.4rem; border-top: 1px solid var(--rose-line); }
-.er-gift strong, .er-gift small { display: block; overflow-wrap: anywhere; }
 .er-map { position: relative; width: 100%; margin: 2.5rem 0 1.5rem; aspect-ratio: 16/10; overflow: hidden; background: #e8ddd6; box-shadow: var(--rose-shadow); }
 .er-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: sepia(.08) saturate(.8); }
 .er-closing { min-height: 75svh; display: grid; place-content: center; overflow: hidden; }
 .er-closing::before { content: '❦'; margin-bottom: 1.5rem; color: var(--rose-accent); font-size: 2rem; }
+/* The family blocks are operator content, scaled up here so the two columns fill
+   the closing composition instead of reading as fine print. */
+.er-closing .closing-families { width: min(100%, 42rem); gap: clamp(.9rem, 4vw, 2rem); margin-top: clamp(1.6rem, 5vw, 2.75rem); }
+.er-closing .closing-families__item { gap: .5rem; }
+.er-closing .closing-families__item small { font-size: clamp(.82rem, 3.2vw, 1rem); letter-spacing: .08em; line-height: 1.35; }
+.er-closing .closing-families__item p { font-size: clamp(.94rem, 3.5vw, 1.08rem); line-height: 1.5; overflow-wrap: break-word; }
 
 .invitation-form { display: grid; gap: 1rem; width: min(100%, 40rem); max-width: 40rem; margin: clamp(1.2rem, 4vw, 2.5rem) auto 0; padding: clamp(1.1rem, 4vw, 2.3rem); text-align: left; background: var(--rose-paper); border: 1px solid var(--rose-line); border-top: 3px solid var(--rose-action); box-shadow: var(--rose-shadow); }
 .invitation-form label { display: grid; gap: .4rem; font-size: .9rem; font-weight: 600; }
@@ -215,6 +267,11 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     12% { opacity: .34; }
     100% { transform: translate3d(-5vw, 118svh, 0) rotate(240deg); opacity: 0; }
 }
+@keyframes er-petal-fall-front {
+    0% { transform: translate3d(0, -10svh, 0) rotate(0deg); opacity: 0; }
+    12% { opacity: .5; }
+    100% { transform: translate3d(6vw, 118svh, 0) rotate(-260deg); opacity: 0; }
+}
 
 @media (max-width: 25rem) {
     .er-hosts { gap: .35rem; }
@@ -238,11 +295,10 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     .er-petal { width: .82rem; opacity: .38; }
     .er-hosts { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; margin-top: 1rem; }
     .er-host__portrait { width: 100%; margin-bottom: .7rem; aspect-ratio: 4/5; border-radius: 999px 999px .4rem .4rem; }
-    .er-host:nth-of-type(2) .er-host__portrait { margin-top: 1.4rem; }
     .er-host h3 { margin-bottom: .35rem; font-size: clamp(1.05rem, 5.6vw, 1.45rem); line-height: 1; overflow-wrap: normal; word-break: normal; }
     .er-host p { margin-block: .25rem; font-size: .68rem; line-height: 1.35; }
     .er-host a { font-size: .6rem; }
-    .er-hosts__and { margin-top: 6.4rem; font-size: 1.5rem; }
+    .er-hosts__and { font-size: 1.5rem; }
     .er-events { gap: .75rem; }
     .er-event__schedule, .er-event__venue, .er-event__notes { padding-block: .65rem; }
     .er-actions { gap: .45rem; margin-top: .85rem; }
@@ -263,7 +319,6 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     .er-countdown__units { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .er-countdown__units > span { min-height: 6.8rem; align-content: center; border: 1px solid rgb(255 255 255 / .28); }
     .er-countdown__units > span + span::before { display: none; }
-    .er-gallery__page { min-height: min(48svh, 24rem); }
     .er-gallery figcaption { padding: 1.5rem .55rem .55rem; font-size: .64rem; }
     .er-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
 }
@@ -272,7 +327,7 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     .invitation-section { padding-inline: 2rem; }
     .er-events { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .er-hosts { gap: 2rem; }
-    .er-host:nth-of-type(2) .er-host__portrait { margin-top: 0; }
+    .er-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .er-cover__video--mobile { display: none; }
     .er-cover__video--desktop { display: block; }
 }
@@ -286,8 +341,6 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     .er-contact-list { width: min(100%, 18rem); margin-top: .85rem; }
     .er-contact-card { min-height: 8.8rem; padding: 1rem .9rem; }
     .er-host__portrait { aspect-ratio: 1; }
-    .er-host p:nth-of-type(n + 2) { display: none; }
-    .er-gallery__page { min-height: 38svh; }
 }
 
 @media (min-width: 64rem) {
@@ -320,7 +373,7 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
     html:has(body.elegant-rose) { scroll-behavior: auto; }
     .elegant-rose *, .elegant-rose *::before, .elegant-rose *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
-    .er-botanical { display: none; }
+    .er-botanical, .er-garlands { display: none; }
 }
 
 /* -- Operator-built blocks ---------------------------------------------------
@@ -378,6 +431,23 @@ body:has(main:target) .er-cover { visibility: hidden; pointer-events: none; }
     border: 1px solid var(--rose-line);
     border-radius: .25rem;
 }
+
+/* -- Gift mark inside the physical delivery card -----------------------------
+   Elegant Rose moves the shared "Kirim Hadiah" mark out of the top of the gifts
+   section and into the bank transfer's physical delivery block, so that card is
+   headed by the gift icon. */
+.elegant-rose .invitation-bank-card__delivery .invitation-gift-intro { width: 3.2rem; height: 3.2rem; margin: 0 auto .15rem; }
+.elegant-rose .invitation-bank-card__delivery .invitation-gift-intro__icon { width: 1.45rem; height: 1.45rem; }
+
+/* -- Gift wording centred ----------------------------------------------------
+   The invitation reads centred, so the gift wording follows: the method card and
+   the physical delivery block centre their text and controls, and the note under
+   a bank card centres too. The bank card keeps its debit-card face. */
+.elegant-rose .invitation-gifts { text-align: center; }
+.elegant-rose .invitation-gift-method__head,
+.elegant-rose .invitation-gift-method__actions { justify-content: center; }
+.elegant-rose .invitation-bank-card__delivery { text-align: center; }
+.elegant-rose .invitation-gifts .invitation-bank-card__delivery button { justify-self: center; }
 
 /* -- Short laptop windows ----------------------------------------------------
    At 1366x660 the cover measures ~711px, so the only way into the invitation

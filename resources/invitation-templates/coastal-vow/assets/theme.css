@@ -1,0 +1,1224 @@
+/* Coastal Vow — "Tide Lines"
+ *
+ * A seaside wedding theme built from a horizon: sky above, sea below, and the
+ * content arranged along the waterline. Motion concept: "the tide rises" — the
+ * cover recedes like water going out and sections drift up to meet the reader.
+ *
+ * Everything is scoped below .coastal-vow so the theme can never bleed into the
+ * admin panel or another template.
+ */
+
+.coastal-vow {
+    --cv-accent: #2b7a78;
+    --cv-canvas: #eef3f2;
+    --cv-surface: #fbf8f1;
+    --cv-sea: #123f42;
+    --cv-ink: #163a3c;
+    --cv-muted: #5f7a78;
+    --cv-sand: #f0d9a8;
+    --cv-coral: #e08a6b;
+    --cv-paper: #ffffff;
+    --cv-line: color-mix(in srgb, var(--cv-accent) 22%, transparent);
+    --cv-soft: color-mix(in srgb, var(--cv-accent) 10%, var(--cv-surface));
+    --cv-shadow: 0 1.25rem 3.5rem rgb(18 63 66 / .12);
+    --cv-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --cv-fast: .2s;
+    --cv-slow: .8s;
+    /* Consumed by the shared form partials so they inherit this palette. */
+    --inv-accent: var(--cv-accent);
+    --inv-paper: #ffffff;
+    --inv-ink: var(--cv-ink);
+    --inv-line: var(--cv-line);
+    margin: 0;
+    color: var(--cv-ink);
+    background: var(--cv-canvas);
+    font: 400 1rem/1.7 'Karla', ui-sans-serif, system-ui, sans-serif;
+    font-synthesis: none;
+    -webkit-text-size-adjust: 100%;
+}
+
+html:has(body.coastal-vow) {
+    scroll-behavior: smooth;
+}
+
+.coastal-vow *,
+.coastal-vow *::before,
+.coastal-vow *::after {
+    box-sizing: border-box;
+}
+
+.coastal-vow h1,
+.coastal-vow h2,
+.coastal-vow h3 {
+    margin: 0 0 .85rem;
+    font-family: var(--cv-display);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: -.015em;
+}
+
+.coastal-vow h1 { font-size: clamp(2.6rem, 12vw, 5.6rem); }
+.coastal-vow h2 { font-size: clamp(2.05rem, 8.5vw, 4.2rem); }
+.coastal-vow h3 { font-size: clamp(1.25rem, 4.5vw, 1.9rem); }
+.coastal-vow p { margin: .6rem 0; }
+.coastal-vow p,
+.coastal-vow a,
+.coastal-vow button,
+.coastal-vow small,
+.coastal-vow strong { overflow-wrap: anywhere; }
+.coastal-vow a { color: var(--cv-accent); }
+.coastal-vow img { display: block; max-width: 100%; }
+.coastal-vow a,
+.coastal-vow button,
+.coastal-vow input,
+.coastal-vow select,
+.coastal-vow textarea { font: inherit; }
+
+.coastal-vow a:focus-visible,
+.coastal-vow button:focus-visible,
+.coastal-vow input:focus-visible,
+.coastal-vow select:focus-visible,
+.coastal-vow textarea:focus-visible {
+    outline: 3px solid var(--cv-coral);
+    outline-offset: 3px;
+}
+
+/* ── Controls ────────────────────────────────────────────────────────────── */
+.coastal-vow button,
+.coastal-vow .cv-actions a,
+.coastal-vow .cv-cover [data-open-invitation] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    padding: .7rem 1.1rem;
+    border: 1px solid var(--cv-accent);
+    border-radius: 999px;
+    color: var(--cv-accent);
+    background: transparent;
+    cursor: pointer;
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--cv-fast), background-color var(--cv-fast), border-color var(--cv-fast), transform var(--cv-fast);
+}
+
+.coastal-vow button:hover,
+.coastal-vow .cv-actions a:hover {
+    color: #fff;
+    background: var(--cv-accent);
+    transform: translateY(-1px);
+}
+
+/* The shared form partial declares its own button; keep the last word here so
+   the generic control rule above cannot wash out its accent. */
+.invitation-form button {
+    color: #fff;
+    background: var(--cv-accent);
+    border-color: var(--cv-accent);
+}
+
+/* ── Section shell & eyebrow ─────────────────────────────────────────────── */
+.invitation-section {
+    position: relative;
+    width: min(100%, 64rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.2rem max(7rem, calc(env(safe-area-inset-bottom) + 6rem));
+    overflow: hidden;
+    text-align: center;
+    background: var(--cv-canvas);
+}
+
+.invitation-section::before {
+    content: '';
+    position: absolute;
+    inset: 1.1rem;
+    border: 1px solid var(--cv-line);
+    border-radius: .5rem;
+    pointer-events: none;
+}
+
+.invitation-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+.invitation-section > p {
+    max-width: 42rem;
+    margin-inline: auto;
+}
+
+.invitation-section p {
+    color: var(--cv-muted);
+}
+
+.invitation-section h2::after {
+    content: '';
+    display: block;
+    width: 3rem;
+    height: 2px;
+    margin: .7rem auto 0;
+    background: linear-gradient(90deg, transparent, var(--cv-accent), transparent);
+}
+
+.invitation-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    margin: 0 auto 1rem;
+    color: var(--cv-accent);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+}
+
+.invitation-eyebrow::before,
+.invitation-eyebrow::after {
+    content: '';
+    width: 1.6rem;
+    height: 1px;
+    background: currentColor;
+    opacity: .5;
+}
+
+/* ── Cover ───────────────────────────────────────────────────────────────── */
+.cv-cover {
+    position: fixed;
+    z-index: 30;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(1.4rem, env(safe-area-inset-top)) max(1.4rem, env(safe-area-inset-right)) max(5.5rem, calc(env(safe-area-inset-bottom) + 4.6rem)) max(1.4rem, env(safe-area-inset-left));
+    overflow: hidden;
+    color: #f3fbfa;
+    background: linear-gradient(180deg, #d8eeef 0%, #9ed3d6 24%, #4d9a9c 46%, #236667 68%, #123f42 100%);
+    transition: opacity var(--cv-slow) ease, visibility var(--cv-slow) ease;
+}
+
+.cv-cover__poster,
+.cv-cover__video {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--cv-focal-x, 50%) var(--cv-focal-y, 42%);
+}
+
+.cv-cover__video--desktop { display: none; }
+
+.cv-cover__sun {
+    position: absolute;
+    z-index: 0;
+    top: 11%;
+    left: 50%;
+    width: clamp(8rem, 34vw, 17rem);
+    aspect-ratio: 1;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 247 222 / .95), rgb(255 224 158 / .38) 52%, transparent 72%);
+    filter: blur(1px);
+}
+
+.cv-cover__shade {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(9 40 42 / .05), rgb(9 40 42 / .2) 52%, rgb(9 40 42 / .5) 100%);
+    pointer-events: none;
+}
+
+.cv-cover__waves {
+    position: absolute;
+    z-index: 3;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 38%;
+    color: #eafbfa;
+    transition: transform var(--cv-slow) cubic-bezier(.2, .7, .2, 1);
+}
+
+.cv-cover__waves svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.cv-cover__body {
+    position: relative;
+    z-index: 4;
+    width: min(100%, 34rem);
+    text-align: center;
+    transition: opacity .7s ease, transform var(--cv-slow) cubic-bezier(.2, .7, .2, 1);
+}
+
+.cv-cover__body::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -3rem -2rem;
+    background: radial-gradient(ellipse at center, rgb(9 40 42 / .42), transparent 72%);
+    pointer-events: none;
+}
+
+.cv-cover .invitation-eyebrow { color: var(--cv-sand); }
+
+/* The cover carries the couple as two stacked lines; kept smaller than the
+   section headings so long Indonesian names never shatter into one word per
+   line on a phone. */
+.cv-cover__body h1 {
+    font-size: clamp(2rem, 7vw, 3.8rem);
+}
+
+.cv-cover .cv-couple span { max-width: none; }
+
+.cv-cover .cv-couple i { color: var(--cv-sand); }
+
+.cv-cover__date {
+    display: block;
+    margin: .1rem 0 1rem;
+    color: rgb(243 251 250 / .86);
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.cv-cover__countdown {
+    margin: 0 auto 1.3rem;
+}
+
+.cv-cover__countdown-label {
+    display: block;
+    margin-bottom: .5rem;
+    color: rgb(243 251 250 / .72);
+    font-size: .62rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.cv-cover__countdown > div {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .45rem;
+}
+
+.cv-cover__countdown > div > span {
+    display: grid;
+    gap: .1rem;
+    padding: .4rem .2rem;
+    border: 1px solid rgb(255 255 255 / .3);
+    border-radius: .5rem;
+    background: rgb(9 40 42 / .22);
+}
+
+.cv-cover__countdown strong {
+    font-family: var(--cv-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.cv-cover__countdown small {
+    color: rgb(243 251 250 / .74);
+    font-size: .5rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.cv-cover__recipient {
+    display: grid;
+    gap: .15rem;
+    margin-bottom: 1.5rem;
+}
+
+.cv-cover__recipient span {
+    color: rgb(243 251 250 / .74);
+    font-size: .66rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.cv-cover__recipient strong {
+    font-family: var(--cv-display);
+    font-size: clamp(1.15rem, 5vw, 1.6rem);
+    font-weight: 600;
+}
+
+.cv-cover .cv-cover__cta {
+    min-height: 48px;
+    padding: .8rem 1.6rem;
+    color: var(--cv-sea);
+    background: var(--cv-sand);
+    border-color: var(--cv-sand);
+    font-size: .85rem;
+    letter-spacing: .04em;
+}
+
+.cv-cover .cv-cover__cta:hover {
+    color: var(--cv-sea);
+    background: #ffe9bf;
+    border-color: #ffe9bf;
+}
+
+.invitation-open .cv-cover {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.invitation-open .cv-cover__body {
+    opacity: 0;
+    transform: translateY(-1.6rem);
+}
+
+.invitation-open .cv-cover__waves {
+    transform: translateY(22%);
+}
+
+/* Kept out of the tab order while the cover is up, but only once scripting is
+   available; without it the invitation must stay reachable. */
+.js-ready [data-gate] {
+    visibility: hidden;
+}
+
+.js-ready .invitation-open [data-gate] {
+    visibility: visible;
+}
+
+/* Reveals the content when the cover anchor is followed even if the theme bundle
+   never ran: main is the anchor target, so :target alone un-gates it. */
+.js-ready [data-gate]:target {
+    visibility: visible;
+}
+
+/* Opens without scripting as well: the cover control is a real anchor, so this
+   rule alone dismisses the cover if the template script never loads. */
+body:has(main:target) .cv-cover {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+body:has(main:target) .cv-dock {
+    transform: translate(-50%, 0);
+}
+
+/* ── Bottom tide dock ────────────────────────────────────────────────────── */
+.cv-dock {
+    position: fixed;
+    z-index: 20;
+    bottom: max(.8rem, env(safe-area-inset-bottom));
+    left: 50%;
+    display: flex;
+    gap: .15rem;
+    width: min(94vw, 34rem);
+    padding: .38rem;
+    border: 1px solid rgb(255 255 255 / .4);
+    border-radius: 999px;
+    background: rgb(18 63 66 / .84);
+    box-shadow: 0 1rem 2.5rem rgb(9 40 42 / .34);
+    backdrop-filter: blur(18px);
+    transform: translate(-50%, calc(100% + 2.5rem));
+    transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+}
+
+.invitation-open .cv-dock {
+    transform: translate(-50%, 0);
+}
+
+/* Out of the way while the guest reads forward; it returns on a scroll back up
+   so a full-height section is never covered at its most important moment. */
+.invitation-open .cv-dock.is-hidden {
+    transform: translate(-50%, calc(100% + 2.5rem));
+}
+
+.cv-dock a {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    gap: .15rem;
+    min-height: 46px;
+    padding: .3rem .15rem;
+    border-radius: 999px;
+    color: #dcf1f0;
+    font-size: .58rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color var(--cv-fast), background-color var(--cv-fast);
+}
+
+.cv-dock__icon {
+    font-size: .98rem;
+    line-height: 1;
+}
+
+.cv-dock__label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cv-dock a:hover,
+.cv-dock a.is-active {
+    color: var(--cv-sea);
+    background: var(--cv-sand);
+}
+
+/* ── Ambient tide decoration ─────────────────────────────────────────────── */
+.cv-tide {
+    position: fixed;
+    z-index: 0;
+    top: -8rem;
+    right: -10rem;
+    width: 26rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--cv-accent) 16%, transparent), transparent 68%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+.invitation-open .cv-tide { opacity: 1; }
+
+/* ── Opening hero ────────────────────────────────────────────────────────── */
+.cv-hero {
+    background: linear-gradient(180deg, var(--cv-canvas), #e2f0ef 52%, var(--cv-canvas));
+    position: relative;
+    overflow: hidden;
+}
+
+/* Optional opening-section video, reusing the cover upload. The text keeps a
+   higher stacking order so the moving image never covers it. */
+.cv-hero__video {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.cv-hero > *:not(.cv-hero__video) { position: relative; z-index: 1; }
+.cv-hero__video--desktop { display: none; }
+@media (min-width: 48rem) {
+    .cv-hero__video--mobile { display: none; }
+    .cv-hero__video--desktop { display: block; }
+}
+
+.cv-hero::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    bottom: 12%;
+    width: min(88%, 44rem);
+    height: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, var(--cv-line), transparent);
+    pointer-events: none;
+}
+
+.cv-couple {
+    display: grid;
+    justify-items: center;
+    gap: .1rem;
+}
+
+.cv-couple span {
+    max-width: 14ch;
+}
+
+.cv-couple i {
+    color: var(--cv-coral);
+    font-size: .7em;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.cv-hero__date {
+    margin-top: 1.2rem !important;
+    color: var(--cv-accent) !important;
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+/* ── Events ──────────────────────────────────────────────────────────────── */
+.cv-events__list {
+    display: grid;
+    gap: 1rem;
+    max-width: 58rem;
+    margin: clamp(1.4rem, 4vw, 2.6rem) auto 0;
+    text-align: left;
+}
+
+.cv-event {
+    position: relative;
+    padding: clamp(1.3rem, 4vw, 2.1rem) clamp(1.1rem, 4vw, 1.9rem) clamp(1.3rem, 4vw, 1.9rem) clamp(1.4rem, 5vw, 2.4rem);
+    overflow: hidden;
+    background: var(--cv-paper);
+    border-radius: .4rem .4rem 1.6rem .4rem;
+    box-shadow: var(--cv-shadow);
+}
+
+.cv-event::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: .35rem;
+    background: linear-gradient(180deg, var(--cv-accent), color-mix(in srgb, var(--cv-accent) 30%, var(--cv-sand)));
+}
+
+.cv-event h3 { margin-bottom: .5rem; text-transform: capitalize; }
+
+.cv-event__date {
+    color: var(--cv-ink) !important;
+    font-weight: 600;
+}
+
+.cv-event__time { color: var(--cv-muted); }
+
+.cv-event__venue {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--cv-line);
+}
+
+.cv-event__venue strong { display: block; }
+.cv-event__venue p { margin-top: .2rem; }
+
+.cv-event__notes {
+    margin-top: 1rem;
+}
+
+.cv-event__notes small {
+    display: block;
+    color: var(--cv-muted);
+    line-height: 1.6;
+}
+
+.cv-event__notes small + small { margin-top: .5rem; }
+
+.cv-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+    margin-top: 1.2rem;
+}
+
+.cv-actions > * { max-width: 100%; }
+
+.cv-actions--center {
+    justify-content: center;
+}
+
+.cv-event .cv-actions > :first-child {
+    color: #fff;
+    background: var(--cv-accent);
+}
+
+/* ── Countdown ───────────────────────────────────────────────────────────── */
+.cv-countdown {
+    color: #f3fbfa;
+    background:
+        radial-gradient(circle at 78% 22%, rgb(255 255 255 / .16), transparent 30%),
+        linear-gradient(160deg, #2b7a78, #123f42);
+}
+
+.cv-countdown .invitation-eyebrow { color: var(--cv-sand); }
+.cv-countdown h2 { color: #f3fbfa; }
+
+.cv-countdown__units {
+    width: min(100%, 56rem);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(.5rem, 2vw, 1.2rem);
+    margin: 2rem auto 0;
+}
+
+.cv-countdown__units > span {
+    position: relative;
+    display: grid;
+    align-content: center;
+    gap: .3rem;
+    min-height: clamp(6rem, 18vh, 9rem);
+    padding: .8rem;
+    border: 1px solid rgb(255 255 255 / .26);
+    border-radius: .6rem;
+    background: rgb(9 40 42 / .22);
+}
+
+.cv-countdown__units strong {
+    color: #fff;
+    font-family: var(--cv-display);
+    font-size: clamp(2.2rem, 12vw, 4.6rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.cv-countdown__units small {
+    color: var(--cv-sand);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+/* ── Hosts ───────────────────────────────────────────────────────────────── */
+.cv-hosts__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(.4rem, 2vw, 1.6rem);
+    max-width: 52rem;
+    margin: clamp(1.4rem, 5vw, 3rem) auto 0;
+}
+
+.cv-host {
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+}
+
+.cv-host__portrait {
+    position: relative;
+    width: min(100%, 16rem);
+    margin: 0 auto clamp(1rem, 4vw, 1.6rem);
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--cv-soft);
+    box-shadow: var(--cv-shadow);
+}
+
+.cv-host__portrait::after {
+    content: '';
+    position: absolute;
+    inset: .5rem;
+    border: 1px solid rgb(255 255 255 / .75);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.cv-host__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.cv-host__portrait > span {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--cv-accent);
+    font-family: var(--cv-display);
+    font-size: clamp(3rem, 14vw, 6rem);
+    font-weight: 600;
+}
+
+.cv-host:nth-of-type(3) .cv-host__portrait {
+    margin-top: clamp(1.4rem, 5vw, 3.4rem);
+}
+
+.cv-host__role {
+    display: block;
+    margin-bottom: .3rem;
+    color: var(--cv-accent);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.cv-host h3 { margin-bottom: .4rem; }
+.cv-host p { margin: .2rem 0; font-size: .85rem; }
+.cv-host__social {
+    display: inline-block;
+    min-height: 44px;
+    margin-top: .4rem;
+    padding-block: .9rem;
+    color: var(--cv-accent);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.cv-hosts__and {
+    align-self: center;
+    margin-top: clamp(6rem, 18vw, 11rem);
+    color: var(--cv-coral);
+    font-family: var(--cv-display);
+    font-size: clamp(1.6rem, 6vw, 3rem);
+    font-style: italic;
+}
+
+.cv-hosts__grid[data-count="1"] {
+    grid-template-columns: minmax(0, 20rem);
+    justify-content: center;
+}
+
+.cv-hosts__grid:not([data-count="1"]):not([data-count="2"]) {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+/* ── Story ───────────────────────────────────────────────────────────────── */
+.cv-story__timeline {
+    max-width: 44rem;
+    margin: clamp(1.6rem, 4vw, 2.8rem) auto 0;
+    padding-left: 1.6rem;
+    text-align: left;
+    border-left: 2px solid var(--cv-line);
+}
+
+.cv-story__timeline article {
+    position: relative;
+    padding-bottom: 2.6rem;
+}
+
+.cv-story__timeline article:last-child { padding-bottom: 0; }
+
+.cv-story__timeline article::before {
+    content: '';
+    position: absolute;
+    top: .3rem;
+    left: calc(-1.6rem - 6px);
+    width: .75rem;
+    height: .75rem;
+    border: 2px solid var(--cv-canvas);
+    border-radius: 50%;
+    background: var(--cv-accent);
+    box-shadow: 0 0 0 1px var(--cv-accent);
+}
+
+.cv-story__timeline img {
+    width: 100%;
+    max-height: 24rem;
+    margin-bottom: 1rem;
+    object-fit: cover;
+    border-radius: .5rem;
+    box-shadow: var(--cv-shadow);
+}
+
+.cv-story__timeline small {
+    color: var(--cv-accent);
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.cv-story__timeline h3 { margin: .3rem 0 .4rem; }
+
+/* ── Gallery ─────────────────────────────────────────────────────────────── */
+.cv-gallery__rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    gap: 1rem;
+    max-width: 58rem;
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    padding: .2rem .2rem 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--cv-accent) transparent;
+}
+
+.cv-gallery__page {
+    display: grid;
+    grid-template-columns: 1.18fr .82fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+    min-height: min(48svh, 28rem);
+    scroll-snap-align: start;
+}
+
+.cv-gallery figure {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    border-radius: .5rem;
+    background: var(--cv-soft);
+}
+
+.cv-gallery figure:first-child { grid-row: span 2; }
+
+.cv-gallery button {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+}
+
+.cv-gallery button:hover { background: transparent; transform: none; }
+
+.cv-gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+}
+
+.cv-gallery button:hover img { transform: scale(1.04); }
+
+.cv-gallery figcaption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1.8rem .7rem .6rem;
+    color: #fff;
+    background: linear-gradient(transparent, rgb(9 40 42 / .74));
+    font-size: .74rem;
+    pointer-events: none;
+}
+
+.cv-lightbox {
+    width: min(94vw, 70rem);
+    padding: 3rem 1rem 1rem;
+    border: 0;
+    background: #0b2f31;
+}
+
+.cv-lightbox::backdrop { background: rgb(5 24 25 / .88); }
+.cv-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.cv-lightbox button { position: absolute; top: .5rem; right: .5rem; color: #fff; border-color: #fff; }
+
+/* ── Location ────────────────────────────────────────────────────────────── */
+.cv-map__frame {
+    position: relative;
+    width: 100%;
+    margin: clamp(1.4rem, 4vw, 2.4rem) 0 1.2rem;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    border-radius: .75rem;
+    background: var(--cv-soft);
+    box-shadow: var(--cv-shadow);
+}
+
+.cv-map__frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    filter: saturate(.85);
+}
+
+.cv-map__address {
+    max-width: 42rem;
+    margin-inline: auto;
+}
+
+/* ── Contacts ────────────────────────────────────────────────────────────── */
+.cv-contacts__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 1rem;
+    width: min(100%, 48rem);
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+}
+
+.cv-contact {
+    display: grid;
+    gap: .4rem;
+    min-height: 10rem;
+    align-content: center;
+    padding: 1.5rem 1.3rem;
+    background: var(--cv-paper);
+    border-radius: .4rem .4rem 1.4rem .4rem;
+    box-shadow: var(--cv-shadow);
+}
+
+.cv-contact small {
+    color: var(--cv-accent);
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.cv-contact h3 { margin: 0; }
+.cv-contact .cv-actions { justify-content: center; margin-top: .6rem; }
+.cv-contact .cv-actions a:first-child { color: #fff; background: var(--cv-accent); }
+
+/* ── Livestream, sharing, closing ────────────────────────────────────────── */
+.cv-livestream .cv-actions { margin-top: 1.6rem; }
+.cv-sharing .cv-actions { margin-top: 1.4rem; }
+.cv-sharing .cv-actions > :first-child { color: #fff; background: var(--cv-accent); }
+
+.cv-closing {
+    background: linear-gradient(180deg, var(--cv-canvas), #e2f0ef);
+}
+
+.cv-closing__kicker {
+    max-width: 34rem;
+    margin: 1.4rem auto 0 !important;
+    color: var(--cv-accent) !important;
+    font-family: var(--cv-display);
+    font-size: clamp(1.05rem, 3vw, 1.4rem);
+    font-style: italic;
+}
+
+/* ── Shared feature sections (blocks, RSVP, guestbook) ───────────────────── */
+.cv-shared .invitation-section {
+    width: 100%;
+    max-width: none;
+    padding-inline: 1.2rem;
+}
+
+/* The shared form centres itself with `margin: auto` but declares no width, so
+   inside a centred grid section it collapses to its widest label. Giving it a
+   real width is what makes the fields span the column, and a stronger border
+   than the hairline `--inv-line` is what makes them visible at all. */
+.cv-shared .invitation-form {
+    width: min(100%, 40rem);
+    padding: clamp(1.2rem, 5vw, 2rem);
+    text-align: left;
+    background: var(--cv-paper);
+    border: 1px solid var(--cv-line);
+    border-top: 3px solid var(--cv-accent);
+    border-radius: .6rem;
+    box-shadow: var(--cv-shadow);
+}
+
+.cv-shared .invitation-form label {
+    gap: .4rem;
+    color: var(--cv-ink);
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.cv-shared .invitation-form input,
+.cv-shared .invitation-form select,
+.cv-shared .invitation-form textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: .7rem .85rem;
+    border: 1px solid color-mix(in srgb, var(--cv-accent) 60%, transparent);
+    border-radius: .5rem;
+    color: var(--cv-ink);
+    background: #fff;
+    transition: border-color var(--cv-fast), box-shadow var(--cv-fast);
+}
+
+.cv-shared .invitation-form textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.cv-shared .invitation-form input:focus,
+.cv-shared .invitation-form select:focus,
+.cv-shared .invitation-form textarea:focus {
+    border-color: var(--cv-accent);
+    box-shadow: 0 0 0 3px var(--cv-soft);
+    outline: 0;
+}
+
+.cv-shared .invitation-form button {
+    justify-self: start;
+    color: #fff;
+    background: var(--cv-accent);
+    border-color: var(--cv-accent);
+}
+
+/* ── Music & lightbox ────────────────────────────────────────────────────── */
+.cv-music {
+    position: fixed;
+    z-index: 21;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    padding: 0 !important;
+    border: 1px solid rgb(255 255 255 / .6) !important;
+    border-radius: 50% !important;
+    color: var(--cv-sea) !important;
+    background: rgb(240 217 168 / .94) !important;
+    box-shadow: 0 .6rem 1.6rem rgb(9 40 42 / .28);
+    font-size: 1rem !important;
+}
+
+/* ── Motion: "the tide rises" ────────────────────────────────────────────── */
+/* Hidden content waits for `.cv-armed`, a class the script adds. Without it the
+   whole invitation is already visible and readable. */
+.coastal-vow[data-motion="expressive"] {
+    --cv-reveal-travel: 2.2rem;
+    --cv-reveal-scale: .97;
+    --cv-reveal-blur: 4px;
+}
+
+.cv-armed [data-reveal] {
+    opacity: 0;
+    filter: blur(var(--cv-reveal-blur, 0));
+    transform: translateY(var(--cv-reveal-travel, 1.2rem)) scale(var(--cv-reveal-scale, 1));
+    transition:
+        opacity .7s ease,
+        filter .7s ease,
+        transform .8s cubic-bezier(.2, .7, .2, 1);
+    transition-delay: calc(var(--cv-reveal-i, 0) * 70ms);
+}
+
+.cv-armed [data-reveal].is-visible {
+    opacity: 1;
+    filter: none;
+    transform: none;
+}
+
+.coastal-vow[data-motion="off"] *,
+.coastal-vow[data-motion="off"] *::before,
+.coastal-vow[data-motion="off"] *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ── Operator-built blocks ───────────────────────────────────────────────── */
+.invitation-block-quote {
+    max-width: 42rem;
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    padding: clamp(1.2rem, 4vw, 2rem) clamp(1.3rem, 5vw, 2.4rem);
+    text-align: left;
+    background: var(--cv-paper);
+    border-left: 3px solid var(--cv-accent);
+    border-radius: .4rem;
+    box-shadow: var(--cv-shadow);
+}
+
+.invitation-block-quote p {
+    margin: 0;
+    font-family: var(--cv-display);
+    font-size: clamp(1.05rem, 3.2vw, 1.4rem);
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.invitation-block-quote cite {
+    display: block;
+    margin-top: .8rem;
+    color: var(--cv-accent);
+    font-family: 'Karla', ui-sans-serif, system-ui, sans-serif;
+    font-size: .74rem;
+    font-style: normal;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.invitation-block-image {
+    max-width: min(100%, 34rem);
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    overflow: hidden;
+    border-radius: .6rem;
+    box-shadow: var(--cv-shadow);
+}
+
+.invitation-block-image img { width: 100%; }
+
+.invitation-block-image figcaption {
+    margin-top: .6rem;
+    color: var(--cv-muted);
+    font-size: .78rem;
+}
+
+.invitation-block-note {
+    max-width: 38rem;
+    margin: clamp(1.4rem, 4vw, 2.4rem) auto 0;
+    padding: 1.1rem 1.3rem;
+    color: var(--cv-ink);
+    text-align: left;
+    font-size: .92rem;
+    background: var(--cv-soft);
+    border: 1px solid var(--cv-line);
+    border-radius: .4rem;
+}
+
+/* ── Per-section height ──────────────────────────────────────────────────── */
+.invitation-section[data-height="tall"] { min-height: 75svh; }
+.invitation-section[data-height="half"] { min-height: 50svh; }
+.invitation-section[data-height="auto"] { min-height: 0; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 47.99rem) {
+    .coastal-vow { font-size: .92rem; line-height: 1.6; }
+    .coastal-vow h1 { font-size: clamp(2.1rem, 12vw, 3.2rem); }
+    .coastal-vow h2 { font-size: clamp(1.9rem, 9.5vw, 2.8rem); }
+    .invitation-section {
+        padding-top: 4.2rem;
+        padding-bottom: max(7rem, calc(env(safe-area-inset-bottom) + 6rem));
+    }
+    .invitation-section::before { inset: .6rem; }
+    .invitation-eyebrow { margin-bottom: .8rem; font-size: .58rem; letter-spacing: .16em; }
+    .cv-cover__body::before { inset: -2rem -1rem; }
+    .cv-cover__waves { height: 30%; }
+    .cv-cover__countdown strong { font-size: 1rem; }
+    .cv-dock a { font-size: .52rem; letter-spacing: .03em; }
+    .cv-dock a > span { font-size: .9rem; }
+    .cv-event__date { font-size: 1.05rem; }
+    .cv-host__portrait { aspect-ratio: 4/5; }
+    .cv-hosts__and { margin-top: 5.4rem; }
+    .cv-host h3 { overflow-wrap: normal; word-break: normal; }
+    .cv-gallery__page { min-height: min(46svh, 22rem); }
+    .cv-gallery figcaption { padding: 1.4rem .55rem .5rem; font-size: .64rem; }
+    .cv-actions { gap: .45rem; }
+    .coastal-vow button,
+    .coastal-vow .cv-actions a,
+    .coastal-vow .cv-cover [data-open-invitation] { font-size: .74rem; padding: .62rem .85rem; }
+}
+
+@media (min-width: 48rem) {
+    .cv-countdown__units { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .cv-cover__video--mobile { display: none; }
+    .cv-cover__video--desktop { display: block; }
+    .cv-events__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .invitation-section { padding-inline: 2rem; }
+}
+
+@media (max-height: 43rem) {
+    .invitation-section { padding-top: 3.6rem; padding-bottom: 6.6rem; }
+    .invitation-section h2 { font-size: clamp(1.8rem, 8vw, 2.5rem); }
+    .cv-host__portrait { aspect-ratio: 1; }
+    .cv-gallery__page { min-height: 36svh; }
+    .cv-cover { padding-block: max(1rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-bottom)); }
+    .cv-cover__countdown { margin-bottom: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.coastal-vow) { scroll-behavior: auto; }
+    .coastal-vow *,
+    .coastal-vow *::before,
+    .coastal-vow *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+    }
+    .cv-tide { display: none; }
+}
+
+/* ── Tint ────────────────────────────────────────────────────────────────────
+   Declared last on purpose: it must be the final background rule that paints
+   .invitation-section, or a later rule would silently cancel the tinted band. */
+.invitation-section--tint {
+    width: 100%;
+    max-width: none;
+    background: var(--cv-surface);
+}
