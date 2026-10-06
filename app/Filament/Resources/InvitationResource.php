@@ -13,11 +13,13 @@ use Filament\Actions;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Group;
@@ -26,6 +28,7 @@ use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use UnitEnum;
 
@@ -56,11 +59,24 @@ class InvitationResource extends Resource
             array_keys((array) ($templateRegistry->find((string) $get('template_id'))['settings_schema'] ?? [])),
         ) !== [];
 
+        // Captured so the preset swatches we drop under each colour field can
+        // write to exactly the same form state, whatever the state path is.
+        $accentPicker = ColorPicker::make('settings_json.accent_color')
+            ->label('Warna Aksen (opsional)')
+            ->regex('/^#[0-9a-f]{6}$/i');
+
+        $bgColorPicker = ColorPicker::make('settings_json.bg_color')
+            ->label('Warna Latar (opsional)')
+            ->regex('/^#[0-9a-f]{6}$/i')
+            ->visible(fn ($get) => $hasSetting($get, 'bg_color'));
+
+        $colorPresets = fn ($get, string $key): array => $templateRegistry->colorPresets((string) $get('template_id'), $key);
+
         return $schema
             ->components([
                 Group::make()
                     ->schema([
-                        Section::make('Informasi Dasar Undangan')
+                        Section::make('Informasi Undangan')
                             ->schema([
                                 Select::make('customer_id')
                                     ->label('Pelanggan Pemesan')
@@ -111,7 +127,7 @@ class InvitationResource extends Resource
                                     ->columnSpanFull(),
                             ])->columns(2),
 
-                        Section::make('Pengaturan Teks & Pesan')
+                        Section::make('Tulisan & Pesan')
                             ->schema([
                                 Textarea::make('opening_text')
                                     ->label('Teks Pembuka / Kalimat Mutiara')
@@ -123,6 +139,30 @@ class InvitationResource extends Resource
                                     ->placeholder('Merupakan suatu kehormatan dan kebahagiaan bagi kami...')
                                     ->rows(3),
 
+                                Repeater::make('settings_json.closing_families')
+                                    ->label('Keluarga di Penutup (tampil berdampingan)')
+                                    ->helperText('Tiap baris menjadi satu kolom. Dua baris tampil berdampingan, dan menumpuk di layar sempit. Kosongkan bila tidak perlu.')
+                                    ->schema([
+                                        TextInput::make('label')
+                                            ->label('Judul')
+                                            ->placeholder('Keluarga besar Mempelai Pria')
+                                            ->maxLength(120),
+                                        Textarea::make('names')
+                                            ->label('Nama-nama')
+                                            ->placeholder('Bapak Anang Asrani & Ibu Hj. Rahimah')
+                                            ->rows(2)
+                                            ->maxLength(400),
+                                    ])
+                                    ->columns(2)
+                                    ->addActionLabel('Tambah keluarga')
+                                    ->columnSpanFull(),
+
+                                Textarea::make('settings_json.closing_footer')
+                                    ->label('Turut Mengundang / Teks Bawah (opsional)')
+                                    ->placeholder("Turut mengundang:\nKeluarga besar dari Mempelai pria dan wanita")
+                                    ->rows(2)
+                                    ->columnSpanFull(),
+
                                 Textarea::make('share_message')
                                     ->label('Template Pesan WhatsApp Share')
                                     ->placeholder("Kepada Yth. Bapak/Ibu/Saudara/i [nama],\nKami mengundang Anda untuk menghadiri acara kami...")
@@ -130,16 +170,25 @@ class InvitationResource extends Resource
                                     ->columnSpanFull(),
                             ])->columns(2),
 
-                        Section::make('Pengaturan Visual')
+                        Section::make('Tampilan')
                             ->description('Hanya pengaturan yang didukung template terpilih yang ditampilkan. Kosongkan nilai yang ingin mengikuti bawaan dari template.')
                             ->schema([
-                                ColorPicker::make('settings_json.accent_color')
-                                    ->label('Warna Aksen (opsional)')
-                                    ->regex('/^#[0-9a-f]{6}$/i'),
-                                ColorPicker::make('settings_json.bg_color')
-                                    ->label('Warna Latar (opsional)')
-                                    ->regex('/^#[0-9a-f]{6}$/i')
-                                    ->visible(fn ($get) => $hasSetting($get, 'bg_color')),
+                                $accentPicker,
+                                View::make('filament.forms.color-presets')
+                                    ->viewData(fn ($get): array => [
+                                        'presets' => $colorPresets($get, 'accent_color'),
+                                        'statePath' => $accentPicker->getStatePath(),
+                                    ])
+                                    ->visible(fn ($get): bool => $colorPresets($get, 'accent_color') !== [])
+                                    ->columnSpanFull(),
+                                $bgColorPicker,
+                                View::make('filament.forms.color-presets')
+                                    ->viewData(fn ($get): array => [
+                                        'presets' => $colorPresets($get, 'bg_color'),
+                                        'statePath' => $bgColorPicker->getStatePath(),
+                                    ])
+                                    ->visible(fn ($get): bool => $colorPresets($get, 'bg_color') !== [])
+                                    ->columnSpanFull(),
                                 Select::make('settings_json.motion')
                                     ->label('Intensitas Gerak (opsional)')
                                     ->options(['calm' => 'Tenang', 'expressive' => 'Ekspresif', 'off' => 'Tanpa Animasi'])
@@ -148,14 +197,8 @@ class InvitationResource extends Resource
                                     ->label('Video cover')
                                     ->options(['true' => 'Aktif', 'false' => 'Nonaktif'])
                                     ->placeholder('Ikuti bawaan template')
-                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback.')
+                                    ->helperText('Video autoplay akan dimute, loop, dan memakai poster/foto sebagai fallback. Bila diunggah, video ini juga dipakai sebagai latar seksi pembuka.')
                                     ->visible(fn ($get) => $hasSetting($get, 'cover_video_enabled')),
-                                Select::make('settings_json.opening_video_enabled')
-                                    ->label('Video di seksi pembuka (opsional)')
-                                    ->options(['true' => 'Aktif', 'false' => 'Nonaktif'])
-                                    ->placeholder('Ikuti bawaan template')
-                                    ->helperText('Memakai video yang sama seperti sampul, hanya dipasang sebagai latar seksi pembuka.')
-                                    ->visible(fn ($get) => $hasSetting($get, 'opening_video_enabled')),
                                 FileUpload::make('settings_json.cover_video_desktop')
                                     ->label('Video Cover')
                                     ->helperText('Cukup satu video di sini. Video ini juga dipakai di HP selama kolom versi HP dibiarkan kosong.')
@@ -214,6 +257,28 @@ class InvitationResource extends Resource
                                             ->options(['left' => 'Kiri', 'center' => 'Tengah', 'right' => 'Kanan'])
                                             ->placeholder('Ikuti bawaan template')
                                             ->visible(fn ($get) => $hasSetting($get, 'cover_text_position')),
+                                    ])
+                                    ->columns(2)
+                                    ->columnSpanFull(),
+                                Fieldset::make('Opsi Tampilan Khusus (opsional)')
+                                    ->visible(fn ($get) => $hasSetting($get, 'hide_timezone', 'merge_rsvp_guestbook', 'show_rsvp_summary', 'auto_scroll'))
+                                    ->schema([
+                                        Toggle::make('settings_json.hide_timezone')
+                                            ->label('Sembunyikan zona waktu')
+                                            ->helperText('Jam acara tidak menampilkan WIB/WITA/WIT.')
+                                            ->visible(fn ($get) => $hasSetting($get, 'hide_timezone')),
+                                        Toggle::make('settings_json.merge_rsvp_guestbook')
+                                            ->label('Gabung RSVP & Buku Ucapan')
+                                            ->helperText('Satu form: nama, status kehadiran, dan catatan yang sekaligus menjadi ucapan.')
+                                            ->visible(fn ($get) => $hasSetting($get, 'merge_rsvp_guestbook')),
+                                        Toggle::make('settings_json.show_rsvp_summary')
+                                            ->label('Tampilkan rekap kehadiran')
+                                            ->helperText('Menampilkan jumlah hadir / ragu-ragu / tidak hadir di bawah form konfirmasi — tanpa nama tamu.')
+                                            ->visible(fn ($get) => $hasSetting($get, 'show_rsvp_summary')),
+                                        Toggle::make('settings_json.auto_scroll')
+                                            ->label('Auto-scroll halus')
+                                            ->helperText('Undangan bergeser pelan otomatis setelah dibuka, dan langsung berhenti begitu tamu menyentuh atau men-scroll sendiri.')
+                                            ->visible(fn ($get) => $hasSetting($get, 'auto_scroll')),
                                     ])
                                     ->columns(2)
                                     ->columnSpanFull(),
@@ -315,7 +380,57 @@ class InvitationResource extends Resource
 
                                 Toggle::make('is_catalog_demo')
                                     ->label('Tampilkan sebagai contoh di katalog')
-                                    ->helperText('Calon pelanggan bisa membuka undangan ini dari halaman katalog sebagai contoh desain. Undangan harus berstatus Published dan belum kedaluwarsa agar tombol "Lihat contoh" muncul.')
+                                    ->helperText('Satu undangan contoh mewakili seluruh katalog: setiap desain menampilkan data undangan ini dengan gayanya sendiri. Cukup tandai satu undangan, pastikan berstatus Published dan belum kedaluwarsa. Bila ada beberapa, yang terbaru dipakai.')
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Section::make('Form Pelanggan')
+                            ->description('Pengaturan untuk tautan pengisian yang dikirim ke mempelai.')
+                            ->schema([
+                                TextInput::make('settings_json.guest_limit')
+                                    ->label('Batas maksimum tamu')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(Invitation::MAX_GUESTS)
+                                    ->default(Invitation::MAX_GUESTS)
+                                    ->helperText('Jumlah maksimum tamu yang boleh ditambahkan atau diimpor oleh mempelai dari form mereka. Kosongkan untuk memakai '.Invitation::MAX_GUESTS.'.')
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Section::make('Preview Link & Bagikan')
+                            ->description('Gambar yang muncul saat link undangan dibagikan ke WhatsApp dan media sosial.')
+                            ->schema([
+                                Select::make('settings_json.share_image')
+                                    ->label('Foto preview link (opsional)')
+                                    ->helperText('Pilih dari foto undangan ini. Kosongkan untuk otomatis: poster cover → foto galeri pertama → foto mempelai pertama. Pakai JPG agar aman di WhatsApp.')
+                                    ->options(function (?Invitation $record): array {
+                                        if ($record === null) {
+                                            return [];
+                                        }
+
+                                        $options = [];
+                                        $poster = $record->settings_json['cover_poster_image'] ?? null;
+
+                                        if (is_string($poster) && $poster !== '') {
+                                            $options[$poster] = 'Poster cover';
+                                        }
+
+                                        foreach ($record->hosts as $host) {
+                                            if ($host->photo_path) {
+                                                $options[$host->photo_path] = 'Mempelai — '.$host->name;
+                                            }
+                                        }
+
+                                        foreach ($record->media as $index => $media) {
+                                            if ($media->path) {
+                                                $options[$media->path] = 'Galeri '.($index + 1);
+                                            }
+                                        }
+
+                                        return $options;
+                                    })
+                                    ->placeholder('Otomatis')
+                                    ->searchable()
                                     ->columnSpanFull(),
                             ]),
 
@@ -414,6 +529,21 @@ class InvitationResource extends Resource
                     ->options(collect(EventType::cases())->mapWithKeys(fn (EventType $type) => [$type->value => $type->label()])),
             ])
             ->actions([
+                // One click copies the public invitation URL, ready to paste into
+                // WhatsApp for the customer. Copying happens in the browser, so it
+                // needs no server round-trip.
+                Actions\Action::make('copyLink')
+                    ->label('Salin link')
+                    ->icon('heroicon-o-clipboard-document')
+                    ->color('gray')
+                    ->tooltip('Salin link undangan untuk dikirim ke pelanggan')
+                    ->alpineClickHandler(function (Invitation $record): string {
+                        $link = Js::from(url('/'.$record->slug));
+                        $message = Js::from('Link undangan disalin');
+
+                        return "window.navigator.clipboard.writeText({$link}); \$tooltip({$message}, { theme: \$store.theme, timeout: 2000 })";
+                    }),
+
                 Actions\ActionGroup::make([
                     Actions\EditAction::make(),
                     Actions\Action::make('publish')
@@ -484,12 +614,20 @@ class InvitationResource extends Resource
                         ->action(function (Invitation $record, array $data): void {
                             $links = app(FormLinks::class);
                             $token = $links->issue($record, (int) ($data['days'] ?? FormLinks::DEFAULT_DAYS));
+                            $url = $links->url($token);
 
                             Notification::make()
                                 ->title('Tautan pengisian dibuat')
-                                ->body($links->url($token))
+                                ->body($url)
                                 ->persistent()
                                 ->success()
+                                // The plaintext token is shown once and never stored, so
+                                // the notification carries the copy control too.
+                                ->actions([
+                                    Actions\Action::make('copyFormLink')
+                                        ->label('Salin tautan')
+                                        ->alpineClickHandler('window.navigator.clipboard.writeText('.Js::from($url).'); $tooltip('.Js::from('Tautan disalin').', { theme: $store.theme, timeout: 2000 })'),
+                                ])
                                 ->send();
                         }),
 
@@ -538,18 +676,41 @@ class InvitationResource extends Resource
 
     public static function getRelations(): array
     {
+        // Eleven managers in one tab bar is a lot to hunt through, so they are
+        // grouped into a few themed tabs by reading flow: the couple, then the
+        // stories around them, then the gifts, then how the page is built, then
+        // the audience and their responses. A group hides itself when every
+        // manager inside it is hidden for the record (e.g. blocks for a template
+        // that does not render them).
         return [
-            InvitationResource\RelationManagers\HostsRelationManager::class,
-            InvitationResource\RelationManagers\EventsRelationManager::class,
-            InvitationResource\RelationManagers\StoriesRelationManager::class,
-            InvitationResource\RelationManagers\MediaRelationManager::class,
-            InvitationResource\RelationManagers\BlocksRelationManager::class,
-            InvitationResource\RelationManagers\GiftMethodsRelationManager::class,
-            InvitationResource\RelationManagers\ContactsRelationManager::class,
-            InvitationResource\RelationManagers\SectionsRelationManager::class,
-            InvitationResource\RelationManagers\GuestsRelationManager::class,
-            InvitationResource\RelationManagers\RsvpsRelationManager::class,
-            InvitationResource\RelationManagers\GuestbookEntriesRelationManager::class,
+            RelationGroup::make('Mempelai & Acara', [
+                InvitationResource\RelationManagers\HostsRelationManager::class,
+                InvitationResource\RelationManagers\EventsRelationManager::class,
+            ])->icon('heroicon-o-user-group'),
+
+            RelationGroup::make('Kisah & Galeri', [
+                InvitationResource\RelationManagers\StoriesRelationManager::class,
+                InvitationResource\RelationManagers\MediaRelationManager::class,
+            ])->icon('heroicon-o-photo'),
+
+            RelationGroup::make('Hadiah & Kontak', [
+                InvitationResource\RelationManagers\GiftMethodsRelationManager::class,
+                InvitationResource\RelationManagers\ContactsRelationManager::class,
+            ])->icon('heroicon-o-gift'),
+
+            RelationGroup::make('Struktur Seksi', [
+                InvitationResource\RelationManagers\SectionsRelationManager::class,
+                InvitationResource\RelationManagers\BlocksRelationManager::class,
+            ])->icon('heroicon-o-queue-list'),
+
+            RelationGroup::make('Tamu & Interaksi', [
+                InvitationResource\RelationManagers\GuestsRelationManager::class,
+                InvitationResource\RelationManagers\RsvpsRelationManager::class,
+                InvitationResource\RelationManagers\GuestbookEntriesRelationManager::class,
+            ])
+                ->icon('heroicon-o-users')
+                ->badge(fn (Invitation $record): ?string => ($count = $record->guestbookEntries()->where('moderation_status', 'pending')->count()) > 0 ? (string) $count : null)
+                ->badgeColor('warning'),
         ];
     }
 

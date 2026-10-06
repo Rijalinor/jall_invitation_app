@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -29,9 +30,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName((string) config('invitation.brand', 'JALL Invitation'))
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Rose,
             ])
+            ->sidebarCollapsibleOnDesktop()
+            ->maxContentWidth(Width::Full)
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('filament.admin-editor-fixes')->render(),

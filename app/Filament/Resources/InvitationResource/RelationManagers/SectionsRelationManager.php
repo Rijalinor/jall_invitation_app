@@ -7,7 +7,6 @@ use App\Services\TemplateRegistry;
 use BackedEnum;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section as SchemaSection;
@@ -36,7 +35,6 @@ class SectionsRelationManager extends RelationManager
                                 'hosts' => 'Mempelai / Host',
                                 'events' => 'Rangkaian Acara',
                                 'countdown' => 'Hitung Mundur (Countdown)',
-                                'calendar' => 'Simpan Kalender (Add to Calendar)',
                                 'map' => 'Peta Lokasi (Google Maps)',
                                 'story' => 'Kisah Cinta (Love Story)',
                                 'gallery' => 'Galeri Foto & Video',
@@ -55,11 +53,6 @@ class SectionsRelationManager extends RelationManager
                         Toggle::make('enabled')
                             ->label('Status Aktif Tampil di Undangan')
                             ->default(true),
-
-                        TextInput::make('position')
-                            ->label('Urutan Tampilan')
-                            ->numeric()
-                            ->default(0),
 
                         Select::make('content_json.height')
                             ->label('Tinggi Minimal Seksi')

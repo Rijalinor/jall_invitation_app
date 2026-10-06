@@ -107,10 +107,6 @@ class EventsRelationManager extends RelationManager
                             ->label('Petunjuk Pintu Masuk')
                             ->rows(2),
 
-                        TextInput::make('position')
-                            ->label('Urutan')
-                            ->numeric()
-                            ->default(0),
                     ])->columns(2),
             ]);
     }

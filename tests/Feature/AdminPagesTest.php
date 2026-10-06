@@ -25,8 +25,14 @@ class AdminPagesTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $this->actingAs($user)->get('/admin/customers')->assertOk();
-        $this->get('/admin/invitations')->assertOk();
-        $this->get('/admin/invitations/'.$invitation->id.'/edit')->assertOk();
+        $this->actingAs($user)->get('/admin')->assertOk();
+        $this->get('/admin/customers')->assertOk();
+
+        // The list offers a one-click way to copy the public invitation link.
+        $this->get('/admin/invitations')->assertOk()->assertSee('Salin link');
+
+        $this->get('/admin/invitations/'.$invitation->id.'/edit')
+            ->assertOk()
+            ->assertSee('Salin link undangan');
     }
 }

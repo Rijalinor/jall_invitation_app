@@ -64,10 +64,17 @@ class BlocksRelationManager extends RelationManager
                             ->helperText('Elemen ini akan muncul di dalam seksi yang dipilih.')
                             ->columnSpanFull(),
 
-                        TextInput::make('position')
-                            ->label('Urutan Tampilan')
-                            ->numeric()
-                            ->default(0),
+                        Select::make('content_json.align')
+                            ->label('Perataan')
+                            ->options([
+                                'left' => 'Kiri',
+                                'center' => 'Tengah',
+                                'right' => 'Kanan',
+                                'justify' => 'Rata kiri-kanan',
+                            ])
+                            ->placeholder('Ikuti desain template')
+                            ->helperText('Mengatur perataan teks atau foto elemen ini. Pada "Judul Seksi Baru", perataan berlaku untuk seluruh seksi.')
+                            ->columnSpanFull(),
 
                         TextInput::make('content_json.title')
                             ->label(fn ($get) => $get('type') === BlockType::SECTION->value ? 'Judul Seksi' : 'Sub-judul (opsional)')
@@ -130,7 +137,7 @@ class BlocksRelationManager extends RelationManager
                     ->label('Isi')
                     ->placeholder('—')
                     ->getStateUsing(fn ($record) => collect(is_array($record->content_json) ? $record->content_json : [])
-                        ->except('path')
+                        ->except(['path', 'align'])
                         ->first(fn ($value) => is_string($value) && trim($value) !== ''))
                     ->limit(60),
 

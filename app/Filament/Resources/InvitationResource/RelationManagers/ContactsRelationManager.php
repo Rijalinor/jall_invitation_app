@@ -45,10 +45,6 @@ class ContactsRelationManager extends RelationManager
                             ->rule('regex:/^\+?[0-9\s\-()]{8,20}$/')
                             ->maxLength(50),
 
-                        TextInput::make('position')
-                            ->label('Urutan Tampilan')
-                            ->numeric()
-                            ->default(0),
                     ])->columns(2),
             ]);
     }

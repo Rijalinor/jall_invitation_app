@@ -62,10 +62,6 @@ class MediaRelationManager extends RelationManager
                             ->label('Keterangan / Caption Foto')
                             ->placeholder('Foto diambil di Bali, 2024'),
 
-                        TextInput::make('position')
-                            ->label('Urutan Galeri')
-                            ->numeric()
-                            ->default(0),
                     ])->columns(2),
             ]);
     }

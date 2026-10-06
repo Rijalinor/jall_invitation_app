@@ -4,18 +4,51 @@ namespace App\Filament\Resources\InvitationResource\Pages;
 
 use App\Enums\InvitationStatus;
 use App\Filament\Resources\InvitationResource;
+use BackedEnum;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Js;
 
 class EditInvitation extends EditRecord
 {
     protected static string $resource = InvitationResource::class;
 
+    /**
+     * Put the detail form and the grouped relation tabs in one tab bar, so the
+     * editor reads as a handful of sections instead of a long form followed by a
+     * second row of eleven relation tabs.
+     */
+    public function hasCombinedRelationManagerTabsWithContent(): bool
+    {
+        return true;
+    }
+
+    public function getContentTabLabel(): ?string
+    {
+        return 'Detail Undangan';
+    }
+
+    public function getContentTabIcon(): string|BackedEnum|null
+    {
+        return 'heroicon-o-document-text';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('copyLink')
+                ->label('Salin link undangan')
+                ->icon('heroicon-o-clipboard-document')
+                ->color('gray')
+                ->alpineClickHandler(function (): string {
+                    $link = Js::from(url('/'.$this->record->slug));
+                    $message = Js::from('Link undangan disalin');
+
+                    return "window.navigator.clipboard.writeText({$link}); \$tooltip({$message}, { theme: \$store.theme, timeout: 2000 })";
+                }),
+
             Actions\Action::make('preview')
                 ->label('Preview Undangan')
                 ->icon('heroicon-o-arrow-top-right-on-square')

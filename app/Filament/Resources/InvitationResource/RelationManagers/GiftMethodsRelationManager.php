@@ -62,10 +62,6 @@ class GiftMethodsRelationManager extends RelationManager
                             ->rows(2)
                             ->columnSpanFull(),
 
-                        TextInput::make('position')
-                            ->label('Urutan Tampilan')
-                            ->numeric()
-                            ->default(0),
                     ])->columns(2),
             ]);
     }

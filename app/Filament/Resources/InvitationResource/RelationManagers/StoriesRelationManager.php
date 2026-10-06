@@ -60,10 +60,6 @@ class StoriesRelationManager extends RelationManager
                             ->rows(4)
                             ->columnSpanFull(),
 
-                        TextInput::make('position')
-                            ->label('Urutan Tampilan')
-                            ->numeric()
-                            ->default(0),
                     ])->columns(2),
             ]);
     }

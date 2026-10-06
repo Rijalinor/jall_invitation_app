@@ -92,10 +92,6 @@ class HostsRelationManager extends RelationManager
                             ->placeholder('@username')
                             ->prefix('@'),
 
-                        TextInput::make('position')
-                            ->label('Urutan Tampilan')
-                            ->numeric()
-                            ->default(0),
                     ])->columns(2),
             ]);
     }

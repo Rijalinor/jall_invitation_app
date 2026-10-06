@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\InvitationResource\Pages\EditInvitation;
+use App\Filament\Resources\InvitationResource\Pages\ListInvitations;
 use App\Filament\Resources\InvitationResource\RelationManagers\BlocksRelationManager;
 use App\Models\Customer;
 use App\Models\Invitation;
@@ -47,11 +48,11 @@ class InvitationAdminFormTest extends TestCase
     }
 
     /**
-     * Offering the block editor for a template that ignores blocks would let an
-     * operator fill it in and never see the result, so the tab follows the
-     * template's own declaration instead.
+     * The block editor is grouped under the "Struktur Seksi" tab instead of its
+     * own tab, but canViewForRecord still gates it on the template declaring
+     * blocks, so it never appears for one that does not render them.
      */
-    public function test_the_blocks_tab_only_appears_for_templates_that_render_blocks(): void
+    public function test_the_blocks_editor_lives_under_the_structure_tab_and_follows_the_template(): void
     {
         $this->actingAs(User::factory()->create(['is_active' => true]));
 
@@ -60,13 +61,36 @@ class InvitationAdminFormTest extends TestCase
 
         $this->get('/admin/invitations/'.$elegant->id.'/edit')
             ->assertOk()
-            ->assertSee('Seksi Tambahan (Blok Bebas)');
+            ->assertSee('Struktur Seksi');
 
-        // Every shipped template renders free blocks now, so the tab shows for all
-        // three. canViewForRecord still hides it for one that does not declare them.
         $this->get('/admin/invitations/'.$storybook->id.'/edit')
             ->assertOk()
-            ->assertSee('Seksi Tambahan (Blok Bebas)');
+            ->assertSee('Struktur Seksi');
+
+        // Every shipped template renders free blocks, so the editor is offered;
+        // canViewForRecord still hides it for a template that does not.
+        $this->assertTrue(BlocksRelationManager::canViewForRecord($elegant, EditInvitation::class));
+        $this->assertTrue(BlocksRelationManager::canViewForRecord($storybook, EditInvitation::class));
+    }
+
+    /**
+     * The editor reads as one tab bar: the detail form first, then a few themed
+     * relation groups, instead of a long form followed by eleven relation tabs.
+     */
+    public function test_the_editor_shows_the_combined_grouped_tabs(): void
+    {
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+
+        $invitation = $this->invitation('elegant-rose', 'undangan-elegan');
+
+        $this->get('/admin/invitations/'.$invitation->id.'/edit')
+            ->assertOk()
+            ->assertSee('Detail Undangan')
+            ->assertSee('Mempelai & Acara')
+            ->assertSee('Kisah & Galeri')
+            ->assertSee('Hadiah & Kontak')
+            ->assertSee('Struktur Seksi')
+            ->assertSee('Tamu & Interaksi');
     }
 
     /**
@@ -108,28 +132,66 @@ class InvitationAdminFormTest extends TestCase
         $ledger = $this->invitation('midnight-ledger', 'undangan-ledger');
         $storybook = $this->invitation('fun-storybook', 'undangan-storybook');
 
-        // elegant-rose declares no focal point, overlay or text position, and it is
-        // the only template that declares the opening video.
+        // elegant-rose declares no focal point, overlay or text position. The
+        // four toggles it used to own are now automatic and no longer offered.
         $this->get('/admin/invitations/'.$elegant->id.'/edit')
             ->assertOk()
-            ->assertSee('Video di seksi pembuka')
+            ->assertDontSee('Video di seksi pembuka')
             ->assertDontSee('Gelap overlay')
             ->assertDontSee('Focal point horizontal')
             ->assertDontSee('Posisi teks cover');
 
-        // midnight-ledger declares the focal point and overlay, but not the opening video.
+        // midnight-ledger declares the focal point and overlay, but no opening-video toggle.
         $this->get('/admin/invitations/'.$ledger->id.'/edit')
             ->assertOk()
             ->assertSee('Gelap overlay')
             ->assertSee('Focal point horizontal')
             ->assertDontSee('Video di seksi pembuka');
 
-        // fun-storybook declares a poster but no video at all.
+        // fun-storybook declares a poster and cover video, but no overlay or focal point.
         $this->get('/admin/invitations/'.$storybook->id.'/edit')
             ->assertOk()
             ->assertSee('Poster / fallback cover')
             ->assertDontSee('Video di seksi pembuka')
-            ->assertDontSee('Gelap overlay');
+            ->assertDontSee('Gelap overlay')
+            ->assertDontSee('Focal point horizontal');
+    }
+
+    /**
+     * Recommended colour swatches follow the chosen template, so an operator can
+     * pick a colour that suits the design without inventing a hex value. The
+     * swatch writes into the same form state the colour picker saves.
+     */
+    public function test_recommended_colour_swatches_follow_the_chosen_template(): void
+    {
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+
+        $coastal = $this->invitation('coastal-vow', 'undangan-pesisir');
+        $elegant = $this->invitation('elegant-rose', 'undangan-elegan');
+        $storybook = $this->invitation('fun-storybook', 'undangan-storybook');
+
+        $this->get('/admin/invitations/'.$coastal->id.'/edit')
+            ->assertOk()
+            ->assertSee('Rekomendasi warna')
+            ->assertSee('Sea Glass')
+            ->assertSee('Sunset Coral')
+            // The swatch writes the exact hex into the accent state.
+            ->assertSee("x-data=\"{ chosen: \$wire.\$entangle('data.settings_json.accent_color') }\"", false)
+            ->assertSee("chosen = '#2b7a78'", false)
+            // coastal-vow declares no background colour, so no background swatches.
+            ->assertDontSee('Mint Cream')
+            ->assertDontSee("chosen = '#fdf6e4'", false);
+
+        $this->get('/admin/invitations/'.$elegant->id.'/edit')
+            ->assertOk()
+            ->assertSee('Rose Wine')
+            ->assertDontSee('Sea Glass');
+
+        $this->get('/admin/invitations/'.$storybook->id.'/edit')
+            ->assertOk()
+            ->assertSee('Bubblegum')
+            ->assertSee('Ivory')
+            ->assertSee("chosen = '#fdf6e4'", false);
     }
 
     /**
@@ -170,6 +232,24 @@ class InvitationAdminFormTest extends TestCase
         $invitation->sections()->create(['key' => 'blocks:5', 'enabled' => true, 'position' => 10]);
 
         $this->assertSame('blocks:3', Section::nextCustomKey($invitation), 'The first gap wins, not the highest number.');
+    }
+
+    /**
+     * Issuing the customer form link shows the URL once, with a copy control,
+     * because the plaintext token is never stored after that.
+     */
+    public function test_issuing_a_customer_form_link_notifies_with_the_url(): void
+    {
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+
+        $invitation = $this->invitation('elegant-rose', 'undangan-elegan');
+
+        Livewire::test(ListInvitations::class)
+            ->callTableAction('formLink', $invitation, ['days' => 30])
+            ->assertHasNoTableActionErrors()
+            ->assertNotified();
+
+        $this->assertNotNull($invitation->fresh()->form_token_hash);
     }
 
     private function invitation(string $template, string $slug, array $extra = []): Invitation
