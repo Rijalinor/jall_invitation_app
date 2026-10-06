@@ -117,6 +117,41 @@ class TemplateRegistry
     }
 
     /**
+     * Recommended values for a colour setting, declared by the template.
+     *
+     * The admin offers these as swatches so an operator can pick a colour that
+     * suits the design instead of inventing one. Only plain six digit hex values
+     * survive, so a manifest can never inject anything else into the form.
+     *
+     * @return array<int, array{label: string, value: string}>
+     */
+    public function colorPresets(string $id, string $key): array
+    {
+        $presets = $this->find($id)['settings_schema'][$key]['presets'] ?? [];
+
+        if (! is_array($presets)) {
+            return [];
+        }
+
+        $valid = [];
+
+        foreach ($presets as $preset) {
+            if (! is_array($preset)) {
+                continue;
+            }
+
+            $label = $preset['label'] ?? null;
+            $value = $preset['value'] ?? null;
+
+            if (is_string($label) && trim($label) !== '' && is_string($value) && preg_match('/^#[0-9a-f]{6}$/i', $value) === 1) {
+                $valid[] = ['label' => trim($label), 'value' => strtolower($value)];
+            }
+        }
+
+        return $valid;
+    }
+
+    /**
      * Whether a template honours the per section height set in the section
      * editor. Declared by the template so the editor never offers a control the
      * chosen template would ignore.

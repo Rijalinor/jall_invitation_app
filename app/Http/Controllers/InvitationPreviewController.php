@@ -15,6 +15,6 @@ class InvitationPreviewController extends Controller
             'guestbookEntries' => fn ($query) => $query->where('moderation_status', 'approved')->latest()->limit(20),
         ]);
 
-        return $renderer->render($invitation, 'Bapak/Ibu/Saudara/i');
+        return $renderer->render($invitation, null);
     }
 }

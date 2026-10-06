@@ -15,7 +15,8 @@ use Illuminate\View\View;
  *
  * Every card on this page is derived from a template manifest, so adding a
  * template directory is enough for it to appear here. The page never queries
- * invitation content: it only reads manifests and preview files.
+ * invitation content beyond the slug of the single sample: it reads manifests
+ * and preview files, then points every design at that one sample.
  */
 class LandingController extends Controller
 {
@@ -39,10 +40,10 @@ class LandingController extends Controller
 
         $activeType = $this->activeType($request, $eventTypes);
 
-        $demoSlugs = $demos->slugsByTemplate();
+        $demoSlug = $demos->slug();
 
         $presented = $manifests
-            ->map(fn (array $manifest): array => $this->present($manifest, $registry, $whatsapp, $demoSlugs))
+            ->map(fn (array $manifest): array => $this->present($manifest, $registry, $whatsapp, $demoSlug))
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
 
@@ -68,18 +69,17 @@ class LandingController extends Controller
      * Reduce a manifest to the fields the catalogue renders.
      *
      * @param  array<string, mixed>  $manifest
-     * @param  array<string, string>  $demoSlugs  Sample invitation slug per template id.
+     * @param  string|null  $demoSlug  Slug of the single sample invitation, if one is published.
      * @return array<string, mixed>
      */
     private function present(
         array $manifest,
         TemplateRegistry $registry,
         WhatsAppLink $whatsapp,
-        array $demoSlugs,
+        ?string $demoSlug,
     ): array {
         $id = (string) $manifest['id'];
         $previewPath = $registry->previewPath($id);
-        $demoSlug = $demoSlugs[$id] ?? null;
 
         return [
             'id' => $id,
@@ -95,7 +95,7 @@ class LandingController extends Controller
             'preview_is_raster' => $previewPath !== null
                 && preg_match('/\.(png|jpe?g|webp)$/i', $previewPath) === 1,
             'demo_url' => is_string($demoSlug) && $demoSlug !== ''
-                ? route('invitations.show', $demoSlug)
+                ? route('invitations.show', ['slug' => $demoSlug, 'template' => $id])
                 : null,
             'contact_url' => $whatsapp->to(sprintf(
                 'Halo, saya ingin membuat undangan digital. Desain pilihan saya: %s.',

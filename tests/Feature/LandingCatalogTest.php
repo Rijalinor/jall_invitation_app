@@ -200,6 +200,80 @@ class LandingCatalogTest extends TestCase
     }
 
     /**
+     * One sample represents the whole catalogue: the operator fills in a single
+     * invitation and every design renders that same content, so there is no
+     * per-template sample to maintain.
+     */
+    public function test_one_sample_serves_every_template_in_its_own_design(): void
+    {
+        $sample = $this->sample('coastal-vow', 'contoh-tunggal');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('/contoh-tunggal?template=coastal-vow', false)
+            ->assertSee('/contoh-tunggal?template=elegant-rose', false)
+            ->assertSee('/contoh-tunggal?template=midnight-ledger', false)
+            ->assertSee('/contoh-tunggal?template=fun-storybook', false);
+
+        // The URL picks the design; the sample keeps its own stored template.
+        $this->get('/contoh-tunggal?template=elegant-rose')
+            ->assertOk()
+            ->assertSee('class="elegant-rose"', false)
+            ->assertSee('--rose-accent: #7b2639', false)
+            ->assertDontSee('class="coastal-vow"', false);
+
+        $this->assertSame('coastal-vow', $sample->fresh()->template_id);
+    }
+
+    /**
+     * A sample shown in another design must borrow that design's palette, not
+     * carry over whichever colours the sample happens to be saved with. The
+     * sample's own card keeps the operator's chosen colours.
+     */
+    public function test_a_sample_shown_in_another_design_uses_that_designs_own_colours(): void
+    {
+        $this->sample('coastal-vow', 'contoh-tunggal', [
+            'settings_json' => ['accent_color' => '#123456'],
+        ]);
+
+        // Another design gets its prime colour, not the sample's saved one.
+        $this->get('/contoh-tunggal?template=elegant-rose')
+            ->assertOk()
+            ->assertSee('--rose-accent: #7b2639', false)
+            ->assertDontSee('#123456', false);
+
+        // The sample's own card keeps the operator's colour.
+        $this->get('/contoh-tunggal?template=coastal-vow')
+            ->assertOk()
+            ->assertSee('--cv-accent: #123456', false);
+
+        // And so does the plain public link.
+        $this->get('/contoh-tunggal')
+            ->assertOk()
+            ->assertSee('--cv-accent: #123456', false);
+    }
+
+    public function test_an_unknown_template_override_falls_back_to_the_samples_own_design(): void
+    {
+        $this->sample('coastal-vow', 'contoh-tunggal');
+
+        $this->get('/contoh-tunggal?template=tidak-ada')
+            ->assertOk()
+            ->assertSee('class="coastal-vow"', false)
+            ->assertDontSee('--rose-accent', false);
+    }
+
+    public function test_a_regular_invitation_ignores_a_template_override(): void
+    {
+        $this->sample('coastal-vow', 'undangan-biasa-override', ['is_catalog_demo' => false]);
+
+        $this->get('/undangan-biasa-override?template=elegant-rose')
+            ->assertOk()
+            ->assertSee('class="coastal-vow"', false)
+            ->assertDontSee('--rose-accent', false);
+    }
+
+    /**
      * @param  array<string, mixed>  $attributes
      */
     private function sample(string $template, string $slug, array $attributes = []): Invitation
