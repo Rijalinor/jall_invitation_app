@@ -133,6 +133,11 @@ class Invitation extends Model
         return $this->hasMany(GuestbookEntry::class);
     }
 
+    public function visits(): HasMany
+    {
+        return $this->hasMany(InvitationVisit::class);
+    }
+
     public function blocks(): HasMany
     {
         return $this->hasMany(InvitationBlock::class)->orderBy('position');

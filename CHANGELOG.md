@@ -17,6 +17,16 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Duplikat undangan (2026-10-11)**
+  - Tombol **Duplikat** di daftar undangan dan halaman edit menyalin seluruh isi undangan (mempelai, acara, seksi, blok bebas, kisah, galeri, hadiah, kontak, dan pengaturan tampilan) menjadi draft baru dengan slug unik. Blok bebas otomatis diarahkan ke seksi salinan yang benar.
+  - Daftar tamu, RSVP, buku ucapan, dan statistik kunjungan tidak ikut disalin karena berisi token pribadi atau respons tamu; token form pelanggan juga direset agar salinan tidak mewarisi akses undangan asal.
+
+- **Analitik kunjungan per undangan (2026-10-11)**
+  - Setiap kali link undangan dibuka, satu baris tercatat di tabel `invitation_visits`: dari link pribadi tamu atau link umum, perangkat (HP/Desktop/Tablet/Bot), waktu, dan referer. Alamat IP disimpan sebagai hash bergaram, bukan alamat mentah, jadi pengunjung unik bisa dihitung tanpa menyimpan identitas.
+  - Panel admin undangan punya tab **Analitik Kunjungan** (read-only) berisi ringkasan "kunjungan • pengunjung unik • dari link pribadi" dan log detail dengan filter sumber. Daftar undangan menampilkan kolom **Dilihat**.
+  - Dashboard menampilkan widget **Undangan Paling Banyak Dilihat**.
+  - Undangan contoh katalog tidak dihitung agar angka pelanggan tidak tercampur; pencatatan dibungkus try/catch sehingga kegagalan menulis statistik tidak pernah membuat halaman undangan error.
+
 - **Opsi jadi perilaku otomatis di semua template (2026-10-03)**
   - Empat opsi yang dulu toggle hanya di Elegant Rose kini otomatis dan berlaku di kelima template: jam selesai kosong otomatis menulis "s/d Selesai", sampul otomatis menampilkan nama pasangan bertumpuk, video cover otomatis dipakai di seksi pembuka, dan hadiah otomatis tampil sebagai satu blok "Kirim Hadiah".
   - Hanya dua opsi yang tetap bisa diatur per undangan: sembunyikan zona waktu (WIB/WITA) dan gabung RSVP & Buku Ucapan.

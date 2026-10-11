@@ -4,6 +4,7 @@ namespace App\Filament\Resources\InvitationResource\Pages;
 
 use App\Enums\InvitationStatus;
 use App\Filament\Resources\InvitationResource;
+use App\Services\InvitationDuplicator;
 use BackedEnum;
 use Filament\Actions;
 use Filament\Notifications\Notification;
@@ -92,6 +93,22 @@ class EditInvitation extends EditRecord
                     Notification::make()
                         ->title('Status diubah ke Preview')
                         ->warning()
+                        ->send();
+                }),
+
+            Actions\Action::make('duplicate')
+                ->label('Duplikat Undangan')
+                ->icon('heroicon-o-document-duplicate')
+                ->color('gray')
+                ->requiresConfirmation()
+                ->modalDescription('Menyalin seluruh isi undangan sebagai draft baru. Daftar tamu, RSVP, buku ucapan, dan statistik kunjungan tidak ikut disalin.')
+                ->action(function (): void {
+                    $copy = app(InvitationDuplicator::class)->duplicate($this->record);
+
+                    Notification::make()
+                        ->title('Undangan diduplikasi')
+                        ->body('Draft baru: '.$copy->title)
+                        ->success()
                         ->send();
                 }),
 

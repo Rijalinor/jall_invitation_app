@@ -6,6 +6,7 @@ use App\Enums\InvitationStatus;
 use App\Models\Invitation;
 use App\Services\InvitationRenderer;
 use App\Services\TemplateRegistry;
+use App\Services\VisitTracker;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,14 +14,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PublicInvitationController extends Controller
 {
-    public function show(Request $request, InvitationRenderer $renderer, TemplateRegistry $templates, string $slug, ?string $token = null): View
+    public function show(Request $request, InvitationRenderer $renderer, TemplateRegistry $templates, VisitTracker $tracker, string $slug, ?string $token = null): View
     {
         $invitation = Invitation::query()
             ->where('slug', $slug)
             ->where('status', InvitationStatus::PUBLISHED)
             ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->with([
-                'hosts', 'events', 'sections', 'stories', 'media', 'contacts', 'giftMethods',
+                'hosts', 'events', 'sections', 'stories', 'media', 'contacts', 'giftMethods', 'blocks',
                 'guestbookEntries' => fn ($query) => $query->where('moderation_status', 'approved')->latest()->limit(20),
             ])
             ->firstOrFail();
@@ -48,9 +49,15 @@ class PublicInvitationController extends Controller
         }
 
         try {
-            return $renderer->render($invitation, $recipient, $guest, $templateId);
+            $view = $renderer->render($invitation, $recipient, $guest, $templateId);
         } catch (\RuntimeException) {
             throw new NotFoundHttpException;
         }
+
+        // Count the open only once the invitation actually renders, so a broken
+        // template does not book a visit that never happened.
+        $tracker->track($request, $invitation, $guest);
+
+        return $view;
     }
 }

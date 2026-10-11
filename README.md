@@ -27,6 +27,7 @@ Platform jasa pembuatan undangan digital berbasis web. Satu aplikasi untuk banya
 - **Impor daftar tamu** via CSV
 - **Moderasi buku ucapan**
 - **Dashboard RSVP** dengan ekspor data
+- **Analitik kunjungan:** total dibuka, pengunjung unik, dan sumber link (umum/pribadi) per undangan
 - **Status lifecycle:** draft → preview → published → expired → archived
 - **Masa aktif undangan** otomatis
 - **Mobile-first responsive design**

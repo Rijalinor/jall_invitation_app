@@ -7,6 +7,7 @@ use App\Enums\InvitationStatus;
 use App\Filament\Resources\InvitationResource\Pages;
 use App\Models\Invitation;
 use App\Services\FormLinks;
+use App\Services\InvitationDuplicator;
 use App\Services\TemplateRegistry;
 use BackedEnum;
 use Filament\Actions;
@@ -63,11 +64,13 @@ class InvitationResource extends Resource
         // write to exactly the same form state, whatever the state path is.
         $accentPicker = ColorPicker::make('settings_json.accent_color')
             ->label('Warna Aksen (opsional)')
-            ->regex('/^#[0-9a-f]{6}$/i');
+            ->regex('/^#[0-9a-f]{6}$/i')
+            ->helperText('Klik salah satu preset di bawah atau pilih warna sendiri. Kosongkan untuk warna bawaan template.');
 
         $bgColorPicker = ColorPicker::make('settings_json.bg_color')
             ->label('Warna Latar (opsional)')
             ->regex('/^#[0-9a-f]{6}$/i')
+            ->helperText('Warna dasar halaman. Kosongkan untuk bawaan template.')
             ->visible(fn ($get) => $hasSetting($get, 'bg_color'));
 
         $colorPresets = fn ($get, string $key): array => $templateRegistry->colorPresets((string) $get('template_id'), $key);
@@ -77,6 +80,7 @@ class InvitationResource extends Resource
                 Group::make()
                     ->schema([
                         Section::make('Informasi Undangan')
+                            ->description('Identitas dasar undangan. Judul dan slug menentukan alamat link-nya.')
                             ->schema([
                                 Select::make('customer_id')
                                     ->label('Pelanggan Pemesan')
@@ -84,6 +88,7 @@ class InvitationResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->required()
+                                    ->helperText('Pemesan undangan ini. Bila belum ada, buat baru lewat tombol tambah.')
                                     ->createOptionForm([
                                         TextInput::make('name')
                                             ->label('Nama Lengkap')
@@ -99,6 +104,7 @@ class InvitationResource extends Resource
                                     ->label('Judul Undangan')
                                     ->placeholder('Pernikahan Budi & Ani')
                                     ->required()
+                                    ->helperText('Judul ini otomatis dipakai untuk mengisi slug di bawah.')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($set, ?string $state) => $set('slug', Str::slug($state ?? ''))),
 
@@ -108,13 +114,15 @@ class InvitationResource extends Resource
                                     ->required()
                                     ->unique(ignoreRecord: true)
                                     ->prefix(url('/').'/')
-                                    ->alphaDash(),
+                                    ->alphaDash()
+                                    ->helperText('Alamat undangan: {domain}/slug. Huruf kecil, tanpa spasi.'),
 
                                 Select::make('event_type')
                                     ->label('Jenis Acara')
                                     ->options(collect(EventType::cases())->mapWithKeys(fn (EventType $type) => [$type->value => $type->label()]))
                                     ->default(EventType::WEDDING->value)
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Menentukan template mana yang cocok ditawarkan di katalog.'),
 
                                 Select::make('template_id')
                                     ->label('Pilihan Template')
@@ -128,16 +136,19 @@ class InvitationResource extends Resource
                             ])->columns(2),
 
                         Section::make('Tulisan & Pesan')
+                            ->description('Teks yang tampil di undangan. Kosongkan kolom mana pun untuk memakai bawaan template.')
                             ->schema([
                                 Textarea::make('opening_text')
                                     ->label('Teks Pembuka / Kalimat Mutiara')
                                     ->placeholder('Dengan memohon rahmat dan ridho Allah SWT...')
-                                    ->rows(3),
+                                    ->rows(3)
+                                    ->helperText('Kutipan/ayat pembuka di bagian atas undangan. Contoh: "Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami." Kosongkan untuk bawaan template.'),
 
                                 Textarea::make('closing_message')
                                     ->label('Pesan Penutup')
                                     ->placeholder('Merupakan suatu kehormatan dan kebahagiaan bagi kami...')
-                                    ->rows(3),
+                                    ->rows(3)
+                                    ->helperText('Ucapan penutup sebelum bagian terima kasih. Contoh: "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu."'),
 
                                 Repeater::make('settings_json.closing_families')
                                     ->label('Keluarga di Penutup (tampil berdampingan)')
@@ -167,6 +178,7 @@ class InvitationResource extends Resource
                                     ->label('Template Pesan WhatsApp Share')
                                     ->placeholder("Kepada Yth. Bapak/Ibu/Saudara/i [nama],\nKami mengundang Anda untuk menghadiri acara kami...")
                                     ->rows(3)
+                                    ->helperText('Tulis [nama] di posisi nama tamu — nanti diganti otomatis. Contoh: "Kepada Yth. [nama], kami mengundang Anda ke acara pernikahan kami."')
                                     ->columnSpanFull(),
                             ])->columns(2),
 
@@ -364,15 +376,18 @@ class InvitationResource extends Resource
                 Group::make()
                     ->schema([
                         Section::make('Status & Publikasi')
+                            ->description('Atur kapan undangan boleh diakses tamu.')
                             ->schema([
                                 Select::make('status')
                                     ->label('Status Lifecycle')
                                     ->options(collect(InvitationStatus::cases())->mapWithKeys(fn (InvitationStatus $status) => [$status->value => $status->label()]))
                                     ->default(InvitationStatus::DRAFT->value)
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Draft = belum tampil ke tamu. Published = undangan aktif dan bisa diakses.'),
 
                                 DateTimePicker::make('published_at')
-                                    ->label('Tanggal Published'),
+                                    ->label('Tanggal Published')
+                                    ->helperText('Kapan undangan mulai tayang. Terisi otomatis saat kamu menekan Publish.'),
 
                                 DateTimePicker::make('expires_at')
                                     ->label('Tanggal Kadaluarsa')
@@ -444,7 +459,8 @@ class InvitationResource extends Resource
                                     ->disk('public')
                                     ->directory('invitations/music')
                                     ->acceptedFileTypes(['audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/m4a'])
-                                    ->maxSize(10240),
+                                    ->maxSize(10240)
+                                    ->helperText('Diputar setelah tamu menekan tombol buka undangan. Maksimal 10 MB.'),
 
                                 Toggle::make('music_autoplay')
                                     ->label('Autoplay setelah buka cover')
@@ -452,11 +468,13 @@ class InvitationResource extends Resource
 
                                 TextInput::make('livestream_url')
                                     ->label('URL Live Streaming (opsional)')
-                                    ->placeholder('https://youtube.com/live/...'),
+                                    ->placeholder('https://youtube.com/live/...')
+                                    ->helperText('Tampil sebagai tombol di undangan. Kosongkan bila tidak ada siaran langsung.'),
 
                                 TextInput::make('livestream_label')
                                     ->label('Label Tombol Livestream')
-                                    ->placeholder('Saksikan via YouTube'),
+                                    ->placeholder('Saksikan via YouTube')
+                                    ->helperText('Teks pada tombol di atas. Kosongkan untuk label bawaan.'),
                             ]),
                     ])->columnSpan(['lg' => 1]),
             ])->columns(3);
@@ -518,6 +536,14 @@ class InvitationResource extends Resource
                     ->tooltip(fn (Invitation $record): string => $record->form_token_used_at
                         ? 'Terakhir dibuka '.$record->form_token_used_at->diffForHumans()
                         : 'Belum pernah dibuka pelanggan'),
+
+                Tables\Columns\TextColumn::make('visits_count')
+                    ->label('Dilihat')
+                    ->counts('visits')
+                    ->numeric()
+                    ->alignCenter()
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -647,6 +673,22 @@ class InvitationResource extends Resource
                                 ->send();
                         }),
 
+                    Actions\Action::make('duplicate')
+                        ->label('Duplikat')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalDescription('Menyalin seluruh isi undangan sebagai draft baru. Daftar tamu, RSVP, buku ucapan, dan statistik kunjungan tidak ikut disalin.')
+                        ->action(function (Invitation $record): void {
+                            $copy = app(InvitationDuplicator::class)->duplicate($record);
+
+                            Notification::make()
+                                ->title('Undangan diduplikasi')
+                                ->body('Draft baru: '.$copy->title)
+                                ->success()
+                                ->send();
+                        }),
+
                     Actions\DeleteAction::make(),
                 ]),
             ])
@@ -711,6 +753,10 @@ class InvitationResource extends Resource
                 ->icon('heroicon-o-users')
                 ->badge(fn (Invitation $record): ?string => ($count = $record->guestbookEntries()->where('moderation_status', 'pending')->count()) > 0 ? (string) $count : null)
                 ->badgeColor('warning'),
+
+            RelationGroup::make('Analitik', [
+                InvitationResource\RelationManagers\VisitsRelationManager::class,
+            ])->icon('heroicon-o-chart-bar'),
         ];
     }
 
