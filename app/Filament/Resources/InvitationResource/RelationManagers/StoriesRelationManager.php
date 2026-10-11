@@ -30,6 +30,7 @@ class StoriesRelationManager extends RelationManager
                         TextInput::make('date')
                             ->label('Tanggal / Momen')
                             ->placeholder('14 Februari 2020')
+                            ->helperText('Boleh ditulis bebas, tidak harus tanggal resmi.')
                             ->maxLength(100),
 
                         TextInput::make('title')
@@ -58,6 +59,7 @@ class StoriesRelationManager extends RelationManager
                         Textarea::make('body')
                             ->label('Cerita Singkat')
                             ->rows(4)
+                            ->helperText('1–3 kalimat. Contoh: "Kami pertama bertemu saat kuliah, dan sejak itu segalanya terasa berbeda."')
                             ->columnSpanFull(),
 
                     ])->columns(2),

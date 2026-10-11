@@ -1,114 +1,144 @@
+/* Sulur — gold vines that draw as you scroll.
+ *
+ * The invitation must be fully readable without this file: nothing here makes
+ * content appear. Animations are armed only after the script runs, and the cover
+ * opens through a real anchor even when nothing below executes.
+ */
 const root = document.body;
 const content = document.querySelector('#top');
 const music = document.querySelector('[data-music]');
-const musicBtn = document.querySelector('[data-music-toggle]');
-const progress = document.querySelector('[data-scroll-progress]');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches || root.dataset.motion === 'off';
-
-/* Content is only hidden once this script can reveal it again, so a slow,
-   blocked, or failed script never leaves a blank page. */
-if (!reducedMotion && 'IntersectionObserver' in window) {
-    root.classList.add('ml-armed');
-}
+const musicToggle = document.querySelector('[data-music-toggle]');
+const html = document.documentElement;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mode = root.dataset.motion || 'calm';
+const motionAllowed = mode !== 'off' && !reducedMotion;
 
 document.querySelectorAll('[data-cover-video]').forEach((video) => {
-    if (reducedMotion) {
-        video.remove();
-        return;
-    }
+    if (reducedMotion) return video.remove();
     video.play().catch(() => {});
     video.addEventListener('error', () => video.remove(), { once: true });
 });
 
-document.querySelector('[data-open-invitation]')?.addEventListener('click', async () => {
+function openInvitation() {
     root.classList.add('invitation-open');
     content?.removeAttribute('inert');
     content?.focus();
-    if (music) await music.play().catch(() => {});
-    if (musicBtn) updateMusicBtn();
-});
-
-function updateMusicBtn() {
-    if (!musicBtn) return;
-    const playing = music && !music.paused;
-    musicBtn.querySelector('span').textContent = playing ? '♪' : '♩';
-    musicBtn.setAttribute('aria-label', playing ? 'Jeda musik' : 'Putar musik');
 }
 
-musicBtn?.addEventListener('click', async () => {
-    if (music.paused) await music.play().catch(() => {});
-    else music.pause();
-    updateMusicBtn();
+document.querySelector('[data-open-invitation]')?.addEventListener('click', async () => {
+    openInvitation();
+    if (music) {
+        await music.play().catch(() => {});
+        musicToggle?.setAttribute('data-playing', 'true');
+        const label = musicToggle?.querySelector('span');
+        if (label) label.textContent = '♫';
+    }
 });
 
-document.querySelectorAll('[data-copy]').forEach((btn) => btn.addEventListener('click', async () => {
-    const label = btn.textContent;
-    await navigator.clipboard.writeText(btn.dataset.copy).catch(() => {});
-    btn.textContent = '✓';
-    setTimeout(() => btn.textContent = label, 1800);
+// A reload that lands directly on the invitation fragment hides the cover by CSS;
+// without this the gate would still be shut and the guest would see nothing.
+if (document.querySelector('#top:target')) {
+    openInvitation();
+}
+
+musicToggle?.addEventListener('click', async () => {
+    if (!music) return;
+    const label = musicToggle.querySelector('span');
+    if (music.paused) {
+        await music.play().catch(() => {});
+        musicToggle.setAttribute('data-playing', 'true');
+        musicToggle.setAttribute('aria-label', 'Jeda musik');
+        if (label) label.textContent = '♫';
+    } else {
+        music.pause();
+        musicToggle.setAttribute('data-playing', 'false');
+        musicToggle.setAttribute('aria-label', 'Putar musik');
+        if (label) label.textContent = '♪';
+    }
+});
+
+document.querySelectorAll('[data-copy]').forEach((button) => button.addEventListener('click', async () => {
+    const label = button.textContent;
+    await navigator.clipboard.writeText(button.dataset.copy).catch(() => {});
+    button.textContent = 'Tersalin';
+    setTimeout(() => { button.textContent = label; }, 1500);
 }));
 
-document.querySelectorAll('[data-share]').forEach((button) => button.addEventListener('click', async (e) => {
-    const url = e.currentTarget.dataset.shareUrl;
-    if (navigator.share) await navigator.share({ title: document.title, url }).catch(() => {});
-    else await navigator.clipboard.writeText(url).catch(() => {});
+document.querySelectorAll('[data-share]').forEach((button) => button.addEventListener('click', async () => {
+    const url = button.dataset.shareUrl;
+    if (navigator.share) {
+        await navigator.share({ title: document.title, url }).catch(() => {});
+    } else {
+        await navigator.clipboard.writeText(url).catch(() => {});
+    }
 }));
 
-document.querySelector('[data-quick-actions-toggle]')?.addEventListener('click', (e) => {
-    const button = e.currentTarget;
-    const panel = document.getElementById(button.getAttribute('aria-controls'));
-    const open = button.getAttribute('aria-expanded') !== 'true';
-    button.setAttribute('aria-expanded', String(open));
-    button.setAttribute('aria-label', open ? 'Tutup aksi undangan' : 'Buka aksi undangan');
-    button.closest('.ml-quick-actions')?.classList.toggle('is-open', open);
-    if (panel) panel.hidden = !open;
-});
-
-const revealItems = document.querySelectorAll('[data-reveal], .ml-hosts article, .ml-story li, .ml-gallery figure');
-if ('IntersectionObserver' in window && !reducedMotion) {
-    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
-    }), { threshold: .12 });
-    revealItems.forEach((el) => { el.dataset.reveal = ''; observer.observe(el); });
-} else {
-    revealItems.forEach((el) => el.classList.add('is-visible'));
-}
-
-if (progress) addEventListener('scroll', () => {
-    const range = document.documentElement.scrollHeight - innerHeight;
-    progress.style.transform = `scaleY(${range > 0 ? scrollY / range : 0})`;
-}, { passive: true });
-
-const mobileLinks = [...document.querySelectorAll('.ml-mobile-nav a')];
-if ('IntersectionObserver' in window && mobileLinks.length) {
-    const targets = mobileLinks.map((a) => document.querySelector(a.hash)).filter(Boolean);
-    const navObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        mobileLinks.forEach((link) => {
-            const active = link.hash === `#${entry.target.id}`;
-            link.classList.toggle('is-active', active);
-            link.toggleAttribute('aria-current', active);
-        });
-    }), { rootMargin: '-25% 0px -60%' });
-    targets.forEach((el) => navObserver.observe(el));
-}
-
-document.querySelectorAll('[data-countdown]').forEach((el) => {
-    const units = Object.fromEntries(
-        [...el.querySelectorAll('[data-countdown-unit]')].map((u) => [u.dataset.countdownUnit, u])
-    );
-    const target = new Date(el.dataset.countdown);
-    let timer;
+document.querySelectorAll('[data-countdown]').forEach((element) => {
+    const output = element.querySelector('[data-countdown-output]');
     const update = () => {
-        const remaining = Math.max(0, Math.floor((target - new Date()) / 1000));
-        units.days.textContent = String(Math.floor(remaining / 86400)).padStart(2, '0');
-        units.hours.textContent = String(Math.floor(remaining % 86400 / 3600)).padStart(2, '0');
-        units.minutes.textContent = String(Math.floor(remaining % 3600 / 60)).padStart(2, '0');
-        units.seconds.textContent = String(remaining % 60).padStart(2, '0');
-        if (remaining <= 0) clearInterval(timer);
+        if (!output) return;
+        const seconds = Math.floor((new Date(element.dataset.countdown) - new Date()) / 1000);
+        if (seconds <= 0) {
+            output.textContent = 'Hari bahagia telah tiba';
+            return;
+        }
+        const values = {
+            days: Math.floor(seconds / 86400),
+            hours: Math.floor(seconds % 86400 / 3600),
+            minutes: Math.floor(seconds % 3600 / 60),
+            seconds: seconds % 60,
+        };
+        Object.entries(values).forEach(([unit, value]) => {
+            const unitEl = output.querySelector(`[data-countdown-unit="${unit}"]`);
+            if (unitEl) unitEl.textContent = String(value).padStart(2, '0');
+        });
     };
     update();
-    if (target > new Date()) timer = setInterval(update, 1000);
+    setInterval(update, 1000);
 });
+
+/* One scroll listener publishes two numbers — pixels scrolled and page progress —
+   and the vines, leaves and frame read them. rAF-throttled and passive. */
+(function () {
+    if (!motionAllowed) return;
+
+    let ticking = false;
+
+    const update = () => {
+        const range = document.documentElement.scrollHeight - window.innerHeight;
+        html.style.setProperty('--ml-scroll', String(Math.round(window.scrollY)));
+        html.style.setProperty('--ml-progress', String(range > 0 ? Math.min(1, window.scrollY / range) : 0));
+        ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(update);
+    }, { passive: true });
+
+    update();
+})();
+
+/* Reveal in one pass. `.ml-armed` is added only when motion is allowed, so a
+   blocked or failed script leaves every section already visible. */
+(function () {
+    if (!motionAllowed || !('IntersectionObserver' in window)) return;
+
+    html.classList.add('ml-armed');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+        });
+    }, { threshold: .12, rootMargin: '0px 0px -8% 0px' });
+
+    document.querySelectorAll('[data-reveal]').forEach((element) => {
+        // Siblings inside one group rise in sequence; unrelated sections do not.
+        const siblings = Array.from(element.parentElement?.children || []).filter((child) => child.hasAttribute('data-reveal'));
+        element.style.setProperty('--ml-i', String(Math.min(Math.max(siblings.indexOf(element), 0), 5)));
+        observer.observe(element);
+    });
+})();

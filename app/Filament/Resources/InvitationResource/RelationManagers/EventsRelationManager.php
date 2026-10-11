@@ -34,11 +34,13 @@ class EventsRelationManager extends RelationManager
                             ->label('Nama / Label Acara')
                             ->placeholder('Akad Nikah / Resepsi')
                             ->required()
+                            ->helperText('Nama acara yang tampil di undangan.')
                             ->maxLength(255),
 
                         DatePicker::make('date')
                             ->label('Tanggal Acara')
-                            ->required(),
+                            ->required()
+                            ->helperText('Tanggal pelaksanaan.'),
 
                         TimePicker::make('start_time')
                             ->label('Waktu Mulai')
@@ -56,7 +58,8 @@ class EventsRelationManager extends RelationManager
                                 'Asia/Jayapura' => 'WIT (Asia/Jayapura)',
                             ])
                             ->default('Asia/Jakarta')
-                            ->required(),
+                            ->required()
+                            ->helperText('Dipakai untuk label jam yang dilihat tamu (WIB/WITA/WIT).'),
 
                         TextInput::make('venue_name')
                             ->label('Nama Tempat / Lokasi')
@@ -72,19 +75,22 @@ class EventsRelationManager extends RelationManager
                             ->label('Link Google Maps')
                             ->placeholder('https://maps.google.com/?q=...')
                             ->url()
+                            ->helperText('Tamu bisa klik tombol navigasi langsung ke lokasi ini.')
                             ->columnSpanFull(),
 
                         TextInput::make('latitude')
                             ->label('Latitude')
                             ->numeric()
                             ->minValue(-90)
-                            ->maxValue(90),
+                            ->maxValue(90)
+                            ->helperText('Isi bersama Longitude agar peta tersemat di undangan.'),
 
                         TextInput::make('longitude')
                             ->label('Longitude')
                             ->numeric()
                             ->minValue(-180)
-                            ->maxValue(180),
+                            ->maxValue(180)
+                            ->helperText('Bisa disalin dari Google Maps (klik kanan lokasi → salin koordinat).'),
 
                         TextInput::make('dress_code')
                             ->label('Dress Code / Pakaian')
@@ -93,19 +99,23 @@ class EventsRelationManager extends RelationManager
 
                         Toggle::make('is_primary')
                             ->label('Acara Utama (Hitung Mundur Countdown)')
-                            ->default(false),
+                            ->default(false)
+                            ->helperText('Hanya satu acara yang jadi acuan hitung mundur.'),
 
                         Textarea::make('parking_notes')
                             ->label('Petunjuk Parkir')
-                            ->rows(2),
+                            ->rows(2)
+                            ->helperText('Tampil sebagai catatan tambahan di bagian lokasi.'),
 
                         Textarea::make('landmark_notes')
                             ->label('Patokan Lokasi')
-                            ->rows(2),
+                            ->rows(2)
+                            ->helperText('Contoh: seberang minimarket, sebelah masjid.'),
 
                         Textarea::make('entrance_notes')
                             ->label('Petunjuk Pintu Masuk')
-                            ->rows(2),
+                            ->rows(2)
+                            ->helperText('Contoh: masuk lewat gerbang samping, lift ke lantai 3.'),
 
                     ])->columns(2),
             ]);

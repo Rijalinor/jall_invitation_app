@@ -8,6 +8,8 @@ const root = document.body;
 const music = document.querySelector('[data-music]');
 const musicToggle = document.querySelector('[data-music-toggle]');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mode = root.dataset.motion || 'calm';
+const motionAllowed = mode !== 'off' && !reducedMotion;
 
 document.querySelectorAll('[data-cover-video]').forEach((video) => {
     if (reducedMotion) return video.remove();
@@ -139,12 +141,36 @@ if ('IntersectionObserver' in window) {
     }, { passive: true });
 })();
 
+/* One scroll listener publishes the scrolled pixels and the page progress; the
+   sea swells rise on --cv-scroll and the spray drifts on --cv-progress.
+   rAF-throttled and passive, so it never reads layout per frame. */
+(function () {
+    if (!motionAllowed) {
+        return;
+    }
+
+    let ticking = false;
+
+    const update = () => {
+        const range = document.documentElement.scrollHeight - window.innerHeight;
+        document.documentElement.style.setProperty('--cv-scroll', String(Math.round(window.scrollY)));
+        document.documentElement.style.setProperty('--cv-progress', String(range > 0 ? Math.min(1, window.scrollY / range) : 0));
+        ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(update);
+    }, { passive: true });
+
+    update();
+})();
+
 /* Reveal in one pass. `.cv-armed` is added only when motion is allowed, so a
    blocked or failed script leaves every section already visible. */
 (function () {
-    const mode = root.dataset.motion || 'calm';
-
-    if (mode === 'off' || reducedMotion || !('IntersectionObserver' in window)) {
+    if (!motionAllowed || !('IntersectionObserver' in window)) {
         return;
     }
 

@@ -32,7 +32,8 @@ class GiftMethodsRelationManager extends RelationManager
                             ->label('Tipe Hadiah')
                             ->options(collect(GiftMethodType::cases())->mapWithKeys(fn (GiftMethodType $type) => [$type->value => $type->label()]))
                             ->default(GiftMethodType::BANK_TRANSFER->value)
-                            ->required(),
+                            ->required()
+                            ->helperText('Hadiah fisik wajib diisi alamat kirim; bank/e-wallet butuh nama pemilik.'),
 
                         TextInput::make('provider')
                             ->label('Nama Bank / E-Wallet / Kurir')
@@ -44,16 +45,19 @@ class GiftMethodsRelationManager extends RelationManager
                             ->label('Atas Nama (A/N)')
                             ->placeholder('Budi Santoso')
                             ->required()
+                            ->helperText('Nama pemilik rekening / e-wallet.')
                             ->maxLength(255),
 
                         TextInput::make('account_number')
                             ->label('Nomor Rekening / Nomor E-Wallet')
                             ->placeholder('1234567890')
+                            ->helperText('Tampil di undangan dan bisa disalin tamu — periksa ulang.')
                             ->maxLength(255),
 
                         Textarea::make('delivery_address')
                             ->label('Alamat Pengiriman Hadiah Fisik')
                             ->rows(3)
+                            ->helperText('Wajib untuk tipe hadiah fisik.')
                             ->columnSpanFull(),
 
                         Textarea::make('notes')

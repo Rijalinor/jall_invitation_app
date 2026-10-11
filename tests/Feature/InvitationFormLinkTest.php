@@ -430,7 +430,7 @@ class InvitationFormLinkTest extends TestCase
                 ['label' => 'WO', 'name' => 'Dewi', 'phone' => '+62 812-3456-7890'],
                 ['name' => ''],
             ],
-        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'selesai']));
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tulisan']));
 
         $this->assertSame(2, $invitation->contacts()->count());
         $this->assertSame('Rani', $invitation->contacts()->orderBy('position')->first()->name);
@@ -872,6 +872,168 @@ class InvitationFormLinkTest extends TestCase
             ->assertOk()
             ->assertSee('https://wa.me/?text=', false)
             ->assertDontSee('https://wa.me/628123456789', false);
+    }
+
+    public function test_the_wording_and_structure_steps_render(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $invitation->sections()->create(['key' => 'opening', 'enabled' => true, 'position' => 0]);
+        $token = $links->issue($invitation);
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'tulisan']))
+            ->assertOk()
+            ->assertSee('name="opening_text"', false)
+            ->assertSee('name="closing_families[0][label]"', false)
+            ->assertSee('name="labels[', false)
+            ->assertSee('data-fill-target="opening_text"', false)
+            ->assertSee('Klik contoh untuk memakainya');
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'susunan']))
+            ->assertOk()
+            ->assertSee('name="sections[0][key]"', false)
+            ->assertSee('name="music"', false);
+    }
+
+    public function test_the_customer_can_save_wording_families_and_labels(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'tulisan']), [
+            'opening_text' => 'Baris pembuka.',
+            'closing_message' => 'Terima kasih.',
+            'closing_footer' => 'Turut mengundang keluarga besar.',
+            'share_message' => 'Kepada Yth. [nama], datang ya.',
+            'closing_families' => [
+                ['label' => 'Keluarga Pria', 'names' => 'Bapak A & Ibu B'],
+                ['label' => '', 'names' => ''],
+                ['label' => 'Keluarga Wanita', 'names' => 'Bapak C'],
+            ],
+            'labels' => [
+                'hosts_title' => 'Mempelai Tercinta',
+                'tidak_dikenal' => 'harus diabaikan',
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'susunan']));
+
+        $invitation->refresh();
+
+        $this->assertSame('Baris pembuka.', $invitation->opening_text);
+        $this->assertSame('Terima kasih.', $invitation->closing_message);
+        $this->assertSame('Turut mengundang keluarga besar.', $invitation->settings_json['closing_footer']);
+        $this->assertSame('Kepada Yth. [nama], datang ya.', $invitation->share_message);
+
+        // Empty family rows are dropped, and a label key the template never
+        // declares is ignored rather than stored.
+        $this->assertSame([
+            ['label' => 'Keluarga Pria', 'names' => 'Bapak A & Ibu B'],
+            ['label' => 'Keluarga Wanita', 'names' => 'Bapak C'],
+        ], $invitation->settings_json['closing_families']);
+        $this->assertSame(['hosts_title' => 'Mempelai Tercinta'], $invitation->settings_json['labels']);
+
+        // The section wording reaches the published invitation.
+        $invitation->update(['status' => 'published']);
+        $invitation->hosts()->create(['name' => 'Rangga', 'role' => 'groom', 'position' => 0]);
+
+        $this->get('/undangan-satu')->assertOk()->assertSee('Mempelai Tercinta');
+    }
+
+    public function test_the_customer_can_toggle_and_reorder_sections(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $invitation->sections()->createMany([
+            ['key' => 'opening', 'enabled' => true, 'position' => 0],
+            ['key' => 'hosts', 'enabled' => true, 'position' => 1],
+            ['key' => 'events', 'enabled' => true, 'position' => 2],
+        ]);
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'susunan']), [
+            'sections' => [
+                ['key' => 'events', 'enabled' => '1'],
+                ['key' => 'opening', 'enabled' => '1'],
+                ['key' => 'hosts'],
+            ],
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $this->assertSame(['events', 'opening', 'hosts'], $invitation->sections()->orderBy('position')->pluck('key')->all());
+        $this->assertFalse($invitation->sections()->where('key', 'hosts')->first()->enabled);
+    }
+
+    public function test_the_customer_can_upload_and_remove_music(): void
+    {
+        Storage::fake('public');
+
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'susunan']), [
+            'sections' => [],
+            'music' => UploadedFile::fake()->create('lagu.mp3', 500, 'audio/mpeg'),
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $path = $invitation->fresh()->music_path;
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+
+        $this->post(route('invitation-form.update', ['token' => $token, 'step' => 'susunan']), [
+            'sections' => [],
+            'remove_music' => '1',
+        ])->assertRedirect(route('invitation-form.show', ['token' => $token, 'step' => 'tamu']));
+
+        $this->assertNull($invitation->fresh()->music_path);
+        Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_a_row_with_content_but_no_name_is_reported(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        // A contact with a phone but no name used to vanish without a word.
+        $this->from(route('invitation-form.show', ['token' => $token]))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'kontak']), [
+                'kontak' => [['label' => 'WO', 'name' => '', 'phone' => '081234567890']],
+            ])->assertSessionHasErrors('form', null, 'form');
+
+        $this->assertSame(0, $invitation->contacts()->count());
+
+        // Same for a guest.
+        $this->from(route('invitation-form.show', ['token' => $token]))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+                'tamu' => [['display_name' => '', 'group' => 'Keluarga']],
+            ])->assertSessionHasErrors('form', null, 'form');
+
+        $this->assertSame(0, $invitation->guests()->count());
+    }
+
+    public function test_a_guest_phone_must_be_usable(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->from(route('invitation-form.show', ['token' => $token]))
+            ->post(route('invitation-form.update', ['token' => $token, 'step' => 'tamu']), [
+                'tamu' => [['display_name' => 'Budi', 'phone' => 'bukan nomor']],
+            ])->assertSessionHasErrors('tamu.0.phone', null, 'form');
+
+        $this->assertSame(0, $invitation->guests()->count());
+    }
+
+    public function test_the_host_form_no_longer_offers_the_dead_tiktok_field(): void
+    {
+        $links = app(FormLinks::class);
+        $invitation = $this->invitation('undangan-satu');
+        $token = $links->issue($invitation);
+
+        $this->get(route('invitation-form.show', ['token' => $token, 'step' => 'mempelai']))
+            ->assertOk()
+            ->assertDontSee('social_tiktok', false);
     }
 
     /**

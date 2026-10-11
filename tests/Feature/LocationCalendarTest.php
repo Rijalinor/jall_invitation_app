@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Invitation;
+use App\Services\TemplateRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -59,12 +60,28 @@ class LocationCalendarTest extends TestCase
         $this->get($url)->assertNotFound();
     }
 
-    private function invitationWithEvent(): array
+    /**
+     * The calendar actions were removed from every design on purpose, so no
+     * template may ship an add-to-calendar link again.
+     */
+    public function test_no_design_offers_add_to_calendar(): void
+    {
+        foreach (array_keys(app(TemplateRegistry::class)->all()) as $template) {
+            $this->invitationWithEvent($template, 'acara-'.$template);
+
+            $this->get('/acara-'.$template)->assertOk()
+                ->assertDontSee('Google Calendar')
+                ->assertDontSee('Unduh ICS')
+                ->assertDontSee('Tambah ke kalender');
+        }
+    }
+
+    private function invitationWithEvent(string $template = 'elegant-rose', string $slug = 'acara'): array
     {
         $invitation = Invitation::create([
             'customer_id' => Customer::create(['name' => 'Pemilik Acara'])->id,
-            'title' => 'Acara Bahagia', 'slug' => 'acara', 'event_type' => 'wedding',
-            'template_id' => 'elegant-rose', 'status' => 'published',
+            'title' => 'Acara Bahagia', 'slug' => $slug, 'event_type' => 'wedding',
+            'template_id' => $template, 'status' => 'published',
         ]);
         $event = $invitation->events()->create([
             'label' => 'Akad Nikah', 'date' => '2027-01-10', 'start_time' => '08:00', 'end_time' => '10:00',

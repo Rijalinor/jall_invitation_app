@@ -2,11 +2,18 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 class TemplateRegistry
 {
     protected string $templatesPath;
+
+    /** Manifests already resolved during this request. */
+    private ?array $resolved = null;
+
+    /** Fingerprint of the template directory taken during this request. */
+    private ?string $signature = null;
 
     public function __construct()
     {
@@ -35,9 +42,41 @@ class TemplateRegistry
     }
 
     /**
-     * Get all registered templates with their manifests
+     * Get all registered templates with their manifests.
+     *
+     * Manifests ship with the code and only change on deploy, so they are read
+     * once per request and cached across requests. The directory fingerprint
+     * invalidates the entry the moment a manifest is added, removed or edited,
+     * while tests always read from disk so a temporary template never leaks into
+     * the next test.
      */
     public function all(): array
+    {
+        if (app()->runningUnitTests()) {
+            return $this->readManifests();
+        }
+
+        if ($this->resolved !== null) {
+            return $this->resolved;
+        }
+
+        $signature = $this->signature();
+
+        if ($signature === null) {
+            return $this->resolved = [];
+        }
+
+        return $this->resolved = Cache::store('file')->remember(
+            'invitation-templates:'.$signature,
+            now()->addDays(7),
+            fn (): array => $this->readManifests(),
+        );
+    }
+
+    /**
+     * Read and validate every manifest from disk. Only reached on a cache miss.
+     */
+    private function readManifests(): array
     {
         if (! File::exists($this->templatesPath)) {
             return [];
@@ -57,6 +96,40 @@ class TemplateRegistry
         }
 
         return $templates;
+    }
+
+    /**
+     * A cheap fingerprint of the template directory: the sorted directory names
+     * and each manifest's modification time. Taking it costs a handful of stat
+     * calls, far less than parsing every manifest, and it changes the instant a
+     * template is added, removed or edited.
+     */
+    private function signature(): ?string
+    {
+        if ($this->signature !== null) {
+            return $this->signature;
+        }
+
+        if (! File::isDirectory($this->templatesPath)) {
+            return $this->signature = null;
+        }
+
+        $entries = [];
+
+        foreach (File::directories($this->templatesPath) as $dir) {
+            $manifestPath = $dir.'/manifest.json';
+            $entries[basename($dir)] = File::exists($manifestPath) ? File::lastModified($manifestPath) : 0;
+        }
+
+        ksort($entries);
+
+        $parts = [];
+
+        foreach ($entries as $name => $modified) {
+            $parts[] = $name.':'.$modified;
+        }
+
+        return $this->signature = md5(implode('|', $parts));
     }
 
     /**

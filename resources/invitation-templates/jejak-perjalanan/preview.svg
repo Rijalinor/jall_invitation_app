@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Pratinjau template Jejak Perjalanan">
+    <defs>
+        <linearGradient id="jpSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f7f1e4"/>
+            <stop offset="1" stop-color="#eadfc9"/>
+        </linearGradient>
+        <linearGradient id="jpCard" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fffdf6"/>
+            <stop offset="1" stop-color="#f5edd9"/>
+        </linearGradient>
+        <radialGradient id="jpGlow" cx="0.7" cy="0.2" r="0.8">
+            <stop offset="0" stop-color="#2b4a6f" stop-opacity="0.16"/>
+            <stop offset="1" stop-color="#2b4a6f" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+
+    <rect width="1200" height="800" fill="url(#jpSky)"/>
+    <rect width="1200" height="800" fill="url(#jpGlow)"/>
+
+    <path d="M60 700 C 300 620, 420 470, 600 430 S 900 320, 1140 180" fill="none" stroke="#2b4a6f" stroke-opacity="0.42" stroke-width="3" stroke-dasharray="12 12" stroke-linecap="round"/>
+    <circle cx="60" cy="700" r="9" fill="#d1664a"/>
+    <circle cx="60" cy="700" r="18" fill="none" stroke="#d1664a" stroke-opacity="0.35" stroke-width="3"/>
+    <path d="M1128 168 l40 -22 -14 44 -12 -12 z" fill="#2b4a6f" stroke="#2b4a6f" stroke-width="4" stroke-linejoin="round"/>
+
+    <g transform="translate(300 210)">
+        <rect x="0" y="0" width="600" height="330" rx="14" fill="url(#jpCard)" stroke="#2b4a6f" stroke-opacity="0.24"/>
+        <rect x="0" y="0" width="120" height="330" fill="#2b4a6f" fill-opacity="0.08"/>
+        <line x1="120" y1="0" x2="120" y2="330" stroke="#2b4a6f" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="8 8"/>
+        <g transform="translate(60 165)">
+            <path d="M-16 -22 l30 20 -30 24 6 -24 z" fill="#2b4a6f"/>
+        </g>
+        <text x="132" y="70" font-family="Georgia, 'Times New Roman', serif" font-size="16" letter-spacing="6" fill="#d1664a">UNDANGAN PERJALANAN</text>
+        <text x="132" y="160" font-family="Georgia, 'Times New Roman', serif" font-size="62" fill="#222b33">Rangga &amp; Sinta</text>
+        <text x="132" y="205" font-family="Georgia, 'Times New Roman', serif" font-size="22" letter-spacing="3" fill="#7b7166">12 · 06 · 2027 — YOGYAKARTA</text>
+        <g transform="translate(132 250)" font-family="Georgia, serif" font-size="15" fill="#7b7166">
+            <text>20</text><text x="14" y="0" font-size="10">HARI</text>
+            <text x="90">08</text><text x="104" y="0" font-size="10">JAM</text>
+            <text x="180">32</text><text x="194" y="0" font-size="10">MENIT</text>
+            <text x="285">10</text><text x="299" y="0" font-size="10">DETIK</text>
+        </g>
+    </g>
+
+    <g opacity="0.6" fill="#2b4a6f">
+        <path d="M180 120 l26 17 -26 20 5 -20 z"/>
+        <path d="M1010 560 l22 15 -22 17 4 -17 z" opacity="0.7"/>
+        <path d="M920 120 l18 12 -18 14 3 -14 z" opacity="0.5"/>
+    </g>
+
+    <text x="600" y="640" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" fill="#222b33">Jejak Perjalanan</text>
+    <text x="600" y="676" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="4" fill="#7b7166">BOARDING PASS · ROUTE · COMPASS</text>
+</svg>

@@ -352,6 +352,18 @@
                     </div>
                 </section>
 
+            @elseif ($section === 'livestream' && $livestream_url)
+                <section data-height="{{ $section_heights['livestream'] ?? 'full' }}" class="fsb-section fsb-section--tint" aria-labelledby="livestream-title">
+                    <div class="fsb-section-header">
+                        <span class="fsb-badge">{{ $labels['livestream_eyebrow'] }} 📺</span>
+                        <h2 id="livestream-title">{{ $livestream_label }}</h2>
+                        <p>Gak bisa hadir? Saksikan momen bahagia kami dari mana pun kamu berada!</p>
+                    </div>
+                    <div class="fsb-actions fsb-actions--center">
+                        <a class="fsb-btn fsb-btn--primary" href="{{ $livestream_url }}" target="_blank" rel="noopener noreferrer">📺 {{ $livestream_label }}</a>
+                    </div>
+                </section>
+
             @elseif ($section === 'sharing')
                 <section data-height="{{ $section_heights['sharing'] ?? 'full' }}" class="fsb-section fsb-section--tint">
                     <div class="fsb-section-header">

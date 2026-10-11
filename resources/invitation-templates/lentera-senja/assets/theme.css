@@ -1,0 +1,462 @@
+/* Lentera Senja — "lampion naik".
+ *
+ * A dusk courtyard of floating lanterns. Motion is scroll-driven: one rAF
+ * listener publishes --lnt-scroll (px) and --lnt-progress (0..1) and everything
+ * else is CSS. Content is only hidden under `.lnt-armed`, a class theme.js adds
+ * once it can animate, so a blocked or failed script leaves the whole invitation
+ * visible and usable.
+ */
+
+.lentera-senja {
+    --lnt-accent: #d9a24a;             /* overridden inline from the admin setting */
+    --lnt-night: #150e26;
+    --lnt-night-2: #201436;
+    --lnt-plum: #3a2350;
+    --lnt-dusk: #7a3b5a;
+    --lnt-ember: #e07a3c;
+    --lnt-ink: #f6ecd9;
+    --lnt-muted: #c9b8a4;
+    --lnt-glow: color-mix(in srgb, var(--lnt-accent) 62%, #ffe1a6);
+    --lnt-action: color-mix(in srgb, var(--lnt-accent) 72%, #6a3610);
+    --lnt-surface: color-mix(in srgb, var(--lnt-plum) 76%, #0d0918);
+    --lnt-line: color-mix(in srgb, var(--lnt-accent) 28%, transparent);
+    /* Aliases consumed by the shared components (forms, blocks, gifts, dialogs). */
+    --inv-accent: var(--lnt-glow);
+    --inv-paper: var(--lnt-surface);
+    --inv-ink: var(--lnt-ink);
+    --inv-line: var(--lnt-line);
+    margin: 0;
+    color: var(--lnt-ink);
+    background: linear-gradient(180deg, var(--lnt-night) 0%, #241637 46%, var(--lnt-dusk) 100%) fixed;
+    font: 400 1rem/1.7 'Mulish', ui-sans-serif, system-ui, sans-serif;
+}
+
+html:has(body.lentera-senja) { scroll-behavior: smooth; }
+.lentera-senja *, .lentera-senja *::before, .lentera-senja *::after { box-sizing: border-box; }
+.lentera-senja h1, .lentera-senja h2, .lentera-senja h3 { margin: 0 0 1rem; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; line-height: 1.05; }
+.lentera-senja h1 { font-size: clamp(2.6rem, 12vw, 6rem); letter-spacing: -.01em; }
+.lentera-senja h2 { font-size: clamp(2.1rem, 8.5vw, 4.4rem); }
+.lentera-senja h3 { font-size: clamp(1.35rem, 4.4vw, 2rem); }
+.lentera-senja p { margin: .6rem 0; }
+.lentera-senja p, .lentera-senja a, .lentera-senja button { overflow-wrap: anywhere; }
+.lentera-senja a, .lentera-senja button, .lentera-senja input, .lentera-senja select, .lentera-senja textarea { font: inherit; }
+.lentera-senja a { color: var(--lnt-glow); }
+.lentera-senja img { display: block; max-width: 100%; }
+
+/* -- Ambient lantern field ---------------------------------------------------
+   A fixed layer behind every section. Each lantern drifts a little (the inner
+   body) while the outer element is pushed by the page scroll at its own depth,
+   so near and far lanterns separate. Drawn only with gradients so nothing blocks
+   the first paint. */
+.lnt-ambient, .lnt-veil { position: fixed; z-index: 0; inset: 0; pointer-events: none; }
+.lnt-ambient { overflow: hidden; }
+/* Lanterns rise across the viewport on a loop, so the sky stays alive at every
+   scroll position; the scroll only adds a small, bounded drift for depth. */
+.lnt-lantern {
+    position: absolute;
+    top: 0;
+    transform: translate3d(0, calc((var(--lnt-progress, 0) - .5) * var(--lnt-drift, 26px)), 0);
+    animation: lnt-rise var(--lnt-rise, 28s) linear var(--lnt-rdelay, 0s) infinite;
+}
+.lnt-lantern__body {
+    display: block;
+    width: var(--lnt-size, 1.05rem);
+    height: calc(var(--lnt-size, 1.05rem) * 1.35);
+    border-radius: 46% 46% 42% 42%;
+    background: radial-gradient(circle at 50% 32%, #ffe9c0, var(--lnt-glow) 58%, color-mix(in srgb, var(--lnt-ember) 78%, transparent));
+    box-shadow: 0 0 1.5rem .45rem color-mix(in srgb, var(--lnt-glow) 40%, transparent);
+    opacity: var(--lnt-opacity, .55);
+    animation: lnt-bob var(--lnt-bob, 7s) ease-in-out var(--lnt-delay, 0s) infinite alternate;
+}
+.lnt-lantern--1 { left: 8%; --lnt-size: .95rem; --lnt-rise: 28s; --lnt-rdelay: 0s; --lnt-drift: 22px; --lnt-delay: 0s; --lnt-bob: 6.5s; }
+.lnt-lantern--2 { left: 84%; --lnt-size: 1.35rem; --lnt-rise: 34s; --lnt-rdelay: -12s; --lnt-drift: 32px; --lnt-delay: -2s; --lnt-bob: 8s; --lnt-opacity: .6; }
+.lnt-lantern--3 { left: 14%; --lnt-size: 1.7rem; --lnt-rise: 30s; --lnt-rdelay: -20s; --lnt-drift: 40px; --lnt-delay: -4s; --lnt-bob: 9s; --lnt-opacity: .5; }
+.lnt-lantern--4 { left: 78%; --lnt-size: 1rem; --lnt-rise: 26s; --lnt-rdelay: -6s; --lnt-drift: 24px; --lnt-delay: -1s; --lnt-bob: 7.5s; }
+.lnt-lantern--5 { left: 24%; --lnt-size: 1.2rem; --lnt-rise: 32s; --lnt-rdelay: -24s; --lnt-drift: 28px; --lnt-delay: -3s; --lnt-bob: 8.5s; --lnt-opacity: .5; }
+.lnt-lantern--6 { left: 66%; --lnt-size: 1.8rem; --lnt-rise: 36s; --lnt-rdelay: -16s; --lnt-drift: 44px; --lnt-delay: -5s; --lnt-bob: 9.5s; --lnt-opacity: .55; }
+.lnt-lantern--7 { left: 50%; --lnt-size: .85rem; --lnt-rise: 24s; --lnt-rdelay: -9s; --lnt-drift: 18px; --lnt-delay: -2.5s; --lnt-bob: 6s; --lnt-opacity: .4; }
+@keyframes lnt-rise { from { translate: 0 112svh; } to { translate: 0 -12svh; } }
+@keyframes lnt-bob {
+    from { transform: translateY(-.4rem) rotate(-3.5deg); }
+    to { transform: translateY(.4rem) rotate(3.5deg); }
+}
+/* The dusk deepens as the guest scrolls: a fixed veil whose opacity follows the
+   page progress, so the sky reads darker the further in they go. */
+.lnt-veil {
+    background: linear-gradient(180deg, transparent 40%, rgba(8, 6, 16, .85));
+    opacity: calc(var(--lnt-progress, 0) * .9);
+}
+
+/* -- Cover ------------------------------------------------------------------ */
+.lnt-cover {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(2.4rem, env(safe-area-inset-bottom));
+    overflow: hidden;
+    transition: opacity .8s ease, visibility .8s ease;
+}
+.lnt-cover__poster, .lnt-cover__video {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .82;
+}
+.lnt-cover::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(20, 12, 40, .5), rgba(30, 17, 52, .62) 42%, rgba(10, 7, 22, calc(.72 + var(--lnt-cover-veil, .6) * .2)));
+}
+.lnt-cover__video--desktop { display: none; }
+.lnt-cover__video--mobile { display: block; }
+.lnt-cover__sky { position: absolute; z-index: 2; inset: 0; pointer-events: none; overflow: hidden; }
+.lnt-cover__lantern {
+    position: absolute;
+    width: 1.4rem;
+    height: 1.9rem;
+    border-radius: 46% 46% 42% 42%;
+    background: radial-gradient(circle at 50% 32%, #ffe9c0, var(--lnt-glow) 60%, color-mix(in srgb, var(--lnt-ember) 80%, transparent));
+    box-shadow: 0 0 1.8rem .55rem color-mix(in srgb, var(--lnt-glow) 42%, transparent);
+    opacity: .8;
+    transition: transform 1.6s cubic-bezier(.2, .7, .2, 1), opacity 1.3s ease;
+}
+.lnt-cover__lantern--a { top: 18%; left: 14%; animation: lnt-bob 8s ease-in-out infinite alternate; }
+.lnt-cover__lantern--b { top: 30%; left: 76%; width: 1.1rem; height: 1.5rem; animation: lnt-bob 9s ease-in-out -2s infinite alternate; }
+.lnt-cover__lantern--c { top: 12%; left: 44%; width: 1rem; height: 1.35rem; animation: lnt-bob 7s ease-in-out -4s infinite alternate; }
+.lnt-cover__lantern--d { top: 40%; left: 62%; width: 1.2rem; height: 1.6rem; animation: lnt-bob 10s ease-in-out -1s infinite alternate; }
+/* The signature moment: when the guest opens the invitation, the cover lanterns
+   rise and fade, lifting the dusk away from the page. */
+.invitation-open .lnt-cover__lantern { transform: translateY(-45%) scale(1.1); opacity: 0; }
+.lnt-cover__panel {
+    position: relative;
+    z-index: 3;
+    width: min(100%, 34rem);
+    padding: clamp(1.5rem, 6vw, 3rem) clamp(1.15rem, 5vw, 2.6rem);
+    text-align: center;
+    background: linear-gradient(180deg, rgba(28, 17, 48, .42), rgba(20, 12, 40, .62));
+    border: 1px solid color-mix(in srgb, var(--lnt-glow) 40%, transparent);
+    box-shadow: 0 2.5rem 7rem rgba(6, 4, 14, .55);
+    backdrop-filter: blur(8px);
+    transition: opacity .6s ease, transform .7s cubic-bezier(.22, 1, .36, 1);
+}
+.lnt-cover__panel::before { content: ''; position: absolute; inset: .6rem; border: 1px solid color-mix(in srgb, var(--lnt-glow) 24%, transparent); pointer-events: none; }
+.lnt-cover__panel .invitation-eyebrow { color: var(--lnt-glow); }
+.lnt-cover__panel p { color: var(--lnt-muted); }
+.lnt-cover__date { display: block; margin: -.2rem 0 1.6rem; color: var(--lnt-glow); font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; }
+.lnt-cover__countdown { margin: -.4rem auto 1.3rem; }
+.lnt-cover__countdown-label { display: block; margin-bottom: .45rem; color: var(--lnt-muted); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; }
+.lnt-cover__countdown > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
+.lnt-cover__countdown > div > span { display: grid; gap: .06rem; padding: .35rem .2rem; border: 1px solid color-mix(in srgb, var(--lnt-glow) 30%, transparent); background: rgba(12, 8, 24, .35); }
+.lnt-cover__countdown strong { font: 600 1.05rem/1.1 'Cormorant Garamond', serif; color: #fff; }
+.lnt-cover__countdown small { color: var(--lnt-muted); font-size: .5rem; letter-spacing: .06em; text-transform: uppercase; }
+.lnt-cover__to { margin: .4rem 0 0; }
+.lnt-cover__name { display: block; margin: .1rem auto 1.6rem; max-width: 24rem; font-family: 'Cormorant Garamond', serif; font-size: clamp(1.3rem, 5vw, 1.8rem); color: #fff; }
+.lentera-senja .lnt-cover__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: .72rem 1.6rem;
+    border: 1px solid var(--lnt-glow);
+    border-radius: 999px;
+    color: var(--lnt-night);
+    background: var(--lnt-glow);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+}
+.lentera-senja .lnt-cover__cta:hover { transform: translateY(-1px); box-shadow: 0 0 1.4rem color-mix(in srgb, var(--lnt-glow) 60%, transparent); }
+
+/* Gating: the invitation is reachable without scripting (real anchor + :target). */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .lnt-cover { visibility: hidden; pointer-events: none; }
+.invitation-open .lnt-cover { opacity: 0; visibility: hidden; }
+.invitation-open .lnt-cover__panel { opacity: 0; transform: translateY(-1rem) scale(.97); }
+
+/* -- Chapter rail + light trail --------------------------------------------- */
+.lnt-rail {
+    position: fixed;
+    z-index: 10;
+    top: 50%;
+    right: max(.5rem, env(safe-area-inset-right));
+    display: grid;
+    gap: .55rem;
+    justify-items: center;
+    padding: .7rem .35rem;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity .6s ease;
+}
+.invitation-open .lnt-rail { opacity: 1; }
+.lnt-rail::before { content: ''; position: absolute; top: .7rem; bottom: .7rem; width: 1px; background: color-mix(in srgb, var(--lnt-glow) 22%, transparent); }
+.lnt-rail__trail {
+    position: absolute;
+    top: .7rem;
+    bottom: .7rem;
+    width: 1px;
+    background: linear-gradient(180deg, #ffe9c0, var(--lnt-glow));
+    transform: scaleY(var(--lnt-progress, 0));
+    transform-origin: top;
+}
+.lnt-rail__link { position: relative; z-index: 1; display: grid; place-items: center; width: 44px; height: 26px; text-decoration: none; }
+.lnt-rail__dot { width: .5rem; height: .5rem; border-radius: 50%; background: color-mix(in srgb, var(--lnt-glow) 35%, transparent); box-shadow: 0 0 0 3px rgba(10, 7, 22, .55); transition: background .3s, transform .3s; }
+.lnt-rail__link.is-active .lnt-rail__dot { background: var(--lnt-glow); transform: scale(1.35); }
+.lnt-rail__label { position: absolute; right: 130%; padding: .2rem .55rem; border-radius: 999px; color: var(--lnt-ink); background: rgba(12, 8, 24, .8); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; opacity: 0; transition: opacity .25s; }
+.lnt-rail__link:hover .lnt-rail__label, .lnt-rail__link:focus-visible .lnt-rail__label { opacity: 1; }
+.lnt-rail__link:focus-visible { outline: 2px solid var(--lnt-glow); outline-offset: 3px; }
+
+/* -- Sections --------------------------------------------------------------- */
+.lnt-hero, .lnt-countdown, .lnt-closing { position: relative; }
+.lentera-senja .invitation-section {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 62rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem));
+    overflow: hidden;
+    text-align: center;
+}
+.lentera-senja .invitation-section > * { position: relative; z-index: 1; }
+.lentera-senja .invitation-section > p { max-width: 42rem; margin-inline: auto; }
+/* The tint band is the LAST background rule that paints the section element;
+   nothing below repaints `.invitation-section`, so the test that guards the
+   cascade stays green. Sections are otherwise transparent so the lantern sky
+   shows through. */
+.lentera-senja .invitation-section--tint { width: 100%; max-width: none; background: linear-gradient(180deg, color-mix(in srgb, var(--lnt-plum) 62%, transparent), color-mix(in srgb, var(--lnt-accent) 8%, transparent)); }
+.lentera-senja .invitation-section--compact { padding-block: 3rem; }
+
+.lentera-senja .invitation-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+    color: var(--lnt-glow);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+}
+.lentera-senja .invitation-eyebrow::before, .lentera-senja .invitation-eyebrow::after { content: ''; width: 1.6rem; height: 1px; background: currentColor; opacity: .5; }
+
+.lnt-couple-title { display: grid; justify-items: center; text-align: center; }
+/* The cover panel is narrower than a section, so its heading is capped and allowed
+   to wrap — a long pair of names must never spill outside the card on desktop. */
+.lnt-cover__panel h1 { font-size: clamp(2rem, 7vw, 3.4rem); overflow-wrap: anywhere; }
+.lnt-cover__panel h1 span { max-width: 100%; overflow-wrap: anywhere; }
+.lnt-couple-title span { max-width: 13ch; }
+.lnt-couple-title i { margin: -.08em 0; color: var(--lnt-glow); font-size: .7em; font-weight: 400; }
+.lnt-date { margin-top: 1.4rem !important; color: var(--lnt-glow); font-size: .8rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+
+/* -- Opening hero ----------------------------------------------------------- */
+.lnt-hero { overflow: hidden; }
+.lnt-hero__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .34; }
+.lnt-hero__video--desktop { display: none; }
+.lnt-hero__inner { position: relative; z-index: 1; }
+.lnt-hero__inner > p { max-width: 38rem; margin-inline: auto; }
+/* The hero assembles when the cover lifts, before the guest scrolls at all.
+   Armed only: with motion off or scripting blocked the hero is already visible. */
+.lnt-armed .lnt-hero__inner > * { opacity: 0; transform: translateY(1.4rem); transition: opacity .8s ease, transform .9s cubic-bezier(.2, .7, .2, 1); }
+.lnt-armed .invitation-open .lnt-hero__inner > * { opacity: 1; transform: none; }
+.lnt-armed .invitation-open .lnt-hero__inner > :nth-child(2) { transition-delay: .12s; }
+.lnt-armed .invitation-open .lnt-hero__inner > :nth-child(3) { transition-delay: .24s; }
+.lnt-armed .invitation-open .lnt-hero__inner > :nth-child(4) { transition-delay: .36s; }
+
+/* -- Hosts ------------------------------------------------------------------ */
+.lnt-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.5rem); max-width: 56rem; margin: clamp(1.4rem, 5vw, 3rem) auto 0; }
+.lnt-host { min-width: 0; }
+.lnt-host__portrait { position: relative; display: block; width: min(100%, 17rem); margin: 0 auto clamp(1.1rem, 4vw, 1.8rem); aspect-ratio: 4/5; overflow: hidden; border-radius: 999px 999px 1rem 1rem; background: color-mix(in srgb, var(--lnt-plum) 70%, transparent); box-shadow: 0 1.4rem 3rem rgba(6, 4, 14, .5); }
+.lnt-host__portrait::after { content: ''; position: absolute; inset: .5rem; border: 1px solid color-mix(in srgb, var(--lnt-glow) 40%, transparent); border-radius: inherit; pointer-events: none; }
+.lnt-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.lnt-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--lnt-glow); font: 600 clamp(3rem, 14vw, 7rem)/1 'Cormorant Garamond', serif; }
+.lnt-host h3 { margin-bottom: .55rem; overflow-wrap: anywhere; }
+.lnt-host p { max-width: 28ch; margin-inline: auto; color: var(--lnt-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.lnt-host__parents small { display: block; margin-bottom: .2rem; color: var(--lnt-glow); font-size: .62rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.lnt-host__parents span { display: block; }
+.lnt-host a { display: inline-block; min-height: 44px; padding-block: 1rem; margin-top: .5rem; color: var(--lnt-glow); font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; text-underline-offset: .25rem; }
+.lnt-hosts__and { align-self: center; color: var(--lnt-glow); font: italic 600 clamp(1.7rem, 6vw, 3.3rem)/1 'Cormorant Garamond', serif; }
+.lnt-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
+.lnt-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* -- Events + actions ------------------------------------------------------- */
+.lnt-events { display: grid; gap: 1rem; max-width: 56rem; margin: clamp(1.4rem, 4vw, 2.5rem) auto 0; }
+.lnt-event { position: relative; padding: clamp(1.25rem, 4vw, 2.2rem) clamp(1rem, 4vw, 2rem); background: color-mix(in srgb, var(--lnt-surface) 88%, transparent); border: 1px solid var(--lnt-line); }
+.lnt-event::after { content: ''; position: absolute; inset: .55rem; border: 1px solid color-mix(in srgb, var(--lnt-glow) 18%, transparent); pointer-events: none; }
+.lnt-event > * { position: relative; z-index: 1; }
+.lnt-event h3 { font-size: clamp(1.7rem, 5vw, 2.4rem); text-transform: capitalize; }
+.lnt-event__schedule, .lnt-event__venue, .lnt-event__notes { padding-block: 1rem; }
+.lnt-event__venue, .lnt-event__notes { border-top: 1px solid var(--lnt-line); }
+.lnt-event__venue p:last-child { color: var(--lnt-muted); font-size: .92rem; }
+.lnt-event small { display: block; color: var(--lnt-muted); line-height: 1.65; }
+.lnt-event small + small { margin-top: .55rem; }
+.lnt-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: center; margin-top: 1.4rem; }
+.lnt-actions > * { max-width: 100%; }
+.lnt-actions--center { justify-content: center; }
+.lentera-senja .lnt-actions a, .lentera-senja .lnt-actions button, .lentera-senja .lnt-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: .68rem 1.15rem;
+    border: 1px solid var(--lnt-glow);
+    border-radius: 999px;
+    color: var(--lnt-glow);
+    background: transparent;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .2s, background .2s, transform .2s;
+}
+.lentera-senja .lnt-actions a:hover, .lentera-senja .lnt-actions button:hover, .lentera-senja .lnt-button:hover { color: var(--lnt-night); background: var(--lnt-glow); transform: translateY(-1px); }
+
+/* -- Countdown -------------------------------------------------------------- */
+.lnt-countdown { width: 100%; max-width: none; }
+.lnt-countdown__units { width: min(100%, 54rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.4rem, 2vw, 1.4rem); margin: 1.6rem auto 0; }
+.lnt-countdown__units > span { display: grid; gap: .3rem; padding: 1rem .3rem; border: 1px solid var(--lnt-line); background: color-mix(in srgb, var(--lnt-night) 55%, transparent); }
+.lnt-countdown__units strong { color: #fff; font: 600 clamp(1.8rem, 7vw, 4rem)/1 'Cormorant Garamond', serif; }
+.lnt-countdown__units small { color: var(--lnt-muted); font-size: clamp(.58rem, 1.7vw, .7rem); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+
+/* -- Map -------------------------------------------------------------------- */
+.lnt-map { position: relative; width: 100%; margin: 2.2rem 0 1.3rem; aspect-ratio: 16/10; overflow: hidden; border: 1px solid var(--lnt-line); background: var(--lnt-surface); box-shadow: 0 1.4rem 3rem rgba(6, 4, 14, .45); }
+.lnt-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: saturate(.85) contrast(1.02); }
+
+/* -- Story timeline --------------------------------------------------------- */
+.lnt-timeline { position: relative; max-width: 42rem; margin: 2.6rem auto 0; padding-left: 2rem; text-align: left; }
+.lnt-timeline::before { content: ''; position: absolute; top: .4rem; bottom: .4rem; left: .32rem; width: 1px; background: linear-gradient(180deg, var(--lnt-glow), color-mix(in srgb, var(--lnt-glow) 10%, transparent)); }
+.lnt-story { position: relative; padding: 0 0 3rem 1.4rem; }
+.lnt-story::before { content: ''; position: absolute; left: -2rem; top: .3rem; width: .8rem; height: .8rem; border-radius: 50%; background: var(--lnt-glow); box-shadow: 0 0 0 4px color-mix(in srgb, var(--lnt-glow) 22%, transparent); }
+.lnt-story img { width: 100%; max-height: 24rem; margin-bottom: 1.1rem; object-fit: cover; border-radius: .35rem; box-shadow: 0 1.2rem 2.6rem rgba(6, 4, 14, .45); }
+.lnt-story small { color: var(--lnt-glow); font-weight: 700; letter-spacing: .08em; }
+.lnt-story h3 { margin: .25rem 0 .5rem; }
+.lnt-story p { color: var(--lnt-muted); }
+
+/* -- Gallery ---------------------------------------------------------------- */
+/* A plain downward grid: the photos read as one page the guest scrolls, with no
+   sideways carousel to swipe. */
+.lnt-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; max-width: 60rem; margin: clamp(1.25rem, 4vw, 2.5rem) auto 0; }
+.lnt-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; aspect-ratio: 1; border: 1px solid color-mix(in srgb, var(--lnt-glow) 24%, transparent); background: var(--lnt-surface); }
+.lnt-gallery figure:first-child { grid-column: span 2; aspect-ratio: 4/3; }
+.lnt-gallery button { width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; cursor: pointer; }
+.lnt-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.22, 1, .36, 1); }
+.lnt-gallery button:hover img { transform: scale(1.04); }
+.lnt-gallery figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 2rem .8rem .7rem; color: #fff; background: linear-gradient(transparent, rgba(8, 6, 16, .8)); font-size: .76rem; pointer-events: none; }
+
+/* -- Contacts --------------------------------------------------------------- */
+.lnt-contact-section { width: 100%; max-width: none; }
+.lnt-contact-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; width: min(100%, 44rem); margin: clamp(1.25rem, 4vw, 2.25rem) auto 0; }
+.lnt-contact-card { position: relative; display: grid; justify-items: center; gap: .55rem; min-height: 11rem; padding: clamp(1.4rem, 4vw, 2.1rem) 1.3rem; background: color-mix(in srgb, var(--lnt-surface) 90%, transparent); border: 1px solid var(--lnt-line); }
+.lnt-contact-card::before { content: ''; position: absolute; inset: .5rem; border: 1px solid color-mix(in srgb, var(--lnt-glow) 18%, transparent); pointer-events: none; }
+.lnt-contact-card > * { position: relative; }
+.lnt-contact-card small { display: block; margin-bottom: .35rem; color: var(--lnt-glow); font-size: .66rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.lnt-contact-card h3 { margin-bottom: .35rem; }
+
+/* -- Sharing + closing ------------------------------------------------------ */
+.lnt-share-section { width: 100%; max-width: none; }
+.lnt-closing { min-height: 75svh; }
+.lnt-closing::before { content: '❖'; display: block; margin-bottom: 1.2rem; color: var(--lnt-glow); font-size: 1.6rem; }
+.lnt-kicker { margin-top: 1.4rem !important; color: var(--lnt-muted); font-style: italic; }
+
+/* -- Shared forms, tuned for the dusk surface ------------------------------- */
+.lentera-senja .invitation-form { width: min(100%, 40rem); border: 1px solid var(--lnt-line); border-top: 3px solid var(--lnt-glow); color: var(--lnt-ink); }
+.lentera-senja .invitation-form label { color: var(--lnt-ink); }
+.lentera-senja .invitation-form input, .lentera-senja .invitation-form select, .lentera-senja .invitation-form textarea { color: var(--lnt-ink); background: color-mix(in srgb, var(--lnt-night) 62%, transparent); border: 1px solid var(--lnt-line); }
+.lentera-senja .invitation-form input:focus, .lentera-senja .invitation-form select:focus, .lentera-senja .invitation-form textarea:focus { border-color: var(--lnt-glow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lnt-glow) 28%, transparent); outline: 0; }
+.lentera-senja .invitation-form button { color: var(--lnt-night); background: var(--lnt-glow); }
+.lentera-senja .invitation-form option { color: #1c1430; }
+/* Strongest notice rule, so a template paragraph rule can never strip its colour. */
+.lentera-senja .invitation-section .invitation-notice { color: #1f5438; background: #e5f3e9; border-left: 3px solid #2f9e68; }
+
+/* -- Operator blocks, quotes and gifts dressed for the theme ----------------- */
+.lentera-senja .invitation-block-quote { border-left: 3px solid var(--lnt-glow); }
+.lentera-senja .invitation-block-quote p { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem); font-style: italic; }
+.lentera-senja .invitation-block-quote cite { color: var(--lnt-glow); }
+.lentera-senja .invitation-gifts { text-align: center; }
+.lentera-senja .invitation-gift-method__head, .lentera-senja .invitation-gift-method__actions { justify-content: center; }
+
+/* -- Music + lightbox ------------------------------------------------------- */
+.lnt-music { position: fixed; z-index: 11; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 46px; height: 46px; padding: 0; border: 1px solid var(--lnt-glow); border-radius: 50%; color: var(--lnt-night); background: var(--lnt-glow); font-size: 1rem; cursor: pointer; box-shadow: 0 0 1.4rem color-mix(in srgb, var(--lnt-glow) 55%, transparent); }
+.lnt-music[data-playing="true"] span { display: inline-block; animation: lnt-spin 4s linear infinite; }
+@keyframes lnt-spin { to { transform: rotate(360deg); } }
+.lnt-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 1px solid var(--lnt-line); background: #0c0818; }
+.lnt-lightbox::backdrop { background: rgba(6, 4, 14, .9); }
+.lnt-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.lnt-lightbox button { position: absolute; top: .6rem; right: .6rem; min-height: 40px; padding: .4rem .9rem; border: 1px solid var(--lnt-glow); border-radius: 999px; color: var(--lnt-glow); background: transparent; cursor: pointer; }
+
+.lentera-senja a:focus-visible, .lentera-senja button:focus-visible, .lentera-senja input:focus-visible, .lentera-senja select:focus-visible, .lentera-senja textarea:focus-visible { outline: 3px solid var(--lnt-glow); outline-offset: 3px; }
+
+/* -- Reveal (armed only) ----------------------------------------------------
+   Content is hidden only under `.lnt-armed`, so nothing here is what makes it
+   appear. Role-based variants: kickers drop, headings zoom, media/text rise. */
+.lnt-armed [data-reveal] { opacity: 0; filter: blur(4px); transform: translateY(1.6rem); transition: opacity .75s ease, filter .8s ease, transform .85s cubic-bezier(.2, .7, .2, 1); transition-delay: calc(var(--lnt-i, 0) * 85ms); }
+.lnt-armed [data-reveal="down"] { transform: translateY(-1.2rem); }
+.lnt-armed [data-reveal="zoom"] { transform: scale(.9); filter: blur(3px); }
+.lnt-armed [data-reveal].is-visible { opacity: 1; filter: none; transform: none; }
+
+/* -- Per section height ----------------------------------------------------- */
+.lentera-senja .invitation-section[data-height="tall"] { min-height: 75svh; }
+.lentera-senja .invitation-section[data-height="half"] { min-height: 50svh; }
+.lentera-senja .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* -- Motion off, and reduced motion ----------------------------------------- */
+.lentera-senja[data-motion="off"] *, .lentera-senja[data-motion="off"] *::before, .lentera-senja[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+.lentera-senja[data-motion="off"] .lnt-ambient { display: none; }
+.lentera-senja[data-motion="off"] .lnt-veil { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.lentera-senja) { scroll-behavior: auto; }
+    .lentera-senja *, .lentera-senja *::before, .lentera-senja *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .lnt-ambient, .lnt-veil, .lnt-cover__sky { display: none; }
+    .lnt-armed [data-reveal] { opacity: 1 !important; filter: none !important; transform: none !important; }
+}
+
+/* -- Responsive ------------------------------------------------------------- */
+@media (max-width: 30rem) {
+    .lnt-hosts { gap: .35rem; }
+    .lnt-host h3 { font-size: 1.08rem; }
+    .lnt-host p { font-size: .7rem; }
+    .lnt-hosts__and { margin-inline: -.15rem; }
+    .lnt-cover__countdown > div { gap: .3rem; }
+}
+
+@media (max-width: 47.99rem) {
+    .lentera-senja { font-size: .9rem; line-height: 1.6; }
+    .lentera-senja h1 { font-size: clamp(2.3rem, 12vw, 3.4rem); }
+    .lentera-senja h2 { font-size: clamp(2rem, 10vw, 3rem); }
+    .lentera-senja .invitation-section { padding-top: 4.25rem; padding-bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem)); }
+    .lnt-host__portrait { width: 100%; aspect-ratio: 4/5; margin-bottom: .6rem; }
+    .lnt-countdown__units { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lnt-timeline { padding-left: 1.6rem; }
+    .lnt-story { padding-left: 1.1rem; }
+    .lnt-gallery { grid-auto-columns: 80%; }
+    .lnt-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
+}
+
+@media (min-width: 48rem) {
+    .lentera-senja .invitation-section { padding-inline: 2rem; }
+    .lnt-cover__video--mobile { display: none; }
+    .lnt-cover__video--desktop { display: block; }
+    .lnt-hero__video--mobile { display: none; }
+    .lnt-hero__video--desktop { display: block; }
+    .lnt-events { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lnt-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .lnt-gallery figure { aspect-ratio: 4/5; }
+    .lnt-gallery figure:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+}
+
+@media (max-height: 43rem) {
+    .lentera-senja .invitation-section { padding-top: 4rem; padding-bottom: 4.5rem; }
+    .lnt-host__portrait { aspect-ratio: 1; }
+}

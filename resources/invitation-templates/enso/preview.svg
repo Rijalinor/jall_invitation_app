@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Pratinjau template Ensō">
+    <defs>
+        <radialGradient id="enWashi" cx="0.5" cy="0.4" r="0.8">
+            <stop offset="0" stop-color="#fbf8f1"/>
+            <stop offset="1" stop-color="#efe9db"/>
+        </radialGradient>
+        <radialGradient id="enWash" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#221f1c" stop-opacity="0.10"/>
+            <stop offset="1" stop-color="#221f1c" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="enPetal" cx="0.35" cy="0.3" r="0.8">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset="0.7" stop-color="#e0a79e"/>
+            <stop offset="1" stop-color="#b23a2e" stop-opacity="0.25"/>
+        </radialGradient>
+    </defs>
+
+    <rect width="1200" height="800" fill="url(#enWashi)"/>
+    <ellipse cx="200" cy="150" rx="360" ry="300" fill="url(#enWash)"/>
+    <ellipse cx="1040" cy="680" rx="420" ry="340" fill="url(#enWash)"/>
+
+    <g transform="translate(600 360)">
+        <circle r="210" fill="none" stroke="#221f1c" stroke-opacity="0.22" stroke-width="14"
+                stroke-linecap="round" stroke-dasharray="1320 145" transform="rotate(-40)"/>
+    </g>
+
+    <text x="600" y="330" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="64" fill="#221f1c">Rangga &amp; Sinta</text>
+    <text x="600" y="382" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="8" fill="#7c7568">12 · 06 · 2027 — YOGYAKARTA</text>
+
+    <g transform="translate(880 200) rotate(6)">
+        <rect width="66" height="66" fill="#b23a2e"/>
+        <text x="33" y="45" text-anchor="middle" font-family="Georgia, serif" font-size="30" fill="#ffffff">RS</text>
+    </g>
+
+    <g fill="url(#enPetal)" opacity="0.9">
+        <g transform="translate(252 468) rotate(18) scale(1.7) translate(-12 -16.5)"><path d="M12 30 C6 25 3 18 3 12 C3 7 5 4 7 3 C9 6 10 8 12 8 C14 8 15 6 17 3 C19 4 21 7 21 12 C21 18 18 25 12 30 Z"/></g>
+        <g transform="translate(936 526) rotate(-26) scale(1.35) translate(-12 -16.5)"><path d="M12 30 C6 25 3 18 3 12 C3 7 5 4 7 3 C9 6 10 8 12 8 C14 8 15 6 17 3 C19 4 21 7 21 12 C21 18 18 25 12 30 Z"/></g>
+        <g transform="translate(432 640) rotate(46) scale(1.1) translate(-12 -16.5)"><path d="M12 30 C6 25 3 18 3 12 C3 7 5 4 7 3 C9 6 10 8 12 8 C14 8 15 6 17 3 C19 4 21 7 21 12 C21 18 18 25 12 30 Z"/></g>
+    </g>
+
+    <text x="600" y="720" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" fill="#221f1c">Ensō</text>
+    <text x="600" y="754" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" letter-spacing="6" fill="#7c7568">WASHI · SUMI · SAKURA</text>
+</svg>

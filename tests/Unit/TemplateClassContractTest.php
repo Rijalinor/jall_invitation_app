@@ -87,6 +87,57 @@ class TemplateClassContractTest extends TestCase
     }
 
     /**
+     * A base link rule like `.origami a { color: … }` carries one class plus one
+     * element, which outranks a bare `.or-cover__cta { color: … }` that carries a
+     * single class. The cover action then paints its label the same colour as its
+     * own background, so the only way into the invitation looks like an empty
+     * button. Every action that styles its own colour must out-specify the base.
+     */
+    public function test_the_cover_action_colour_outranks_the_base_link_colour(): void
+    {
+        foreach ($this->templateStylesheets() as $name => $css) {
+            $base = null;
+            $actions = [];
+
+            foreach ($this->ruleBlocks($css) as $block) {
+                if (preg_match('/(?<![-\w])color\s*:/', $block['body']) !== 1) {
+                    continue;
+                }
+
+                foreach (explode(',', $block['selector']) as $selector) {
+                    $selector = trim($selector);
+
+                    if ($selector === '.'.$name.' a') {
+                        $base = $this->specificity($selector);
+
+                        continue;
+                    }
+
+                    if (str_contains($selector, '-cover__cta') || str_contains($selector, '[data-open-invitation]')) {
+                        $actions[] = ['selector' => $selector, 'weight' => $this->specificity($selector)];
+                    }
+                }
+            }
+
+            if ($base === null || $actions === []) {
+                continue;
+            }
+
+            foreach ($actions as $action) {
+                $this->assertTrue(
+                    $this->compareWeights($action['weight'], $base) > 0,
+                    sprintf(
+                        'Template "%s" styles "%s" with a colour that does not outrank its base link colour (".%s a"), so the cover action can render its label invisible on its own background.',
+                        $name,
+                        $action['selector'],
+                        $name,
+                    ),
+                );
+            }
+        }
+    }
+
+    /**
      * @return array<int, string>
      */
     private function unstyledStructuralClasses(string $view, string $css): array

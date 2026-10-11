@@ -254,12 +254,24 @@ body:has(main:target) .mh-dock { opacity: 1; pointer-events: auto; }
 .mh-dock__icon { width: 1.15rem; height: 1.15rem; color: currentColor; }
 .mh-dock__label { white-space: nowrap; }
 
-/* ── Ambient glow ─────────────────────────────────────────────────────────── */
-.mh-glow { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.mh-glow span { position: absolute; width: 16rem; aspect-ratio: 1; border-radius: 50%; background: color-mix(in srgb, var(--mh-gold) 22%, transparent); filter: blur(42px); opacity: .5; }
+/* ── Ambient glow: light behind, motes in front ───────────────────────────── */
+/* The glow drifts with the scroll and shimmers on its own; the motes rise across
+   the whole viewport in front of the sections, so the light reads as depth. */
+.mh-glow { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; transform: translate3d(0, calc((var(--mh-progress, 0) - .5) * -60px), 0); }
+.mh-glow span { position: absolute; width: 16rem; aspect-ratio: 1; border-radius: 50%; background: color-mix(in srgb, var(--mh-gold) 22%, transparent); filter: blur(42px); opacity: .5; animation: mh-shimmer 11s ease-in-out infinite alternate; }
 .mh-glow span:nth-child(1) { top: -4rem; left: -6rem; }
-.mh-glow span:nth-child(2) { right: -7rem; top: 42%; }
-.mh-glow span:nth-child(3) { left: -6rem; bottom: 4%; }
+.mh-glow span:nth-child(2) { right: -7rem; top: 42%; animation-delay: -4s; }
+.mh-glow span:nth-child(3) { left: -6rem; bottom: 4%; animation-delay: -8s; }
+@keyframes mh-shimmer { from { opacity: .32; } to { opacity: .62; } }
+
+.mh-motes { position: fixed; z-index: 4; inset: 0; overflow: hidden; pointer-events: none; }
+.mh-mote { position: absolute; top: 0; width: var(--mh-mote-size, .6rem); aspect-ratio: 1; border-radius: 50%; opacity: var(--mh-mote-op, .55); filter: blur(var(--mh-mote-blur, 3px)); background: radial-gradient(circle at 40% 35%, #fff7dc, color-mix(in srgb, var(--mh-gold) 70%, transparent)); transform: translate3d(0, calc((var(--mh-progress, 0) - .5) * var(--mh-mote-drift, 80px)), 0); animation: mh-rise var(--mh-mote-dur, 15s) linear var(--mh-mote-delay, 0s) infinite; }
+.mh-mote--1 { left: 14%; --mh-mote-size: .62rem; --mh-mote-dur: 14s; --mh-mote-delay: -2s; }
+.mh-mote--2 { right: 12%; --mh-mote-size: .44rem; --mh-mote-blur: 4px; --mh-mote-dur: 19s; --mh-mote-delay: -8s; --mh-mote-drift: 104px; --mh-mote-op: .45; }
+.mh-mote--3 { left: 26%; --mh-mote-size: .8rem; --mh-mote-blur: 5px; --mh-mote-op: .4; --mh-mote-dur: 22s; --mh-mote-delay: -14s; --mh-mote-drift: 92px; }
+.mh-mote--4 { right: 24%; --mh-mote-size: .5rem; --mh-mote-blur: 3px; --mh-mote-dur: 13s; --mh-mote-delay: -5s; --mh-mote-drift: 70px; }
+.mh-mote--5 { left: 64%; --mh-mote-size: .38rem; --mh-mote-blur: 2px; --mh-mote-op: .6; --mh-mote-dur: 17s; --mh-mote-delay: -11s; --mh-mote-drift: 86px; }
+@keyframes mh-rise { from { translate: 0 114svh; } to { translate: 0 -14svh; } }
 
 /* ── Section shell ────────────────────────────────────────────────────────── */
 .mahligai .invitation-section {
@@ -484,10 +496,12 @@ body:has(main:target) .mh-cover { visibility: hidden; pointer-events: none; }
 @keyframes mh-enter { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
 .invitation-open .mh-hero { animation: mh-enter var(--mh-motion-slow) var(--mh-ease) both; }
 .mahligai[data-motion="off"] .invitation-open .mh-hero { animation: none; }
+.mahligai[data-motion="off"] .mh-motes { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
     .invitation-open .mh-hero { animation: none; }
     .mh-lattice { transition: none; }
+    .mh-motes { display: none; }
 }
 
 /* The guest cannot scroll the invitation until they open it, and only the

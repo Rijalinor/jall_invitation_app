@@ -14,15 +14,18 @@
 
     <style>
         :root {
-            --paper: #f3f1ea;
-            --paper-raised: #fbfaf6;
+            --paper: #f4f1ea;
+            --paper-raised: #fffefb;
             --ink: #191713;
             --ink-soft: #6b655c;
-            --rule: rgb(25 23 19 / 14%);
+            --rule: rgb(25 23 19 / 12%);
             --signal: #2b3a8c;
             --signal-wash: rgb(43 58 140 / 8%);
+            --ok: #2f7d4f;
             --danger: #9b2226;
-            --radius: 3px;
+            --radius: 8px;
+            --radius-lg: 14px;
+            --shadow: 0 1px 2px rgb(25 23 19 / 5%), 0 10px 30px rgb(25 23 19 / 5%);
             --gutter: clamp(1rem, 4vw, 3rem);
             --display: 'Fraunces', ui-serif, Georgia, serif;
             --text: 'Karla', ui-sans-serif, system-ui, sans-serif;
@@ -39,11 +42,11 @@
             overflow-x: hidden;
         }
 
-        h1, h2, legend { font-family: var(--display); font-weight: 600; line-height: 1.15; margin: 0; }
+        h1, h2, h3, legend { font-family: var(--display); font-weight: 600; line-height: 1.15; margin: 0; }
         p { margin: 0; }
         img { display: block; max-width: 100%; }
 
-        :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 2px; }
+        :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 3px; }
 
         .wrap { width: 100%; max-width: 54rem; margin-inline: auto; padding-inline: var(--gutter); }
 
@@ -54,45 +57,54 @@
 
         main { padding-block: clamp(1.5rem, 4vw, 2.5rem) 3rem; }
 
-        .steps { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0 0 1.75rem; padding: 0; list-style: none; }
+        /* Progress + step navigation */
+        .progress { height: 6px; margin: .9rem 0 .4rem; border-radius: 999px; background: var(--rule); overflow: hidden; }
+        .progress__bar { display: block; height: 100%; border-radius: inherit; background: var(--signal); transition: width .3s ease; }
+        .progress__text { margin-bottom: 1.15rem; color: var(--ink-soft); font-size: .8125rem; }
+
+        .steps { display: flex; flex-wrap: nowrap; gap: .25rem; margin: 0 0 1.75rem; padding: .1rem 0 .35rem; list-style: none; overflow-x: auto; scrollbar-width: none; }
+        .steps::-webkit-scrollbar { display: none; }
         .steps a {
-            display: inline-flex; align-items: center; min-height: 44px; padding: .5rem .75rem;
-            border-radius: var(--radius); color: var(--ink-soft); text-decoration: none; font-size: .9375rem;
+            display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; padding: .5rem .75rem;
+            border-radius: var(--radius); color: var(--ink-soft); text-decoration: none; font-size: .9375rem; white-space: nowrap;
         }
         .steps a:hover { background: var(--paper-raised); color: var(--ink); }
-        .steps a[aria-current='page'] { background: var(--signal-wash); color: var(--signal); font-weight: 500; }
+        .steps a.is-done::after { content: '✓'; color: var(--ok); font-weight: 700; }
+        .steps a[aria-current='page'] { background: var(--signal-wash); color: var(--signal); font-weight: 600; }
 
         .alert { border: 1px solid var(--rule); border-left: 4px solid var(--danger); background: var(--paper-raised); padding: .875rem 1rem; border-radius: var(--radius); margin-bottom: 1.5rem; }
         .alert ul { margin: .5rem 0 0; padding-left: 1.15rem; }
         .alert li { margin-bottom: .25rem; }
-
-        .alert--ok { border-left-color: var(--signal); }
+        .alert--ok { border-left-color: var(--ok); }
 
         h1 { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem); }
         .lede { color: var(--ink-soft); margin-top: .5rem; }
 
         form { margin-top: 1.5rem; display: grid; gap: 1.25rem; }
 
-        .row { margin: 0; padding: 1rem; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-raised); }
+        .row { margin: 0; padding: 1.1rem; border: 1px solid var(--rule); border-radius: var(--radius-lg); background: var(--paper-raised); box-shadow: var(--shadow); }
         .row legend { padding-inline: .5rem; font-size: 1rem; color: var(--signal); }
         .row__grid { display: grid; gap: .875rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
         .row__remove { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: .5rem; color: var(--danger); font-size: .9375rem; }
 
-        .field { display: grid; gap: .25rem; }
+        .card { display: grid; gap: .9rem; padding: 1.1rem; border: 1px solid var(--rule); border-radius: var(--radius-lg); background: var(--paper-raised); box-shadow: var(--shadow); }
+        .section-title { margin: 1.5rem 0 0; font-size: 1.15rem; }
+
+        .field { display: grid; gap: .3rem; }
         .field--wide { grid-column: 1 / -1; }
         .field > span { font-size: .875rem; font-weight: 600; }
         .field small { color: var(--ink-soft); font-size: .8125rem; }
         .photo { width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--rule); margin-bottom: .5rem; }
 
-        input[type='text'], input[type='url'], input[type='date'], input[type='time'], input[type='tel'], input[type='number'], select, textarea {
-            width: 100%; min-height: 44px; padding: .5rem .625rem;
-            border: 1px solid var(--rule); border-radius: var(--radius);
+        input[type='text'], input[type='url'], input[type='date'], input[type='time'], input[type='tel'], input[type='number'], input[type='search'], select, textarea {
+            width: 100%; min-height: 44px; padding: .55rem .625rem;
+            border: 1px solid rgb(25 23 19 / 18%); border-radius: var(--radius);
             background: #fff; color: var(--ink); font: inherit;
         }
         input[readonly] { background: var(--paper); color: var(--ink-soft); }
         textarea { min-height: 4.5rem; resize: vertical; }
         input[type='file'] { width: 100%; min-height: 44px; font-size: .875rem; }
-        input[type='checkbox'] { width: 1.125rem; height: 1.125rem; }
+        input[type='checkbox'] { width: 1.15rem; height: 1.15rem; accent-color: var(--signal); }
 
         .actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
         .button {
@@ -100,18 +112,20 @@
             min-height: 44px; padding: .625rem 1.125rem;
             border: 1px solid var(--ink); border-radius: var(--radius);
             background: var(--ink); color: var(--paper);
-            font: inherit; font-weight: 500; cursor: pointer; text-decoration: none;
+            font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
+            transition: transform .12s ease, background-color .2s ease, border-color .2s ease;
         }
-        .button--quiet { background: transparent; color: var(--ink); border-color: var(--rule); }
-        .button--quiet:hover { background: var(--paper-raised); border-color: var(--ink); }
-        .button[disabled] { opacity: .45; cursor: not-allowed; }
+        .button:hover { transform: translateY(-1px); }
+        .button--quiet { background: transparent; color: var(--ink); border-color: rgb(25 23 19 / 22%); }
+        .button--quiet:hover { background: var(--paper-raised); border-color: var(--ink); transform: none; }
+        .button[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
 
         .summary { margin: 1.5rem 0 0; padding: 0; list-style: none; display: grid; gap: .75rem; }
         .summary li { border-left: 3px solid var(--signal); padding-left: .875rem; }
         .summary strong { font-family: var(--display); }
 
         .list { margin: 0; padding: 0; list-style: none; display: grid; gap: .75rem; }
-        .list > li { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-start; justify-content: space-between; padding: 1rem; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-raised); }
+        .list > li { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-start; justify-content: space-between; padding: 1rem; border: 1px solid var(--rule); border-radius: var(--radius-lg); background: var(--paper-raised); box-shadow: var(--shadow); }
         .list > li > div { min-width: 0; }
         .list p { margin: .35rem 0 0; }
         .list small { display: block; color: var(--ink-soft); font-size: .8125rem; }
@@ -121,12 +135,23 @@
         .badge--ok { color: #1b5e20; background: #e3f2e8; }
         .badge--warn { color: #7a5300; background: #fdf0d5; }
         .badge--bad { color: #8a1c1c; background: #f9e0e4; }
-        .panel { margin-top: 1.25rem; padding: .25rem 1rem 1rem; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-raised); }
+        .panel { margin-top: 1.25rem; padding: .25rem 1rem 1rem; border: 1px solid var(--rule); border-radius: var(--radius-lg); background: var(--paper-raised); box-shadow: var(--shadow); }
         .panel > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 600; }
         .panel form { margin-top: .75rem; }
         .toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1.25rem 0 .75rem; }
         .toolbar__search { flex: 1 1 14rem; }
         .toolbar__count { color: var(--ink-soft); font-size: .875rem; }
+
+        .tips { margin-bottom: 1.5rem; padding: .85rem 1rem; border: 1px dashed rgb(43 58 140 / 35%); border-radius: var(--radius); background: var(--signal-wash); }
+        .tips strong { display: block; font-size: .8125rem; letter-spacing: .04em; text-transform: uppercase; color: var(--signal); }
+        .tips ul { margin: .4rem 0 0; padding-left: 1.15rem; color: var(--ink-soft); font-size: .875rem; }
+        .tips li { margin-bottom: .15rem; }
+        .tips ol { margin: .4rem 0 0; padding-left: 1.15rem; color: var(--ink-soft); font-size: .875rem; }
+
+        .examples { margin-top: .5rem; }
+        .examples__label { display: block; margin-bottom: .35rem; color: var(--ink-soft); font-size: .8125rem; }
+        .examples ul { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+        .examples button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* The step's save buttons stay reachable while a long list scrolls. */
         .actions--end {
@@ -135,14 +160,21 @@
             z-index: 5;
             margin-top: .75rem;
             padding-block: .75rem;
-            background: linear-gradient(180deg, rgb(243 241 234 / 0%), var(--paper) 40%);
+            background: linear-gradient(180deg, rgb(244 241 234 / 0%), var(--paper) 40%);
             border-top: 1px solid var(--rule);
         }
 
         .button--sm { min-height: 34px; padding: .3rem .6rem; font-size: .75rem; }
         .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-        .guest-table { width: 100%; margin-top: .75rem; border: 1px solid var(--rule); border-radius: var(--radius); border-collapse: collapse; background: var(--paper-raised); }
+        .section-list { display: grid; gap: .5rem; margin-top: 1rem; }
+        .section-row { display: grid; grid-template-columns: auto 1fr auto; gap: .75rem; align-items: center; min-height: 56px; padding: .5rem .85rem; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-raised); box-shadow: var(--shadow); }
+        .section-row__name { font-weight: 600; }
+        .section-row__move { display: inline-flex; gap: .25rem; }
+
+        .segment { display: flex; }
+
+        .guest-table { width: 100%; margin-top: .75rem; border: 1px solid var(--rule); border-radius: var(--radius); border-collapse: collapse; background: var(--paper-raised); overflow: hidden; }
         .guest-table th, .guest-table td { padding: .6rem .7rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--rule); }
         .guest-table th { font-size: .72rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
         .guest-table tbody tr:last-child td { border-bottom: 0; }
@@ -163,7 +195,7 @@
             .guest-table td.guest-row__actions::before { display: none; }
         }
 
-        .guest-dialog { width: min(94vw, 32rem); padding: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); color: var(--ink); }
+        .guest-dialog { width: min(94vw, 32rem); padding: 0; border: 1px solid var(--rule); border-radius: var(--radius-lg); background: var(--paper); color: var(--ink); }
         .guest-dialog::backdrop { background: rgb(25 23 19 / .45); }
         .guest-dialog form { margin: 0; padding: 1.25rem; display: grid; gap: .9rem; }
         .guest-dialog h2 { font-size: 1.25rem; }
@@ -181,6 +213,110 @@
     </style>
 </head>
 <body>
+    @php
+        $track = [
+            \App\Http\Controllers\InvitationFormController::STEP_HOSTS,
+            \App\Http\Controllers\InvitationFormController::STEP_EVENTS,
+            \App\Http\Controllers\InvitationFormController::STEP_STORIES,
+            \App\Http\Controllers\InvitationFormController::STEP_GALLERY,
+            \App\Http\Controllers\InvitationFormController::STEP_GIFTS,
+            \App\Http\Controllers\InvitationFormController::STEP_CONTACTS,
+            \App\Http\Controllers\InvitationFormController::STEP_WORDING,
+            \App\Http\Controllers\InvitationFormController::STEP_STRUCTURE,
+            \App\Http\Controllers\InvitationFormController::STEP_GUESTS,
+        ];
+        $trackDone = count(array_intersect($doneSteps ?? [], $track));
+        $progress = (int) round($trackDone / max(1, count($track)) * 100);
+
+        // A short "how to fill this" hint per step, so the couple never has to
+        // guess what belongs where.
+        $tips = [
+            'mempelai' => [
+                'Isi nama lengkap persis seperti yang ingin tampil di undangan.',
+                'Peran menentukan sapaan yang dipakai desain (Mempelai Pria / Wanita, Tuan Rumah).',
+                'Nama ayah/ibu dan "anak ke-" tampil di bagian mempelai — kosongkan bila tidak perlu.',
+                'Satu foto terbaik per orang (JPG/PNG/WebP). Foto besar otomatis dikecilkan.',
+            ],
+            'acara' => [
+                'Beri nama tiap acara, misalnya "Akad Nikah" dan "Resepsi".',
+                'Tanggal wajib diisi; jam dan zona waktu boleh dikosongkan.',
+                'Tempel link Google Maps agar tamu tinggal klik untuk navigasi.',
+                'Acara paling atas dipakai sebagai acuan hitung mundur.',
+            ],
+            'cerita' => [
+                'Bagian ini opsional — lewati saja bila tidak ingin menampilkan kisah.',
+                'Setiap momen perlu judul, misalnya "Awal Pertemuan".',
+                'Tanggal boleh ditulis bebas, misalnya "14 Februari 2020".',
+            ],
+            'galeri' => [
+                'Opsional. Susun sampai 30 foto; urutan mengikuti daftar dari atas ke bawah.',
+                'Klik "Tambah foto" untuk menyisipkan foto baru di atas.',
+                'Caption boleh dikosongkan bila tidak diperlukan.',
+            ],
+            'hadiah' => [
+                'Opsional. Pilih tipe: transfer bank, e-wallet, atau hadiah fisik.',
+                'Transfer/e-wallet perlu nama pemilik; hadiah fisik perlu alamat kirim.',
+                'Nomor rekening tampil di undangan, jadi periksa ulang sebelum menyimpan.',
+            ],
+            'kontak' => [
+                'Opsional. Isi orang yang boleh dihubungi tamu bila ada pertanyaan.',
+                'Tulis peran (misalnya "CP Keluarga" atau "WO") dan nomor WhatsApp-nya.',
+                'Nomor boleh ditulis 08… atau +62….',
+            ],
+            'tulisan' => [
+                'Kosongkan kolom mana pun bila ingin memakai tulisan bawaan desain.',
+                'Di pesan WhatsApp, tulis [nama] di posisi nama tamu — nanti diganti otomatis.',
+                'Nama keluarga di penutup tampil berdampingan dan menumpuk di layar HP.',
+                'Judul bagian hanya muncul untuk template yang mendukungnya.',
+            ],
+            'susunan' => [
+                'Matikan bagian yang tidak ingin ditampilkan di undangan.',
+                'Ubah urutan dengan tombol ↑ / ↓ di kanan tiap bagian.',
+                'Musik akan diputar setelah tamu menekan tombol buka undangan.',
+                'Format musik: MP3, M4A, OGG, atau WAV (maks 10 MB).',
+            ],
+            'tamu' => [
+                'Bisa tambah satu per satu, atau impor banyak sekaligus lewat CSV.',
+                'Setiap tamu mendapat link pribadi yang otomatis menyapa namanya.',
+                'Kirim link lewat tombol WhatsApp di tiap baris.',
+                'Batas jumlah tamu ditentukan admin; baris di atasnya akan ditolak.',
+            ],
+            'rsvp' => [
+                'Daftar ini terisi otomatis dari konfirmasi kehadiran tamu.',
+                'Unduh CSV untuk rekap; hapus hanya bila benar-benar perlu.',
+            ],
+            'ucapan' => [
+                'Ucapan baru tampil di undangan setelah kamu setujui.',
+                'Tolak atau hapus ucapan yang tidak pantas.',
+            ],
+        ];
+
+        // Example wordings the couple can drop in with one click when they are
+        // not sure what to write.
+        $examples = [
+            'opening_text' => [
+                'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami.',
+                'Dan di antara tanda-tanda kekuasaan-Nya, Dia menciptakan pasangan dari jenismu sendiri… (QS. Ar-Rum: 21)',
+                'Dengan penuh rasa syukur, kami mengundang Anda untuk berbagi kebahagiaan di hari istimewa kami.',
+            ],
+            'closing_message' => [
+                'Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.',
+                'Kehadiran serta doa Anda adalah hadiah terindah bagi kami.',
+                'Tanpa mengurangi rasa hormat, kami mengundang Anda untuk hadir di acara kami.',
+            ],
+            'closing_footer' => [
+                "Turut mengundang:\nKeluarga besar kedua mempelai",
+                "Kami yang berbahagia,\nKeluarga Bapak/Ibu ...",
+            ],
+            'share_message' => [
+                "Kepada Yth. [nama],\nDengan penuh kebahagiaan kami mengundang Anda ke acara pernikahan kami. Berikut detailnya:",
+                "Assalamualaikum [nama],\nKami mengundang Anda untuk hadir di hari bahagia kami. Silakan buka undangannya di tautan berikut:",
+                "Hai [nama]! Kami menikah 🎉 Buka undangan kami di tautan berikut ya:",
+            ],
+        ];
+        $currentTips = $tips[$step] ?? [];
+    @endphp
+
     <header class="masthead">
         <div class="wrap masthead__inner">
             <strong>Isi data undangan</strong>
@@ -194,10 +330,16 @@
             Data tersimpan setiap kali kamu menekan tombol simpan. Kamu boleh berhenti dan kembali lagi lewat tautan ini.
         </p>
 
+        <div class="progress" role="progressbar" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">
+            <span class="progress__bar" style="width: {{ $progress }}%"></span>
+        </div>
+        <p class="progress__text">{{ $trackDone }} dari {{ count($track) }} bagian terisi.</p>
+
         <ul class="steps">
             @foreach ($steps as $key => $label)
                 <li>
                     <a href="{{ route('invitation-form.show', ['token' => $token, 'step' => $key]) }}"
+                       @class(['is-done' => in_array($key, $doneSteps ?? [], true)])
                        @if ($key === $step) aria-current="page" @endif>{{ $label }}</a>
                 </li>
             @endforeach
@@ -220,6 +362,33 @@
                     @endforeach
                 </ul>
             </div>
+        @endif
+
+        @if ($currentTips !== [])
+            <div class="tips">
+                <strong>Tips mengisi</strong>
+                <ul>
+                    @foreach ($currentTips as $tip)
+                        <li>{{ $tip }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if ($step === \App\Http\Controllers\InvitationFormController::STEP_HOSTS)
+            <details class="panel" open>
+                <summary>Cara mengisi form ini</summary>
+                <p class="lede">Isi bagian satu per satu. Semua tersimpan setiap kali kamu menekan tombol simpan, jadi kamu boleh berhenti kapan saja dan kembali lagi lewat tautan yang sama.</p>
+                <ol>
+                    <li><strong>Mempelai</strong> — nama, peran, dan foto.</li>
+                    <li><strong>Acara</strong> — jadwal dan lokasi.</li>
+                    <li><strong>Cerita, Galeri, Hadiah, Kontak</strong> — opsional, isi bila perlu.</li>
+                    <li><strong>Tulisan</strong> — kata pembuka, penutup, dan nama keluarga.</li>
+                    <li><strong>Susunan</strong> — tampilkan/sembunyikan bagian dan atur urutannya.</li>
+                    <li><strong>Tamu</strong> — daftar undangan dan link pribadi.</li>
+                    <li><strong>Selesai</strong> — periksa ringkasan sebelum undangan ditayangkan.</li>
+                </ol>
+            </details>
         @endif
 
         @if ($step === \App\Http\Controllers\InvitationFormController::STEP_HOSTS)
@@ -349,6 +518,112 @@
 
                 <div class="actions actions--end">
                     <button class="button--quiet button" type="button" id="add-contact" data-max="{{ $maxContacts }}">Tambah kontak</button>
+                    <button class="button" type="submit">Simpan dan lanjut ke tulisan</button>
+                </div>
+            </form>
+        @elseif ($step === \App\Http\Controllers\InvitationFormController::STEP_WORDING)
+            <form method="POST" action="{{ route('invitation-form.update', ['token' => $token, 'step' => $step]) }}">
+                @csrf
+
+                <p class="lede">Tulisan dan pesan milikmu: kata pembuka, pesan penutup, nama keluarga, dan pesan saat membagikan undangan.</p>
+
+                <div class="card">
+                    <label class="field">
+                        <span>Kata pembuka / kutipan</span>
+                        <textarea name="opening_text" rows="3" maxlength="600" placeholder="Contoh: “Dan di antara tanda-tanda kekuasaan-Nya…”">{{ old('opening_text', $invitation->opening_text) }}</textarea>
+                        <small>Muncul di bagian pembuka. Boleh dikosongkan.</small>
+                    </label>
+                    @include('invitation-form.partials.example-picker', ['name' => 'opening_text', 'examples' => $examples['opening_text']])
+
+                    <label class="field">
+                        <span>Pesan penutup</span>
+                        <textarea name="closing_message" rows="3" maxlength="1200" placeholder="Ucapan terima kasih menjelang penutup.">{{ old('closing_message', $invitation->closing_message) }}</textarea>
+                    </label>
+                    @include('invitation-form.partials.example-picker', ['name' => 'closing_message', 'examples' => $examples['closing_message']])
+
+                    <label class="field">
+                        <span>Turut mengundang</span>
+                        <textarea name="closing_footer" rows="2" maxlength="400" placeholder="Turut mengundang: Keluarga besar …">{{ old('closing_footer', $invitation->settings_json['closing_footer'] ?? '') }}</textarea>
+                        <small>Baris kecil di bawah penutup. Boleh dikosongkan.</small>
+                    </label>
+                    @include('invitation-form.partials.example-picker', ['name' => 'closing_footer', 'examples' => $examples['closing_footer']])
+
+                    <label class="field">
+                        <span>Pesan WhatsApp saat membagikan</span>
+                        <textarea name="share_message" rows="2" maxlength="500" placeholder="Kepada Yth. [nama], kami mengundang Anda ke acara kami.">{{ old('share_message', $invitation->share_message) }}</textarea>
+                        <small>Tulis <strong>[nama]</strong> di posisi nama tamu, nanti otomatis diganti. Boleh dikosongkan.</small>
+                    </label>
+                    @include('invitation-form.partials.example-picker', ['name' => 'share_message', 'examples' => $examples['share_message']])
+                </div>
+
+                <h2 class="section-title">Nama keluarga (penutup)</h2>
+                <p class="lede">Misalnya “Keluarga Mempelai Pria” beserta anggotanya. Kosongkan bila tidak perlu.</p>
+
+                <div id="family-rows" style="display:grid;gap:1rem;margin-top:1rem">
+                    @foreach ($closingFamilies as $index => $family)
+                        @include('invitation-form.partials.closing-family-row', ['index' => $index, 'family' => (object) $family])
+                    @endforeach
+
+                    @if (count($closingFamilies) < $maxClosingFamilies)
+                        @include('invitation-form.partials.closing-family-row', ['index' => count($closingFamilies), 'family' => null])
+                    @endif
+                </div>
+
+                @if (count($labels))
+                    <h2 class="section-title">Judul &amp; teks bagian</h2>
+                    <p class="lede">Ubah judul bagian undangan. Kosongkan untuk memakai teks bawaan desain.</p>
+
+                    <div class="card">
+                        <div class="row__grid">
+                            @foreach ($labels as $key => $default)
+                                <label class="field">
+                                    <span>{{ ucwords(str_replace('_', ' ', $key)) }}</span>
+                                    <input type="text" name="labels[{{ $key }}]" value="{{ old('labels.'.$key, $invitation->settings_json['labels'][$key] ?? '') }}" maxlength="400" placeholder="{{ $default }}">
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div class="actions actions--end">
+                    <button class="button--quiet button" type="button" id="add-family" data-max="{{ $maxClosingFamilies }}">Tambah keluarga</button>
+                    <button class="button" type="submit">Simpan dan lanjut ke susunan</button>
+                </div>
+            </form>
+        @elseif ($step === \App\Http\Controllers\InvitationFormController::STEP_STRUCTURE)
+            <form method="POST" action="{{ route('invitation-form.update', ['token' => $token, 'step' => $step]) }}" enctype="multipart/form-data">
+                @csrf
+
+                <p class="lede">Pilih bagian yang ingin ditampilkan dan atur urutannya dengan tombol naik/turun.</p>
+
+                <div class="section-list" id="section-rows">
+                    @foreach ($sections as $index => $section)
+                        @include('invitation-form.partials.section-row', ['index' => $index, 'section' => $section, 'sectionLabels' => $sectionLabels])
+                    @endforeach
+                </div>
+
+                <h2 class="section-title">Musik latar</h2>
+                <div class="card">
+                    @if ($musicUrl)
+                        <audio controls src="{{ $musicUrl }}" style="width:100%"></audio>
+                    @endif
+
+                    <label class="field">
+                        <span>{{ $musicUrl ? 'Ganti musik' : 'Unggah musik' }}</span>
+                        <input type="file" name="music" accept=".mp3,.m4a,.ogg,.wav,audio/*">
+                        <small>MP3, M4A, OGG, atau WAV. Maksimal 10 MB.</small>
+                    </label>
+
+                    @if ($musicUrl)
+                        <label class="row__remove">
+                            <input type="checkbox" name="remove_music" value="1">
+                            <span>Hapus musik saat ini</span>
+                        </label>
+                    @endif
+                </div>
+
+                <div class="actions actions--end">
+                    <a class="button button--quiet" href="{{ route('invitation-form.show', ['token' => $token, 'step' => \App\Http\Controllers\InvitationFormController::STEP_GUESTS]) }}">Lewati ke tamu</a>
                     <button class="button" type="submit">Simpan dan lanjut ke tamu</button>
                 </div>
             </form>
@@ -558,6 +833,18 @@
                     @endforelse
                 </li>
                 <li>
+                    <strong>Tulisan &amp; pesan</strong>
+                    <div>Kata pembuka: {{ $invitation->opening_text ? 'ada' : 'belum diisi' }}</div>
+                    <div>Pesan penutup: {{ $invitation->closing_message ? 'ada' : 'belum diisi' }}</div>
+                    <div>Nama keluarga: {{ count($closingFamilies) }} baris</div>
+                    <div>Pesan share WhatsApp: {{ $invitation->share_message ? 'diubah' : 'bawaan' }}</div>
+                </li>
+                <li>
+                    <strong>Susunan &amp; musik</strong>
+                    <div>Bagian aktif: {{ $sections->where('enabled', true)->count() }} dari {{ $sections->count() }}</div>
+                    <div>Musik latar: {{ $invitation->music_path ? 'ada' : 'belum diunggah' }}</div>
+                </li>
+                <li>
                     <strong>Tamu</strong>
                     <div>{{ $guests->count() }} tamu terdaftar</div>
                 </li>
@@ -576,8 +863,8 @@
             </ul>
 
             <p class="lede" style="margin-top:1.5rem">
-                Terima kasih. Data ini sudah masuk ke sistem kami dan akan diperiksa sebelum undangan ditayangkan.
-                Kalau ada tambahan seperti foto galeri, cerita, atau hadiah digital, kirimkan lewat WhatsApp.
+                Terima kasih. Semua isian di atas sudah tersimpan dan akan kami periksa sebelum undangan ditayangkan.
+                Kamu masih bisa kembali ke bagian mana pun lewat menu di atas untuk menambah atau memperbaiki.
             </p>
 
             <div class="actions" style="margin-top:1.5rem">
@@ -628,6 +915,12 @@
         </template>
     @endif
 
+    @if ($step === \App\Http\Controllers\InvitationFormController::STEP_WORDING)
+        <template id="family-row-template">
+            @include('invitation-form.partials.closing-family-row', ['index' => '__INDEX__', 'family' => null])
+        </template>
+    @endif
+
     <script>
         // Copy a guest's personal link without a page round-trip.
         (function () {
@@ -642,8 +935,31 @@
             });
         })();
 
+        // Example pickers: fill the matching field with the example the couple
+        // chose, so they never have to stare at an empty box.
         (function () {
-            function wire(buttonId, listId, templateId, rowSelector, prepend) {
+            document.addEventListener('click', function (event) {
+                var button = event.target.closest('[data-fill-target]');
+
+                if (!button) {
+                    return;
+                }
+
+                var field = document.querySelector('[name="' + button.dataset.fillTarget + '"]');
+
+                if (!field) {
+                    return;
+                }
+
+                field.value = button.dataset.fillText || '';
+                field.focus();
+            });
+        })();
+
+        // Repeating rows: a new row is inserted at the TOP, right under the
+        // control, so the couple sees it without scrolling to the end.
+        (function () {
+            function wire(buttonId, listId, templateId, rowSelector) {
                 var button = document.getElementById(buttonId);
                 var list = document.getElementById(listId);
                 var template = document.getElementById(templateId);
@@ -666,7 +982,7 @@
 
                     var html = template.innerHTML.split('__INDEX__').join(index);
 
-                    list.insertAdjacentHTML(prepend ? 'afterbegin' : 'beforeend', html);
+                    list.insertAdjacentHTML('afterbegin', html);
                     index++;
                     sync();
                 });
@@ -680,6 +996,41 @@
             wire('add-gallery', 'gallery-rows', 'gallery-row-template', '[data-gallery-row]');
             wire('add-gift', 'gift-rows', 'gift-row-template', '[data-gift-row]');
             wire('add-contact', 'contact-rows', 'contact-row-template', '[data-contact-row]');
+            wire('add-family', 'family-rows', 'family-row-template', '[data-family-row]');
+        })();
+
+        // Closing families: remove a row, and move sections up or down.
+        (function () {
+            document.addEventListener('click', function (event) {
+                var remove = event.target.closest('[data-family-remove]');
+
+                if (remove) {
+                    var row = remove.closest('[data-family-row]');
+                    if (row) { row.remove(); }
+                    return;
+                }
+
+                var move = event.target.closest('[data-move]');
+
+                if (!move) {
+                    return;
+                }
+
+                var section = move.closest('[data-section-row]');
+                var list = document.getElementById('section-rows');
+
+                if (!section || !list) {
+                    return;
+                }
+
+                if (move.dataset.move === 'up' && section.previousElementSibling) {
+                    list.insertBefore(section, section.previousElementSibling);
+                } else if (move.dataset.move === 'down' && section.nextElementSibling) {
+                    list.insertBefore(section.nextElementSibling, section);
+                }
+
+                move.focus();
+            });
         })();
 
         // Guests: the add / edit dialog, the per-row delete confirmation, and the

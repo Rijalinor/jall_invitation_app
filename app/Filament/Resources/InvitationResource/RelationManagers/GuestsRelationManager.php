@@ -26,22 +26,27 @@ class GuestsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('display_name')->label('Nama Tamu')->required()->maxLength(255),
-            TextInput::make('group')->label('Grup')->placeholder('Keluarga / Teman / Kantor')->maxLength(255),
-            TextInput::make('phone')->label('Nomor WhatsApp')->tel()->maxLength(50),
-            TextInput::make('invitation_limit')->label('Batas Undangan')->numeric()->minValue(1)->maxValue(20)->default(2)->required(),
+            TextInput::make('display_name')->label('Nama Tamu')->required()->helperText('Nama yang disapa di link pribadi tamu.')->maxLength(255),
+            TextInput::make('group')->label('Grup')->placeholder('Keluarga / Teman / Kantor')->helperText('Untuk pengelompokan dan pencarian.')->maxLength(255),
+            TextInput::make('phone')->label('Nomor WhatsApp')->tel()->helperText('Dipakai tombol "WhatsApp" saat mengirim link.')->maxLength(50),
+            TextInput::make('invitation_limit')->label('Batas Undangan')->numeric()->minValue(1)->maxValue(20)->default(2)->required()->helperText('Jumlah maksimum orang untuk tamu ini.'),
         ])->columns(2);
     }
 
     public function table(Table $table): Table
     {
+        // The owner record is already loaded, so the personal link and share
+        // message read from it instead of lazy-loading the invitation again for
+        // every guest row.
+        $invitation = $this->getOwnerRecord();
+
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('display_name')->label('Nama')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('group')->label('Grup')->searchable()->placeholder('-'),
                 Tables\Columns\TextColumn::make('invitation_limit')->label('Kuota'),
                 Tables\Columns\TextColumn::make('personal_link')->label('Link Personal')
-                    ->state(fn (Guest $record) => route('invitations.guest', [$record->invitation->slug, $record->token]))
+                    ->state(fn (Guest $record) => route('invitations.guest', [$invitation->slug, $record->token]))
                     ->copyable()->limit(38),
                 Tables\Columns\TextColumn::make('link_opened_at')->label('Dibuka')->dateTime('d M Y H:i')->placeholder('Belum')->sortable(),
             ])
@@ -76,9 +81,9 @@ class GuestsRelationManager extends RelationManager
             ])
             ->actions([
                 Actions\Action::make('whatsapp')->label('WhatsApp')->icon('heroicon-o-paper-airplane')
-                    ->url(function (Guest $record): string {
-                        $link = route('invitations.guest', [$record->invitation->slug, $record->token]);
-                        $message = str_replace('[nama]', $record->display_name, $record->invitation->share_message ?: 'Kepada Yth. [nama], kami mengundang Anda ke acara kami.');
+                    ->url(function (Guest $record) use ($invitation): string {
+                        $link = route('invitations.guest', [$invitation->slug, $record->token]);
+                        $message = str_replace('[nama]', $record->display_name, $invitation->share_message ?: 'Kepada Yth. [nama], kami mengundang Anda ke acara kami.');
 
                         return 'https://wa.me/?text='.rawurlencode($message."\n".$link);
                     })->openUrlInNewTab(),

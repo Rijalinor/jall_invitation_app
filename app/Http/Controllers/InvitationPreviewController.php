@@ -11,7 +11,7 @@ class InvitationPreviewController extends Controller
     public function show(Invitation $invitation, InvitationRenderer $renderer): View
     {
         $invitation->load([
-            'hosts', 'events', 'sections', 'stories', 'media', 'contacts', 'giftMethods',
+            'hosts', 'events', 'sections', 'stories', 'media', 'contacts', 'giftMethods', 'blocks',
             'guestbookEntries' => fn ($query) => $query->where('moderation_status', 'approved')->latest()->limit(20),
         ]);
 

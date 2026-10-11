@@ -1,0 +1,341 @@
+/* Jejak Perjalanan — a travel journal / boarding-pass invitation.
+ *
+ * Cream paper, ink navy and a warm accent. One rAF scroll listener publishes
+ * --jp-scroll (px) and --jp-progress (0..1). Big map contours drift behind the
+ * sections and paper planes loop in front of them, so the depth reads as 3D. A
+ * dashed route draws down the left edge and a compass needle answers the scroll.
+ * Content is only hidden under `.jp-armed`, a class theme.js adds once it can
+ * animate, so a blocked script leaves the invitation fully visible.
+ */
+
+.jejak-perjalanan {
+    --jp-accent: #2b4a6f;              /* overridden inline from the admin setting */
+    --jp-ink: #222b33;
+    --jp-canvas: #f3ecdd;
+    --jp-paper: #fffdf6;
+    --jp-muted: #7b7166;
+    --jp-coral: #d1664a;
+    --jp-line: color-mix(in srgb, var(--jp-accent) 26%, transparent);
+    --jp-route-line: color-mix(in srgb, var(--jp-accent) 50%, transparent);
+    --jp-soft: color-mix(in srgb, var(--jp-accent) 10%, var(--jp-canvas));
+    --jp-ease: cubic-bezier(.22, .7, .18, 1);
+    /* Aliases consumed by the shared components (forms, blocks, gifts, dialogs). */
+    --inv-accent: color-mix(in srgb, var(--jp-accent) 90%, #16233a);
+    --inv-paper: var(--jp-paper);
+    --inv-ink: var(--jp-ink);
+    --inv-line: var(--jp-line);
+    margin: 0;
+    color: var(--jp-ink);
+    background: var(--jp-canvas);
+    font: 400 1rem/1.75 'Work Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+html:has(body.jejak-perjalanan) { scroll-behavior: smooth; }
+.jejak-perjalanan *, .jejak-perjalanan *::before, .jejak-perjalanan *::after { box-sizing: border-box; }
+.jejak-perjalanan h1, .jejak-perjalanan h2, .jejak-perjalanan h3 { margin: 0 0 1rem; font-family: 'Marcellus', ui-serif, Georgia, serif; font-weight: 400; line-height: 1.12; letter-spacing: .01em; }
+.jejak-perjalanan h1 { font-size: clamp(2.5rem, 11vw, 4.6rem); }
+.jejak-perjalanan h2 { font-size: clamp(2rem, 8vw, 3.6rem); }
+.jejak-perjalanan h3 { font-size: clamp(1.25rem, 4.2vw, 1.8rem); }
+.jejak-perjalanan p { margin: .6rem 0; }
+.jejak-perjalanan p, .jejak-perjalanan a, .jejak-perjalanan button { overflow-wrap: anywhere; }
+.jejak-perjalanan a, .jejak-perjalanan button, .jejak-perjalanan input, .jejak-perjalanan select, .jejak-perjalanan textarea { font: inherit; }
+.jejak-perjalanan a { color: color-mix(in srgb, var(--jp-accent) 90%, #16233a); }
+.jejak-perjalanan img { display: block; max-width: 100%; }
+
+.jejak-perjalanan .invitation-eyebrow {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    padding: .3rem .85rem;
+    color: var(--jp-coral);
+    background: color-mix(in srgb, var(--jp-coral) 11%, transparent);
+    border: 1px solid color-mix(in srgb, var(--jp-coral) 26%, transparent);
+    border-radius: 999px;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+}
+
+.jp-couple-title { display: grid; justify-items: center; text-align: center; }
+.jp-couple-title span { max-width: 12ch; overflow-wrap: anywhere; }
+.jp-couple-title i { margin: -.05em 0; color: var(--jp-coral); font-size: .55em; }
+.jp-couple-title--lg { font-size: clamp(2.2rem, 9vw, 4rem); }
+.jp-date { margin-top: 1.1rem !important; color: var(--jp-coral); font-size: .74rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+
+/* -- Scroll signature: contours and postcards behind the content -------------- */
+.jp-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1.2s ease; }
+.invitation-open .jp-bg { opacity: 1; }
+.jp-contour { position: absolute; width: var(--jp-csize, 62vmax); aspect-ratio: 1; border-radius: 50%; opacity: var(--jp-cop, .5); background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--jp-accent) 16%, transparent), transparent 70%); transform: translate3d(0, calc(var(--jp-scroll, 0) * var(--jp-cdepth, -.02) * 1px), 0); }
+.jp-contour--1 { top: -12vmax; left: -14vmax; --jp-csize: 64vmax; --jp-cdepth: -.02; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--jp-accent) 15%, transparent), transparent 70%); }
+.jp-contour--2 { top: 28vmax; right: -20vmax; --jp-csize: 74vmax; --jp-cdepth: -.035; --jp-cop: .45; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--jp-coral) 13%, transparent), transparent 70%); }
+.jp-contour--3 { bottom: -16vmax; left: -18vmax; --jp-csize: 70vmax; --jp-cdepth: -.028; --jp-cop: .4; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--jp-accent) 13%, transparent), transparent 70%); }
+.jp-contour--4 { bottom: 4vmax; right: -22vmax; --jp-csize: 58vmax; --jp-cdepth: -.045; --jp-cop: .38; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--jp-coral) 11%, transparent), transparent 70%); }
+/* Postcards drift behind the sections, across the whole viewport on a loop, so
+   they are present at every scroll position; the scroll adds only a small,
+   bounded drift. Each one reads as a postcard back: a stamp corner and a few
+   address lines. This template keeps its ambient motion behind the content. */
+.jp-postcard { position: absolute; top: 0; width: var(--jp-pw, 4.4rem); aspect-ratio: 3/2; border-radius: .22rem; background: var(--jp-pcard, var(--jp-paper)); border: 1px solid color-mix(in srgb, var(--jp-accent) 34%, transparent); box-shadow: 0 .5rem 1.1rem rgba(34, 43, 51, .14); opacity: var(--jp-pop, .55); filter: blur(var(--jp-pblur, 5px)); transform: translate3d(0, calc((var(--jp-progress, 0) - .5) * var(--jp-pdrift, 80px)), 0) rotate(var(--jp-prot, 0deg)); animation: jp-fall var(--jp-pfall, 16s) linear var(--jp-pdelay, 0s) infinite; }
+.jp-postcard::before { content: ''; position: absolute; top: .24rem; right: .24rem; width: 22%; aspect-ratio: 1; background: color-mix(in srgb, var(--jp-coral) 55%, transparent); border-radius: .1rem; }
+.jp-postcard::after { content: ''; position: absolute; left: .3rem; bottom: .34rem; width: 46%; height: 2px; background: color-mix(in srgb, var(--jp-accent) 42%, transparent); box-shadow: 0 4px 0 color-mix(in srgb, var(--jp-accent) 32%, transparent), 0 8px 0 color-mix(in srgb, var(--jp-accent) 22%, transparent); }
+.jp-postcard--1 { left: 11%; --jp-pw: 4.6rem; --jp-prot: 12deg; --jp-pfall: 16s; --jp-pdelay: -2s; --jp-pdrift: 70px; }
+.jp-postcard--2 { right: 9%; --jp-pw: 3.6rem; --jp-pblur: 7px; --jp-prot: -14deg; --jp-pfall: 20s; --jp-pdelay: -8s; --jp-pdrift: 96px; --jp-pcard: color-mix(in srgb, var(--jp-accent) 10%, var(--jp-paper)); }
+.jp-postcard--3 { left: 22%; --jp-pw: 5.2rem; --jp-pblur: 9px; --jp-pop: .4; --jp-prot: 8deg; --jp-pfall: 23s; --jp-pdelay: -14s; --jp-pdrift: 84px; }
+.jp-postcard--4 { right: 20%; --jp-pw: 3.2rem; --jp-pblur: 6px; --jp-prot: -20deg; --jp-pfall: 15s; --jp-pdelay: -5s; --jp-pdrift: 62px; --jp-pcard: color-mix(in srgb, var(--jp-coral) 12%, var(--jp-paper)); }
+.jp-postcard--5 { left: 60%; --jp-pw: 2.6rem; --jp-pblur: 4px; --jp-pop: .6; --jp-prot: 16deg; --jp-pfall: 18s; --jp-pdelay: -10s; --jp-pdrift: 76px; }
+@keyframes jp-fall { from { translate: 0 -16svh; } to { translate: 0 116svh; } }
+
+/* Dashed route down the left edge with a marker that travels the journey. */
+.jp-route { position: fixed; z-index: 10; top: 22vh; bottom: 22vh; left: max(.55rem, env(safe-area-inset-left)); width: 2px; opacity: 0; transition: opacity .9s ease; }
+.invitation-open .jp-route { opacity: 1; }
+.jp-route__line { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, var(--jp-route-line) 0 6px, transparent 6px 12px); animation: jp-march-y 1.3s linear infinite; }
+.jp-route__dot { position: absolute; left: 50%; top: calc(var(--jp-progress, 0) * 100%); width: .62rem; height: .62rem; margin-left: -.31rem; border-radius: 50%; background: var(--jp-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--jp-accent) 20%, transparent); transform: translateY(-50%); }
+@keyframes jp-march-y { to { background-position-y: 12px; } }
+
+/* Compass: the ring keeps turning on its own, the needle answers the scroll. */
+.jp-compass { position: fixed; z-index: 9; top: calc(env(safe-area-inset-top) + 3.6rem); right: max(1rem, env(safe-area-inset-right)); width: 3rem; height: 3rem; opacity: 0; transition: opacity .9s ease; }
+.invitation-open .jp-compass { opacity: .8; }
+.jp-compass__ring { position: absolute; inset: 0; border: 1px dashed color-mix(in srgb, var(--jp-accent) 45%, transparent); border-radius: 50%; animation: jp-spin 30s linear infinite; }
+.jp-compass__ring::before { content: '✦'; position: absolute; inset: 0; display: grid; place-items: center; color: color-mix(in srgb, var(--jp-accent) 55%, transparent); font-size: .85rem; }
+.jp-compass__needle { position: absolute; left: 50%; top: 50%; width: 2px; height: 1.05rem; margin: -1.05rem 0 0 -1px; transform-origin: bottom center; background: linear-gradient(var(--jp-coral), transparent); transform: rotate(calc(var(--jp-progress, 0) * 300deg - 30deg)); }
+@keyframes jp-spin { to { transform: rotate(360deg); } }
+
+/* -- Cover ------------------------------------------------------------------- */
+.jp-cover { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: max(1rem, env(safe-area-inset-top)) 1rem max(2.2rem, env(safe-area-inset-bottom)); overflow: hidden; background: var(--jp-canvas); perspective: 1200px; transition: opacity .8s ease, visibility .8s ease; }
+.jp-cover__poster, .jp-cover__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.jp-cover__video--desktop { display: none; }
+.jp-cover__video--mobile { display: block; }
+.jp-cover::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgba(243, 236, 221, calc(.95 - var(--jp-cover-veil, .46) * .3)), rgba(243, 236, 221, calc(.9 - var(--jp-cover-veil, .46) * .2))); }
+
+/* A boarding pass: a perforated stub beside the body. */
+.jp-ticket { position: relative; z-index: 3; display: grid; grid-template-columns: clamp(3.4rem, 16vw, 4.8rem) minmax(0, 1fr); width: min(100%, 33rem); background: var(--jp-paper); border-radius: .7rem; box-shadow: 0 1.5rem 3.2rem rgba(34, 43, 51, .16); overflow: hidden; }
+.jp-ticket--cover { transform-origin: top center; transition: opacity .6s ease, transform .7s var(--jp-ease); }
+.jp-ticket__stub { display: grid; place-content: center; gap: .4rem; padding: 1rem .35rem; background: color-mix(in srgb, var(--jp-accent) 10%, var(--jp-paper)); border-right: 2px dashed var(--jp-line); }
+.jp-ticket__mark { font-size: 1.15rem; color: var(--jp-accent); text-align: center; }
+.jp-ticket__class { writing-mode: vertical-rl; text-orientation: mixed; color: var(--jp-muted); font-size: .58rem; font-weight: 700; letter-spacing: .34em; text-transform: uppercase; }
+.jp-ticket__body { padding: clamp(1.35rem, 5vw, 2.1rem) clamp(1.05rem, 5vw, 1.8rem); text-align: center; }
+.jp-ticket--cover h1 { font-size: clamp(1.9rem, 7vw, 2.9rem); overflow-wrap: anywhere; }
+.jp-ticket--cover h1 span { max-width: 100%; overflow-wrap: anywhere; }
+.jp-armed .invitation-open .jp-ticket--cover { transform: perspective(1200px) rotateX(24deg) translateY(.5rem); }
+.jp-cover__date { display: block; margin: -.1rem 0 1.3rem; color: var(--jp-muted); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.jp-cover__countdown { margin: -.3rem auto 1.1rem; }
+.jp-cover__countdown-label { display: block; margin-bottom: .45rem; color: var(--jp-coral); font-size: .58rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.jp-cover__countdown > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .35rem; }
+.jp-cover__countdown > div > span { display: grid; gap: .06rem; padding: .38rem .15rem; background: var(--jp-soft); border-radius: .4rem; }
+.jp-cover__countdown strong { font-family: 'Marcellus', serif; font-size: 1.12rem; color: var(--jp-ink); }
+.jp-cover__countdown small { color: var(--jp-muted); font-size: .48rem; letter-spacing: .1em; text-transform: uppercase; }
+.jp-cover__to { margin: .25rem 0 0; color: var(--jp-muted); }
+.jp-cover__name { display: block; margin: .1rem auto 1.4rem; max-width: 24rem; font-family: 'Marcellus', serif; font-size: clamp(1.25rem, 5vw, 1.7rem); color: var(--jp-ink); }
+.jejak-perjalanan .jp-cover__cta, .jejak-perjalanan [data-open-invitation] { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: .72rem 1.7rem; border: 0; border-radius: 999px; color: var(--jp-paper); background: color-mix(in srgb, var(--jp-accent) 92%, #16233a); font-weight: 600; letter-spacing: .06em; text-decoration: none; cursor: pointer; transition: transform .15s ease, background .2s ease; }
+.jejak-perjalanan .jp-cover__cta:hover, .jejak-perjalanan [data-open-invitation]:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--jp-accent) 78%, #121d31); }
+
+/* Gating: the invitation is reachable without scripting (real anchor + :target). */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .jp-cover { visibility: hidden; pointer-events: none; }
+.invitation-open .jp-cover { opacity: 0; visibility: hidden; }
+.invitation-open .jp-ticket--cover { opacity: 0; }
+
+/* -- Navigation: a departure board that scrolls sideways, never wraps --------- */
+.jp-nav { position: fixed; z-index: 11; top: 0; left: 0; right: 0; display: flex; overflow-x: auto; padding: max(.35rem, env(safe-area-inset-top)) .6rem .35rem; background: color-mix(in srgb, var(--jp-canvas) 93%, transparent); box-shadow: 0 1px 0 var(--jp-line); backdrop-filter: blur(10px); transform: translateY(-100%); transition: transform .45s var(--jp-ease); scrollbar-width: none; }
+.jp-nav::-webkit-scrollbar { display: none; }
+.invitation-open .jp-nav { transform: none; }
+.jp-nav__inner { display: flex; gap: .1rem; margin-inline: auto; }
+.jp-nav a { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 44px; padding: .45rem .6rem; color: var(--jp-ink); border-radius: .4rem; font-size: .58rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+.jp-nav a:hover, .jp-nav a:focus-visible { color: var(--jp-paper); background: var(--jp-accent); }
+
+/* -- Sections ---------------------------------------------------------------- */
+.jejak-perjalanan main { counter-reset: jp-stop; }
+.jejak-perjalanan .invitation-section {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 62rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem));
+    overflow: hidden;
+    text-align: center;
+}
+.jejak-perjalanan .invitation-section > * { position: relative; z-index: 1; }
+.jejak-perjalanan .invitation-section > p { max-width: 42rem; margin-inline: auto; }
+/* The tint band is the LAST background rule that paints the section element. */
+.jejak-perjalanan .invitation-section--tint { width: 100%; max-width: none; background: color-mix(in srgb, var(--jp-accent) 7%, var(--jp-canvas)); }
+
+/* Each section is a numbered stop on the route. */
+.jejak-perjalanan .invitation-section { counter-increment: jp-stop; }
+.jejak-perjalanan .invitation-section .invitation-eyebrow::before { content: counter(jp-stop, decimal-leading-zero) ' · '; color: var(--jp-accent); font-weight: 700; }
+
+/* -- Hero -------------------------------------------------------------------- */
+.jp-hero { overflow: hidden; }
+.jp-hero__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .16; }
+.jp-hero__video--desktop { display: none; }
+.jp-hero__inner { position: relative; z-index: 1; }
+.jp-hero__inner > p { max-width: 40rem; margin-inline: auto; color: var(--jp-muted); }
+
+/* -- Hosts: passport photos -------------------------------------------------- */
+.jp-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.6rem); max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.6rem) auto 0; }
+.jp-host { min-width: 0; }
+.jp-host__photo { position: relative; display: block; width: min(100%, 16rem); margin: 0 auto clamp(1.1rem, 4vw, 1.8rem); aspect-ratio: 4/5; overflow: hidden; background: var(--jp-soft); border: 6px solid var(--jp-paper); border-radius: .3rem; box-shadow: 0 .9rem 2rem rgba(34, 43, 51, .12); }
+.jp-host__photo::after { content: ''; position: absolute; top: .5rem; right: .5rem; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: color-mix(in srgb, var(--jp-coral) 70%, transparent); box-shadow: inset 0 0 0 2px var(--jp-paper); }
+.jp-host__photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.jp-host__photo > span { height: 100%; display: grid; place-items: center; color: var(--jp-accent); font-family: 'Marcellus', serif; font-size: clamp(3rem, 14vw, 6rem); }
+.jp-host h3 { margin-bottom: .5rem; overflow-wrap: anywhere; }
+.jp-host p { max-width: 28ch; margin-inline: auto; color: var(--jp-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.jp-host__parents small { display: block; margin-bottom: .2rem; color: var(--jp-coral); font-size: .6rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.jp-host__parents span { display: block; }
+.jp-host a { display: inline-block; min-height: 44px; padding-block: 1rem; margin-top: .5rem; color: color-mix(in srgb, var(--jp-accent) 90%, #16233a); font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-underline-offset: .25rem; }
+.jp-hosts__and { align-self: center; color: var(--jp-coral); font-family: 'Marcellus', serif; font-size: clamp(1.5rem, 6vw, 2.8rem); }
+.jp-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
+.jp-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* -- Events: boarding passes ------------------------------------------------- */
+.jp-events { display: grid; gap: 1.1rem; max-width: 46rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.jp-events .jp-ticket { width: 100%; text-align: left; }
+.jp-events .jp-ticket__body { text-align: left; }
+.jp-events .jp-ticket h3 { margin-bottom: .8rem; }
+.jp-ticket__fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: .8rem 1rem; margin-bottom: 1rem; }
+.jp-ticket__field { display: grid; gap: .12rem; }
+.jp-ticket__field--wide { grid-column: 1 / -1; }
+.jp-ticket__field small { color: var(--jp-muted); font-size: .6rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.jp-ticket__field strong { font-family: 'Marcellus', serif; font-size: 1.05rem; font-weight: 400; overflow-wrap: anywhere; }
+.jp-event__notes { padding-top: .9rem; margin-top: .6rem; border-top: 1px dashed var(--jp-line); }
+.jp-event__notes small { display: block; color: var(--jp-muted); line-height: 1.6; }
+.jp-event__notes small + small { margin-top: .5rem; }
+.jp-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: center; margin-top: 1.1rem; }
+.jp-actions > * { max-width: 100%; }
+.jp-actions--center { justify-content: center; }
+.jejak-perjalanan .jp-actions a, .jejak-perjalanan .jp-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .6rem 1.15rem; border: 1px solid color-mix(in srgb, var(--jp-accent) 55%, transparent); border-radius: 999px; color: var(--jp-accent); background: transparent; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-decoration: none; cursor: pointer; transition: color .2s, background .2s; }
+.jejak-perjalanan .jp-actions a:hover, .jejak-perjalanan .jp-actions button:hover { color: var(--jp-paper); background: var(--jp-accent); }
+
+/* -- Countdown --------------------------------------------------------------- */
+.jp-countdown { width: min(100%, 46rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.4rem, 2vw, 1.2rem); margin: 1.5rem auto 0; }
+.jp-countdown > span { display: grid; gap: .3rem; padding: 1rem .3rem; background: var(--jp-paper); border: 1px solid var(--jp-line); border-radius: .5rem; box-shadow: 0 .5rem 1.2rem rgba(34, 43, 51, .07); }
+.jp-countdown strong { font-family: 'Marcellus', serif; font-size: clamp(1.6rem, 6.5vw, 3rem); font-weight: 400; }
+.jp-countdown small { color: var(--jp-coral); font-size: clamp(.54rem, 1.7vw, .66rem); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+
+/* -- Map --------------------------------------------------------------------- */
+.jp-map { position: relative; width: 100%; margin: 2rem 0 1.3rem; aspect-ratio: 16/10; overflow: hidden; background: var(--jp-soft); border: 1px solid var(--jp-line); border-radius: .7rem; box-shadow: 0 .9rem 2rem rgba(34, 43, 51, .1); }
+.jp-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* -- Story: a travel log ----------------------------------------------------- */
+.jp-log { position: relative; max-width: 42rem; margin: 2.4rem auto 0; padding-left: 2rem; text-align: left; }
+.jp-log::before { content: ''; position: absolute; top: .4rem; bottom: .4rem; left: .34rem; width: 2px; background: repeating-linear-gradient(180deg, var(--jp-route-line) 0 7px, transparent 7px 13px); }
+.jp-stop { position: relative; padding: 0 0 2.6rem 1.3rem; }
+.jp-stop::before { content: ''; position: absolute; left: -.06rem; top: .4rem; width: .7rem; height: .7rem; border-radius: 50%; background: var(--jp-coral); box-shadow: 0 0 0 4px color-mix(in srgb, var(--jp-coral) 20%, transparent); }
+.jp-stop img { width: 100%; max-height: 24rem; margin-bottom: 1rem; object-fit: cover; border: 6px solid var(--jp-paper); border-radius: .3rem; box-shadow: 0 .9rem 2rem rgba(34, 43, 51, .12); }
+.jp-stop small { color: var(--jp-coral); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.jp-stop h3 { margin: .3rem 0 .5rem; }
+.jp-stop p { color: var(--jp-muted); }
+
+/* -- Gallery: postcards ------------------------------------------------------ */
+.jp-postcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; max-width: 60rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.jp-postcards figure { position: relative; min-width: 0; margin: 0; padding: .45rem .45rem 0; background: var(--jp-paper); border: 1px solid var(--jp-line); border-radius: .4rem; box-shadow: 0 .8rem 1.8rem rgba(34, 43, 51, .1); rotate: -.8deg; }
+.jp-postcards figure:nth-child(even) { rotate: 1.1deg; }
+.jp-postcards figure::after { content: ''; position: absolute; top: .4rem; right: .4rem; width: 1.1rem; height: 1.1rem; border: 1px dashed color-mix(in srgb, var(--jp-coral) 60%, transparent); border-radius: .15rem; }
+.jp-postcards button { width: 100%; padding: 0; border: 0; cursor: pointer; }
+.jp-postcards img { width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .6s var(--jp-ease); }
+.jp-postcards button:hover img { transform: scale(1.04); }
+.jp-postcards figure:first-child { grid-column: span 2; rotate: 0deg; }
+.jp-postcards figure:first-child img { aspect-ratio: 4/3; }
+.jp-postcards figcaption { padding: .45rem .2rem .55rem; color: var(--jp-muted); font-size: .74rem; }
+
+/* -- Contacts ---------------------------------------------------------------- */
+.jp-contacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; width: min(100%, 44rem); margin: clamp(1.2rem, 4vw, 2.2rem) auto 0; }
+.jp-contact { position: relative; display: grid; justify-items: center; gap: .5rem; min-height: 11rem; padding: clamp(1.4rem, 4vw, 2.1rem) 1.3rem; background: var(--jp-paper); border: 1px solid var(--jp-line); border-radius: .7rem; box-shadow: 0 .9rem 2rem rgba(34, 43, 51, .1); }
+.jp-contact small { display: block; margin-bottom: .3rem; color: var(--jp-coral); font-size: .6rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.jp-contact h3 { margin-bottom: .35rem; }
+
+/* -- Closing ----------------------------------------------------------------- */
+.jp-closing { min-height: 75svh; }
+.jp-closing::before { content: '✦'; display: block; margin-bottom: 1rem; color: var(--jp-coral); font-size: 1.2rem; }
+.jp-kicker { margin-top: 1.3rem !important; color: var(--jp-muted); font-style: italic; }
+
+/* -- Shared forms ------------------------------------------------------------ */
+.jejak-perjalanan .invitation-form { width: min(100%, 40rem); border: 1px solid var(--jp-line); border-radius: .7rem; box-shadow: 0 .9rem 2rem rgba(34, 43, 51, .1); }
+.jejak-perjalanan .invitation-form input:focus, .jejak-perjalanan .invitation-form select:focus, .jejak-perjalanan .invitation-form textarea:focus { border-color: var(--jp-accent); box-shadow: 0 0 0 3px var(--jp-soft); outline: 0; }
+.jejak-perjalanan .invitation-form button { background: color-mix(in srgb, var(--jp-accent) 92%, #16233a); }
+/* Strongest notice rule, so a template paragraph rule can never strip its colour. */
+.jejak-perjalanan .invitation-section .invitation-notice { color: #1f5438; background: #e5f3e9; border-left: 3px solid #2f9e68; }
+
+/* -- Operator blocks --------------------------------------------------------- */
+.jejak-perjalanan .invitation-block-quote { border-left: 3px solid var(--jp-accent); }
+.jejak-perjalanan .invitation-block-quote p { font-family: 'Marcellus', serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem); }
+.jejak-perjalanan .invitation-block-quote cite { color: var(--jp-coral); }
+
+/* -- Music + lightbox -------------------------------------------------------- */
+.jp-music { position: fixed; z-index: 12; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 46px; height: 46px; padding: 0; border: 0; border-radius: 50%; color: var(--jp-paper); background: color-mix(in srgb, var(--jp-accent) 92%, #16233a); font-size: 1rem; cursor: pointer; box-shadow: 0 .5rem 1.4rem rgba(34, 43, 51, .24); }
+.jp-music[data-playing="true"] span { display: inline-block; animation: jp-spin 4s linear infinite; }
+.jp-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 0; border-radius: .8rem; background: #1c2530; }
+.jp-lightbox::backdrop { background: rgba(20, 27, 35, .9); }
+.jp-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.jp-lightbox button { position: absolute; top: .6rem; right: .6rem; min-height: 40px; padding: .4rem .9rem; border: 0; border-radius: .45rem; color: var(--jp-paper); background: rgba(255, 255, 255, .16); cursor: pointer; }
+
+.jejak-perjalanan a:focus-visible, .jejak-perjalanan button:focus-visible, .jejak-perjalanan input:focus-visible, .jejak-perjalanan select:focus-visible, .jejak-perjalanan textarea:focus-visible { outline: 3px solid var(--jp-accent); outline-offset: 3px; }
+
+/* -- Stop reveal (armed only) ------------------------------------------------
+   A stop arrives and settles, as if the traveller just landed on it. */
+.jp-armed [data-reveal] { opacity: 0; transform: translateY(1.2rem); transition: opacity .7s ease, transform .8s var(--jp-ease); transition-delay: calc(var(--jp-i, 0) * 85ms); }
+.jp-armed [data-reveal="down"] { transform: translateY(-1rem); }
+.jp-armed [data-reveal="settle"] { transform: translateY(1.5rem) scale(.985); }
+.jp-armed [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* -- Per section height ------------------------------------------------------ */
+.jejak-perjalanan .invitation-section[data-height="tall"] { min-height: 75svh; }
+.jejak-perjalanan .invitation-section[data-height="half"] { min-height: 50svh; }
+.jejak-perjalanan .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* -- Motion off, and reduced motion ----------------------------------------- */
+.jejak-perjalanan[data-motion="off"] *, .jejak-perjalanan[data-motion="off"] *::before, .jejak-perjalanan[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+.jejak-perjalanan[data-motion="off"] .jp-bg, .jejak-perjalanan[data-motion="off"] .jp-route, .jejak-perjalanan[data-motion="off"] .jp-compass { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.jejak-perjalanan) { scroll-behavior: auto; }
+    .jejak-perjalanan *, .jejak-perjalanan *::before, .jejak-perjalanan *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .jp-bg, .jp-route, .jp-compass { display: none; }
+    .jp-armed [data-reveal] { opacity: 1 !important; transform: none !important; }
+    .jp-postcards figure, .jp-postcards figure:nth-child(even) { rotate: 0deg; }
+}
+
+/* -- Responsive -------------------------------------------------------------- */
+@media (max-width: 30rem) {
+    .jp-hosts { gap: .35rem; }
+    .jp-host h3 { font-size: 1.05rem; }
+    .jp-host p { font-size: .72rem; }
+    .jp-hosts__and { margin-inline: -.15rem; }
+    .jp-cover__countdown > div { gap: .28rem; }
+}
+
+@media (max-width: 47.99rem) {
+    .jejak-perjalanan { font-size: .9rem; line-height: 1.6; }
+    .jejak-perjalanan h1 { font-size: clamp(2.1rem, 11vw, 3.3rem); }
+    .jejak-perjalanan h2 { font-size: clamp(1.9rem, 9.5vw, 2.8rem); }
+    .jejak-perjalanan .invitation-section { padding-top: 4.25rem; padding-bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem)); }
+    .jp-host__photo { width: 100%; margin-bottom: .6rem; }
+    .jp-countdown { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .jp-log { padding-left: 1.6rem; }
+    .jp-stop { padding-left: 1.1rem; }
+    .jp-compass { display: none; }
+    .jp-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
+}
+
+@media (min-width: 48rem) {
+    .jejak-perjalanan .invitation-section { padding-inline: 2rem; }
+    .jp-cover__video--mobile { display: none; }
+    .jp-cover__video--desktop { display: block; }
+    .jp-hero__video--mobile { display: none; }
+    .jp-hero__video--desktop { display: block; }
+    .jp-postcards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .jp-postcards figure { aspect-ratio: auto; }
+    .jp-postcards figure:first-child { grid-column: span 2; grid-row: span 2; }
+    .jp-postcards figure:first-child img { aspect-ratio: 4/3; }
+}
+
+@media (max-height: 43rem) {
+    .jejak-perjalanan .invitation-section { padding-top: 4rem; padding-bottom: 4.5rem; }
+    .jp-host__photo { aspect-ratio: 1; }
+}

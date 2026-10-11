@@ -101,6 +101,32 @@ class SariPuraTemplateTest extends TestCase
             ->assertSee('परिवार', false);
     }
 
+    public function test_the_petal_layers_and_scroll_highlight_are_declared(): void
+    {
+        $this->invitation();
+
+        $this->get('/undangan-sari')
+            ->assertOk()
+            ->assertSee('class="sp-atmosphere"', false)
+            ->assertSee('sp-atmosphere--front', false)
+            ->assertSee('sp-petal--a', false);
+
+        $css = (string) file_get_contents(resource_path('invitation-templates/sari-pura/assets/theme.css'));
+        $script = (string) file_get_contents(resource_path('invitation-templates/sari-pura/assets/theme.js'));
+
+        // Petals loop across the whole viewport, behind and in front.
+        $this->assertStringContainsString('@keyframes sp-fall', $css);
+        $this->assertStringContainsString('.sp-atmosphere--front { z-index: 6;', $css);
+        // The layers drift with the scroll, so the scroll has its own highlight.
+        $this->assertStringContainsString('--sp-progress', $css);
+        $this->assertStringContainsString('calc((var(--sp-progress, 0) - .5)', $css);
+        // Removed under motion: off and reduced motion.
+        $this->assertStringContainsString('.sari-pura[data-motion="off"] .sp-atmosphere', $css);
+        // One rAF-throttled listener publishes both numbers.
+        $this->assertStringContainsString("setProperty('--sp-scroll'", $script);
+        $this->assertStringContainsString("setProperty('--sp-progress'", $script);
+    }
+
     private function invitation(): Invitation
     {
         return Invitation::create([

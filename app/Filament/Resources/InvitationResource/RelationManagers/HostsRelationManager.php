@@ -36,7 +36,8 @@ class HostsRelationManager extends RelationManager
                                 'host' => 'Tuan Rumah / Penyelenggara Utama',
                                 'co_host' => 'Pendamping Tuan Rumah',
                             ])
-                            ->required(),
+                            ->required()
+                            ->helperText('Menentukan sapaan yang dipakai desain. Untuk acara non-pernikahan, pilih Tuan Rumah.'),
 
                         TextInput::make('name')
                             ->label('Nama Lengkap')
@@ -75,21 +76,25 @@ class HostsRelationManager extends RelationManager
                             ->imageResizeUpscale(false)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(3072)
+                            ->helperText('Rasio 1:1 disarankan. Format JPG, PNG, atau WebP.')
                             ->columnSpanFull(),
 
                         Textarea::make('bio')
                             ->label('Biodata / Profil Singkat')
                             ->rows(3)
+                            ->helperText('Deskripsi singkat, mis. putra dari Bapak … / pekerjaan.')
                             ->columnSpanFull(),
 
                         TextInput::make('social_instagram')
                             ->label('Username Instagram')
                             ->placeholder('@username')
+                            ->helperText('Tampil di bagian penutup pada template yang mendukung.')
                             ->prefix('@'),
 
                         TextInput::make('social_tiktok')
                             ->label('Username TikTok')
                             ->placeholder('@username')
+                            ->helperText('Belum ditampilkan oleh template saat ini — boleh dikosongkan.')
                             ->prefix('@'),
 
                     ])->columns(2),

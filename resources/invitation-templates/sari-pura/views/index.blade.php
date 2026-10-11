@@ -122,7 +122,6 @@
                                     <div class="sp-actions">
                                         @if (in_array('map', $sections) && $event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk arah</a>@endif
                                         @if (in_array('map', $sections) && $event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin alamat</button>@endif
-                                        @if ($event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Tambah ke kalender</a>@endif
                                     </div>
                                 </div>
                             </article>

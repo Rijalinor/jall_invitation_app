@@ -20,7 +20,10 @@ Route::get('/preview/{invitation}', [InvitationPreviewController::class, 'show']
 Route::get('/template-previews/{template}', function (TemplateRegistry $templates, string $template) {
     abort_unless($path = $templates->previewPath($template), 404);
 
-    return response()->file($path);
+    // Previews are static files that only change on deploy, so let the browser
+    // reuse them for a day instead of re-fetching a PHP response every visit.
+    // BinaryFileResponse emits Last-Modified, so a cached copy still revalidates.
+    return response()->file($path, ['Cache-Control' => 'public, max-age=86400']);
 })->name('templates.preview');
 
 // Customer self-service content form, reached through a link issued in the

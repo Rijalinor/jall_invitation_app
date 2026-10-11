@@ -329,8 +329,10 @@ body:has(main:target) .sp-index { opacity: 1; pointer-events: auto; }
 .sp-index .sp-index__home { min-width: 42px; margin-bottom: .2rem; border-bottom: 1px solid var(--sp-gold-line); color: #fdf7ec; font-family: var(--sp-display); font-size: 1.2rem; }
 
 /* ── Drifting kamboja, gilded ────────────────────────────────────────────── */
-.sp-atmosphere { position: fixed; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; }
-.sp-atmosphere--front { z-index: 6; }
+/* The petals loop behind and in front; both layers drift with the scroll, the
+   near one faster, so the garden reads as depth rather than a flat page. */
+.sp-atmosphere { position: fixed; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; transform: translate3d(0, calc((var(--sp-progress, 0) - .5) * -70px), 0); }
+.sp-atmosphere--front { z-index: 6; transform: translate3d(0, calc((var(--sp-progress, 0) - .5) * -150px), 0); }
 .sp-petal { position: absolute; top: -14svh; width: clamp(1.7rem, 3.4vw, 3rem); aspect-ratio: 1; border-radius: 62% 38% 55% 45% / 55% 45% 62% 38%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--sp-gold-1) 85%, transparent), color-mix(in srgb, var(--sp-gold-2) 45%, transparent) 62%, transparent 80%); will-change: transform; animation: sp-fall var(--sp-duration, 30s) linear infinite; }
 .sp-petal--a { left: 8%; --sp-duration: 34s; animation-delay: 0s; }
 .sp-petal--b { left: 24%; width: clamp(1.3rem, 2.6vw, 2.3rem); --sp-duration: 27s; animation-delay: -9s; }
@@ -534,6 +536,7 @@ body:has(main:target) .sp-index { opacity: 1; pointer-events: auto; }
 .sari-pura[data-motion="off"] *,
 .sari-pura[data-motion="off"] *::before,
 .sari-pura[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+.sari-pura[data-motion="off"] .sp-atmosphere { display: none; }
 
 /* ── Per-section height ──────────────────────────────────────────────────── */
 .sari-pura .invitation-section[data-height="tall"] { min-height: 75svh; }

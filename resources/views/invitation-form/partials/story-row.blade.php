@@ -29,6 +29,15 @@
             <textarea name="{{ $field('body') }}" rows="3" maxlength="1200">{{ $value('body', $story?->body) }}</textarea>
         </label>
 
+        @include('invitation-form.partials.example-picker', [
+            'name' => $field('body'),
+            'examples' => [
+                'Kami pertama bertemu saat kuliah, dan sejak itu segalanya terasa berbeda.',
+                'Delapan tahun melewati suka dan duka bersama, hingga akhirnya memutuskan melangkah bersama.',
+                'Dari teman kerja menjadi teman hidup — perjalanan yang tidak kami duga.',
+            ],
+        ])
+
         <label class="field field--wide">
             <span>Foto kenangan (opsional)</span>
             @if ($photoUrl)

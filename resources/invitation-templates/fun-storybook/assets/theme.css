@@ -25,6 +25,10 @@
 html:has(body.fun-storybook) {
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
+    /* `clip` (not `hidden`) stops a stray wide element from creating a
+       horizontal page scroll without turning <html> into a scroll container,
+       which would break the sticky navigation. */
+    overflow-x: clip;
 }
 
 body.fun-storybook {
@@ -169,8 +173,12 @@ body.fun-storybook {
     position: fixed;
     inset: 0;
     z-index: 100;
-    display: grid;
-    place-items: center;
+    /* Flex with an auto-margined card keeps the cover centred without ever
+       pushing it past the left edge when the card is wide, and still scrolls
+       when the card is taller than the viewport. */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 1.5rem;
     background: var(--fsb-canvas);
     overflow-y: auto;
@@ -223,7 +231,9 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     align-items: center;
     text-align: center;
     gap: 1.2rem;
-    width: min(100%, 28rem);
+    width: 100%;
+    max-width: 30rem;
+    margin: auto 0;
     padding: clamp(1.75rem, 5vw, 2.5rem);
     background: #ffffff;
     border: 3.5px solid var(--fsb-border);
@@ -233,10 +243,13 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 .fsb-cover__title {
     margin: 0;
     font-family: var(--fsb-font-display);
-    font-size: clamp(2.2rem, 7vw, 3.25rem);
+    /* Capped below the card's inner width so a name never wraps mid-word on a
+       wide screen, where 7vw would otherwise outgrow the fixed card. */
+    font-size: clamp(2rem, 8vw, 2.75rem);
     line-height: 1.12;
     letter-spacing: -0.005em;
     color: var(--fsb-text);
+    overflow-wrap: anywhere;
     /* A printed offset in the template accent reads as comic without the
        vibration a pale shadow causes behind heavy letterforms. */
     text-shadow: 3px 3px 0 var(--fsb-pink);
@@ -329,11 +342,13 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     z-index: 1;
     width: min(100% - 2rem, 52rem);
     margin: 0 auto;
-    padding: clamp(3rem, 7vw, 5rem) 0;
+    /* Generous vertical rhythm: adjacent sections share this padding, so the
+       gap between them is twice the value below. */
+    padding: clamp(4rem, 13vw, 6rem) 0;
 }
 .fsb-section--tint {
     padding-inline: clamp(1rem, 4vw, 2.5rem);
-    margin-block: 1rem;
+    margin-block: 1.5rem;
     background: rgb(255 255 255 / .7);
     border: 3px solid var(--fsb-border);
     border-radius: 2rem;
@@ -364,8 +379,10 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     align-items: center;
     justify-content: center;
     text-align: center;
-    min-height: calc(100svh - 4rem);
-    padding: clamp(2rem, 5vw, 3.5rem) 0;
+    /* Content-height by default: a sparse opening stretched to a full viewport
+       left large empty bands above and below it. The section editor can still
+       ask this section for tall or half height. Vertical spacing is inherited
+       from .fsb-section so the opening breathes like every other section. */
     box-sizing: border-box;
 }
 .fsb-couple-title {
@@ -429,8 +446,14 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 
 /* Mempelai Berdampingan (Side-by-Side Hosts) */
 .fsb-hosts {
+    /* Positioned so the heart divider anchors to the cards, not the whole
+       section header above them. */
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* minmax(0, 1fr) lets the two columns shrink below their content's
+       min-content width, so a long name or handle cannot push the second card
+       past the right edge of the screen. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(.6rem, 2.5vw, 1.75rem);
     max-width: 48rem;
     margin: 0 auto;
@@ -438,6 +461,8 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 }
 .fsb-host {
     position: relative;
+    /* Allow the card to shrink inside its column and let inner text wrap. */
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -455,7 +480,9 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 .fsb-host__frame {
     position: relative;
     width: clamp(7.5rem, 32vw, 13.5rem);
-    margin-bottom: 1.1rem;
+    /* The shared host trigger is a full-width block, so the portrait frame needs
+       its own auto margins to sit centered in the card. */
+    margin: 0 auto 1.1rem;
 }
 .fsb-host__portrait {
     width: 100%;
@@ -502,6 +529,7 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     font-size: clamp(1.25rem, 3.8vw, 2.2rem);
     line-height: 1.15;
     color: var(--fsb-text);
+    overflow-wrap: anywhere;
 }
 .fsb-host__order {
     display: inline-block;
@@ -527,7 +555,10 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     letter-spacing: .08em;
     text-transform: uppercase;
 }
-.fsb-host__family strong { display: block; }
+.fsb-host__family strong { display: block; overflow-wrap: anywhere; }
+/* The instagram pill must not force the card wider than its column. */
+.fsb-host .fsb-btn { max-width: 100%; }
+.fsb-host .fsb-btn span { overflow: hidden; text-overflow: ellipsis; }
 /* Collapsed only once the shared script has wired the dialog (the `.hosts-armed`
    class), so a blocked script leaves the bio readable in the card. */
 .hosts-armed .fsb-host__bio {
@@ -583,7 +614,7 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 .fsb-event__venue {
     margin-top: 1rem;
     padding-top: .85rem;
-    border-top: 2px stroke var(--fsb-border);
+    border-top: 2px solid var(--fsb-border);
     color: var(--fsb-muted);
 }
 .fsb-event__venue strong {
@@ -602,14 +633,14 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 /* Countdown Section */
 .fsb-countdown__grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(.5rem, 2vw, 1.25rem);
     max-width: 40rem;
     margin: 0 auto;
 }
 @media (max-width: 30rem) {
     .fsb-countdown__grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 .fsb-countdown__card {
@@ -694,6 +725,7 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 }
 .fsb-story__date {
     display: block;
+    margin-top: .35rem;
     color: var(--fsb-pink);
     font-weight: 700;
     font-size: .85rem;
@@ -715,7 +747,7 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 }
 .fsb-gallery__page {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
 }
 @media (min-width: 48rem) {
@@ -723,7 +755,7 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
        wide frame. Every fourth photo restarts the pattern, so four, eight, or
        twelve photos always fill their rows with no dead space. */
     .fsb-gallery__page {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-auto-flow: dense;
     }
 
@@ -736,7 +768,8 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
        square photos padded with empty card. */
     .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 1) > button {
         position: relative;
-        height: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
     }
     .fsb-gallery__page .fsb-gallery__item:nth-child(4n + 1) img {
         position: absolute;
@@ -756,6 +789,10 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     }
 }
 .fsb-gallery__item {
+    /* A column so a feature photo can fill the tall frame while its caption
+       still sits inside the card instead of spilling past the border. */
+    display: flex;
+    flex-direction: column;
     margin: 0;
     background: #fff;
     padding: .45rem;
@@ -765,6 +802,8 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 }
 .fsb-gallery__item button {
     display: block;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
     padding: 0;
     border: 0;
@@ -788,11 +827,11 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
 
 /* Shared Components Wrapper (RSVP & Guestbook) */
 .fsb-section-wrapper {
-    width: min(100% - 2rem, 46rem);
+    width: min(100% - 2rem, 52rem);
     margin: 0 auto;
-    /* The preceding section already carries its own bottom padding, so a large
-       top padding here reads as a dead band between sections. */
-    padding: clamp(1rem, 3vw, 1.75rem) 0 clamp(2.5rem, 6vw, 4rem);
+    /* Matches the neighbouring section rhythm so the form card does not sit
+       tighter than the sections above and below it. */
+    padding: clamp(2rem, 5vw, 3rem) 0 clamp(3rem, 7vw, 4.5rem);
 }
 
 .fsb-section-wrapper .invitation-section {
@@ -850,8 +889,15 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     flex-direction: column !important;
     gap: 1.1rem !important;
     text-align: left !important;
+    /* The shared sheet gives .invitation-form a hairline box and its own width.
+       Both fought the comic card here, so the form is reset to sit flush inside
+       the themed wrapper and stretch to a comfortable reading measure. */
+    width: 100% !important;
     max-width: 32rem;
     margin: 0 auto;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
 }
 
 .fsb-section-wrapper label {
@@ -971,15 +1017,133 @@ body:has(main:target) .fsb-cover { visibility: hidden; pointer-events: none; }
     margin-top: .5rem !important;
 }
 
+/* Gifts (shared cards, comic skin) ------------------------------------------
+   The digital-gift cards come from the shared partial, so these rules only
+   re-dress that template-neutral markup: the generic "Kirim Hadiah" mark is
+   dropped and every card adopts this theme's chunky outline and printed
+   shadow. The bank transfer keeps its brand colour, framed like everything
+   else on the page. */
+.fun-storybook .invitation-gifts .invitation-gift-intro {
+    display: none;
+}
+
+.fun-storybook .invitation-gifts {
+    max-width: 26rem;
+    margin: 0 auto;
+}
+
+.fun-storybook .invitation-gift-method {
+    width: 100%;
+    padding: clamp(1.1rem, 4vw, 1.5rem);
+    background: #ffffff;
+    border: 3px solid var(--fsb-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--fsb-shadow-lg);
+}
+
+.fun-storybook .invitation-gift-method__icon {
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 2.5px solid var(--fsb-border);
+    border-radius: .85rem;
+    color: var(--fsb-text);
+    background: var(--fsb-yellow);
+    box-shadow: 2px 2px 0 var(--fsb-border);
+}
+
+.fun-storybook .invitation-gift-method__titles small {
+    color: var(--fsb-pink-ink);
+}
+
+.fun-storybook .invitation-gift-method__titles strong {
+    font-family: var(--fsb-font-display);
+    font-size: 1.15rem;
+}
+
+.fun-storybook .invitation-gift-method__number strong {
+    font-family: var(--fsb-font-display);
+    color: var(--fsb-text);
+}
+
+.fun-storybook .invitation-gift-method .invitation-gift-method__actions button {
+    min-height: 44px;
+    border: 2.5px solid var(--fsb-border);
+    border-radius: 999px;
+    color: var(--fsb-text);
+    background: #ffffff;
+    box-shadow: 2px 2px 0 var(--fsb-border);
+    font-family: var(--fsb-font-display);
+    font-weight: 700;
+}
+
+.fun-storybook .invitation-gift-method .invitation-gift-method__actions button:hover {
+    color: #ffffff;
+    background: var(--fsb-pink);
+    border-color: var(--fsb-border);
+}
+
+.fun-storybook .invitation-bank-card {
+    border: 3.5px solid var(--fsb-border);
+    border-radius: 1.6rem;
+    box-shadow: 6px 6px 0 var(--fsb-border);
+}
+
+.fun-storybook .invitation-bank-card__logo {
+    font-family: var(--fsb-font-display);
+}
+
+.fun-storybook .invitation-bank-card .invitation-bank-card__copy {
+    min-height: 44px;
+    border: 2.5px solid var(--fsb-border);
+    border-radius: 999px;
+    color: var(--fsb-text);
+    background: #ffffff;
+    box-shadow: 2px 2px 0 var(--fsb-border);
+    font-family: var(--fsb-font-display);
+    font-weight: 700;
+}
+
+.fun-storybook .invitation-bank-card .invitation-bank-card__copy:hover {
+    color: #ffffff;
+    background: var(--fsb-pink);
+}
+
+.fun-storybook .invitation-bank-card__delivery {
+    width: min(100%, 26rem);
+    background: #ffffff;
+    border: 3px solid var(--fsb-border);
+    border-radius: 1.4rem;
+    box-shadow: var(--fsb-shadow);
+}
+
+.fun-storybook .invitation-bank-card__delivery small {
+    color: var(--fsb-pink-ink);
+}
+
+.fun-storybook .invitation-bank-card__delivery button {
+    min-height: 44px;
+    border: 2.5px solid var(--fsb-border);
+    border-radius: 999px;
+    color: var(--fsb-text);
+    background: #ffffff;
+    box-shadow: 2px 2px 0 var(--fsb-border);
+    font-family: var(--fsb-font-display);
+    font-weight: 700;
+}
+
+.fun-storybook .invitation-gifts .invitation-bank-card__note {
+    color: var(--fsb-muted);
+}
+
 /* Contacts & Closing */
 .fsb-contacts {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
 }
 @media (min-width: 48rem) {
     .fsb-contacts {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 .fsb-contact-card {

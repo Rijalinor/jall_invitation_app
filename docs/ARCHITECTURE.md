@@ -33,7 +33,7 @@
 
 ## 2. Arsitektur Layer (Three-Layer Separation)
 
-Mengikuti panduan dari skill reference `template-architecture.md`:
+Mengikuti panduan dari skill reference `platform-contract.md`:
 
 ```
 ┌─────────────────────────────────────────────────────────┐

@@ -89,6 +89,16 @@
 
     <div class="mh-glow" aria-hidden="true"><span></span><span></span><span></span></div>
 
+    {{-- Front layer: gold light motes rising across the whole viewport on a loop,
+         in front of the sections, so the lattice light reads as depth. --}}
+    <div class="mh-motes" aria-hidden="true">
+        <span class="mh-mote mh-mote--1"></span>
+        <span class="mh-mote mh-mote--2"></span>
+        <span class="mh-mote mh-mote--3"></span>
+        <span class="mh-mote mh-mote--4"></span>
+        <span class="mh-mote mh-mote--5"></span>
+    </div>
+
     <main id="mahligai-content" tabindex="-1" data-gate>
         @foreach ($sections as $section)
             @if ($section === 'opening')
@@ -139,7 +149,6 @@
                                     <div class="mh-actions">
                                         @if (in_array('map', $sections) && $event['directions_url'])<a href="{{ $event['directions_url'] }}" target="_blank" rel="noopener noreferrer">Petunjuk arah</a>@endif
                                         @if (in_array('map', $sections) && $event['address'])<button type="button" data-copy="{{ $event['address'] }}">Salin alamat</button>@endif
-                                        @if ($event['calendar_url'])<a href="{{ $event['calendar_url'] }}" target="_blank" rel="noopener noreferrer">Tambah ke kalender</a>@endif
                                     </div>
                                 </div>
                             </article>
@@ -204,7 +213,6 @@
                     <h2 data-reveal="zoom">{{ $couple_title }}</h2>
                     @if ($closing_message)<p class="mh-closing__message" data-reveal>{!! nl2br(e($closing_message)) !!}</p>@endif
                     @include('invitations.shared.closing-families')
-                    @include('invitations.shared.closing-social')
                     @if ($closing_footer)<p class="mh-closing__footer" data-reveal>{!! nl2br(e($closing_footer)) !!}</p>@endif
                     <p class="mh-closing__kicker" data-reveal>{{ $labels['closing_kicker'] }}</p>
                 </section>

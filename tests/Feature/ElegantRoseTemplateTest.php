@@ -375,13 +375,13 @@ class ElegantRoseTemplateTest extends TestCase
         ]);
 
         // Automatic, with no settings at all: couple cover, "s/d Selesai",
-        // the timezone is shown, and gifts render as one block.
+        // the timezone is shown, and gifts render as the shared bank card.
         $this->get('/undangan-elegan')
             ->assertOk()
             ->assertSee('er-couple-title er-couple-title--cover', false)
             ->assertSee('08:00 s/d Selesai', false)
             ->assertSee('WITA', false)
-            ->assertSee('aria-label="Kirim hadiah"', false)
+            ->assertSee('invitation-bank-card', false)
             ->assertDontSee('Kirim Konfirmasi &amp; Ucapan', false);
 
         // The two remaining toggles still work per invitation.

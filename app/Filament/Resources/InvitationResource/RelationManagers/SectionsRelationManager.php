@@ -48,11 +48,13 @@ class SectionsRelationManager extends RelationManager
                                 'closing' => 'Penutup Undangan',
                             ])
                             ->required()
+                            ->helperText('Bagian undangan yang diatur. Tidak bisa diubah setelah dibuat.')
                             ->disabledOn('edit'),
 
                         Toggle::make('enabled')
                             ->label('Status Aktif Tampil di Undangan')
-                            ->default(true),
+                            ->default(true)
+                            ->helperText('Matikan untuk menyembunyikan bagian ini dari undangan.'),
 
                         Select::make('content_json.height')
                             ->label('Tinggi Minimal Seksi')

@@ -1,0 +1,415 @@
+/* Deco Gala — art deco, ivory + jet black + gold.
+ *
+ * Light luxury with symmetric frames and thin gold rules. One rAF scroll listener
+ * publishes --dg-scroll (px) and --dg-progress (0..1); the gold rules and the
+ * cover rays read them. Content is only hidden under `.dg-armed`, a class
+ * theme.js adds once it can animate, so a blocked script leaves the whole
+ * invitation visible and usable.
+ */
+
+.deco-gala {
+    --dg-accent: #c9a227;              /* overridden inline from the admin setting */
+    --dg-gold: color-mix(in srgb, var(--dg-accent) 80%, #6b4e0e);
+    --dg-gold-soft: color-mix(in srgb, var(--dg-accent) 34%, transparent);
+    --dg-ink: #14120f;
+    --dg-canvas: #f6f0e4;
+    --dg-paper: #fffdf7;
+    --dg-muted: #6b6153;
+    --dg-line: color-mix(in srgb, var(--dg-accent) 42%, transparent);
+    --dg-soft: color-mix(in srgb, var(--dg-accent) 12%, var(--dg-canvas));
+    --dg-ease: cubic-bezier(.2, .7, .2, 1);
+    /* Aliases consumed by the shared components (forms, blocks, gifts, dialogs). */
+    --inv-accent: var(--dg-gold);
+    --inv-paper: var(--dg-paper);
+    --inv-ink: var(--dg-ink);
+    --inv-line: var(--dg-line);
+    margin: 0;
+    color: var(--dg-ink);
+    background: var(--dg-canvas);
+    font: 400 1rem/1.75 'Jost', ui-sans-serif, system-ui, sans-serif;
+}
+
+html:has(body.deco-gala) { scroll-behavior: smooth; }
+.deco-gala *, .deco-gala *::before, .deco-gala *::after { box-sizing: border-box; }
+.deco-gala h1, .deco-gala h2, .deco-gala h3 { margin: 0 0 1rem; font-family: 'Poiret One', 'Jost', serif; font-weight: 400; line-height: 1.08; }
+.deco-gala h1 { font-size: clamp(2.8rem, 13vw, 6.4rem); letter-spacing: .02em; }
+.deco-gala h2 { font-size: clamp(2.1rem, 8.5vw, 4.6rem); letter-spacing: .02em; }
+.deco-gala h3 { font-size: clamp(1.3rem, 4.2vw, 1.9rem); letter-spacing: .04em; }
+.deco-gala p { margin: .6rem 0; }
+.deco-gala p, .deco-gala a, .deco-gala button { overflow-wrap: anywhere; }
+.deco-gala a, .deco-gala button, .deco-gala input, .deco-gala select, .deco-gala textarea { font: inherit; }
+.deco-gala a { color: var(--dg-gold); }
+.deco-gala img { display: block; max-width: 100%; }
+
+.deco-gala .invitation-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .8rem;
+    margin-bottom: 1rem;
+    color: var(--dg-gold);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+}
+.deco-gala .invitation-eyebrow::before, .deco-gala .invitation-eyebrow::after { content: ''; width: 2rem; height: 1px; background: currentColor; opacity: .6; }
+
+/* A thin gold rule that draws itself once its section heading is in view. */
+.dg-rule { display: block; width: min(7rem, 42%); height: 2px; margin: .1rem auto 1.5rem; background: linear-gradient(90deg, transparent, var(--dg-gold), transparent); }
+.dg-armed .dg-rule { transform: scaleX(0); transition: transform .9s var(--dg-ease) .1s; }
+.dg-armed .invitation-section:has([data-reveal].is-visible) .dg-rule { transform: none; }
+
+.dg-couple-title { display: grid; justify-items: center; text-align: center; }
+/* The cover panel is narrower than a section, so its heading is capped and allowed
+   to wrap — a long pair of names must never spill outside the card on desktop. */
+.dg-cover__panel h1 { font-size: clamp(2rem, 7vw, 3.4rem); overflow-wrap: anywhere; }
+.dg-cover__panel h1 span { max-width: 100%; overflow-wrap: anywhere; }
+.dg-couple-title span { max-width: 12ch; }
+.dg-couple-title i { margin: -.04em 0; color: var(--dg-gold); font-size: .62em; font-weight: 400; }
+.dg-date { margin-top: 1.3rem !important; color: var(--dg-gold); font-size: .78rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+
+/* -- Scroll progress rule ---------------------------------------------------- */
+.dg-progress { position: fixed; z-index: 15; top: 0; left: 0; width: 100%; height: 3px; transform: scaleX(var(--dg-progress, 0)); transform-origin: left; background: linear-gradient(90deg, var(--dg-gold), color-mix(in srgb, var(--dg-accent) 50%, #fff)); }
+
+/* -- Corner fans ------------------------------------------------------------- */
+.dg-fans { position: fixed; z-index: 0; inset: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1s ease; }
+.invitation-open .dg-fans { opacity: .5; }
+.dg-fan { position: absolute; width: clamp(7rem, 24vw, 13rem); aspect-ratio: 1; background: repeating-conic-gradient(from 90deg at 100% 100%, var(--dg-gold-soft) 0 .5deg, transparent .5deg 7deg);
+    -webkit-mask: radial-gradient(circle at 100% 100%, #000 0 58%, transparent 60%);
+    mask: radial-gradient(circle at 100% 100%, #000 0 58%, transparent 60%); }
+.dg-fan--tl { top: 0; left: 0; transform: scaleX(-1) scaleY(-1) rotate(calc(var(--dg-scroll, 0) * 0.015deg)); }
+.dg-fan--tr { top: 0; right: 0; transform: scaleY(-1) rotate(calc(var(--dg-scroll, 0) * -0.015deg)); }
+.dg-fan--bl { bottom: 0; left: 0; transform: scaleX(-1) rotate(calc(var(--dg-scroll, 0) * -0.015deg)); }
+.dg-fan--br { right: 0; bottom: 0; transform: rotate(calc(var(--dg-scroll, 0) * 0.015deg)); }
+
+/* The scroll signature: a fixed sunburst that turns with the page, so scrolling
+   itself feels alive — not just the one-time entrance reveals. */
+.dg-backdrop { position: fixed; z-index: 0; inset: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1.2s ease; }
+.invitation-open .dg-backdrop { opacity: 1; }
+.dg-backdrop__rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 170vmax;
+    height: 170vmax;
+    margin: -85vmax;
+    background: repeating-conic-gradient(from 0deg, var(--dg-gold-soft) 0 .4deg, transparent .4deg 9deg);
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 20%, #000 34%, transparent 66%);
+    mask: radial-gradient(circle at 50% 50%, transparent 0 20%, #000 34%, transparent 66%);
+    transform: rotate(calc(var(--dg-progress, 0) * 120deg));
+}
+
+/* A gold spine at the edge that draws with the page progress. */
+.dg-spine { position: fixed; z-index: 9; top: 14vh; bottom: 14vh; right: max(.55rem, env(safe-area-inset-right)); width: 2px; background: color-mix(in srgb, var(--dg-gold) 22%, transparent); opacity: 0; transition: opacity .6s ease; }
+.invitation-open .dg-spine { opacity: 1; }
+.dg-spine__fill { position: absolute; inset: 0; display: block; background: linear-gradient(180deg, color-mix(in srgb, var(--dg-accent) 55%, #fff), var(--dg-gold)); transform: scaleY(var(--dg-progress, 0)); transform-origin: top; }
+
+/* -- Cover ------------------------------------------------------------------- */
+.dg-cover {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(2.2rem, env(safe-area-inset-bottom));
+    overflow: hidden;
+    background: var(--dg-canvas);
+    transition: opacity .8s ease, visibility .8s ease;
+}
+.dg-cover__poster, .dg-cover__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dg-cover__video--desktop { display: none; }
+.dg-cover__video--mobile { display: block; }
+.dg-cover::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgba(246, 240, 228, calc(.96 - var(--dg-cover-veil, .5) * .25)), rgba(246, 240, 228, calc(.9 - var(--dg-cover-veil, .5) * .15))); }
+.dg-cover__rays {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background: repeating-conic-gradient(from -64deg at 50% -12%, color-mix(in srgb, var(--dg-gold) 60%, transparent) 0 .4deg, transparent .4deg 7deg);
+    opacity: .28;
+    transform: rotate(calc(var(--dg-scroll, 0) * 0.02deg));
+    transform-origin: 50% -12%;
+    -webkit-mask: radial-gradient(circle at 50% 0%, #000 0 42%, transparent 70%);
+    mask: radial-gradient(circle at 50% 0%, #000 0 42%, transparent 70%);
+}
+.dg-cover__panel {
+    position: relative;
+    z-index: 3;
+    width: min(100%, 32rem);
+    padding: clamp(2rem, 7vw, 3.2rem) clamp(1.3rem, 6vw, 2.8rem);
+    text-align: center;
+    background: color-mix(in srgb, var(--dg-paper) 94%, transparent);
+    box-shadow: 0 2rem 5rem rgba(20, 18, 15, .18);
+    transition: opacity .6s ease, transform .7s var(--dg-ease);
+}
+.dg-cover__panel::before { content: ''; position: absolute; inset: .55rem; border: 1px solid var(--dg-gold); pointer-events: none; }
+.dg-cover__panel::after { content: ''; position: absolute; inset: .95rem; border: 1px solid var(--dg-line); pointer-events: none; }
+.dg-cover__frame { position: absolute; inset: 0; pointer-events: none; }
+.dg-cover__rule { position: absolute; background: var(--dg-gold); }
+.dg-cover__rule--t, .dg-cover__rule--b { left: 1.4rem; right: 1.4rem; height: 2px; transform-origin: center; }
+.dg-cover__rule--t { top: -1px; }
+.dg-cover__rule--b { bottom: -1px; }
+.dg-cover__rule--l, .dg-cover__rule--r { top: 1.4rem; bottom: 1.4rem; width: 2px; transform-origin: center; }
+.dg-cover__rule--l { left: -1px; }
+.dg-cover__rule--r { right: -1px; }
+.dg-armed .dg-cover__rule--t, .dg-armed .dg-cover__rule--b { transform: scaleX(0); }
+.dg-armed .dg-cover__rule--l, .dg-armed .dg-cover__rule--r { transform: scaleY(0); }
+.dg-armed .invitation-open .dg-cover__rule { transform: none; transition: transform .9s var(--dg-ease); }
+.dg-armed .invitation-open .dg-cover__rule--l, .dg-armed .invitation-open .dg-cover__rule--r { transition-delay: .12s; }
+.dg-cover__panel .invitation-eyebrow { color: var(--dg-gold); }
+.dg-cover__panel p { color: var(--dg-muted); }
+.dg-cover__date { display: block; margin: -.1rem 0 1.5rem; color: var(--dg-ink); font-size: .72rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+.dg-cover__countdown { margin: -.3rem auto 1.3rem; }
+.dg-cover__countdown-label { display: block; margin-bottom: .45rem; color: var(--dg-gold); font-size: .6rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+.dg-cover__countdown > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
+.dg-cover__countdown > div > span { display: grid; gap: .06rem; padding: .4rem .2rem; border: 1px solid var(--dg-line); background: var(--dg-soft); }
+.dg-cover__countdown strong { font-family: 'Poiret One', serif; font-size: 1.2rem; color: var(--dg-ink); }
+.dg-cover__countdown small { color: var(--dg-muted); font-size: .5rem; letter-spacing: .1em; text-transform: uppercase; }
+.dg-cover__to { margin: .3rem 0 0; }
+.dg-cover__name { display: block; margin: .1rem auto 1.6rem; max-width: 24rem; font-family: 'Poiret One', serif; font-size: clamp(1.3rem, 5vw, 1.8rem); color: var(--dg-ink); }
+.deco-gala .dg-cover__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: .72rem 1.7rem;
+    border: 1px solid var(--dg-ink);
+    border-radius: 0;
+    color: var(--dg-paper);
+    background: var(--dg-ink);
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    font-size: .78rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .2s, background .2s;
+}
+.deco-gala .dg-cover__cta:hover { color: var(--dg-ink); background: transparent; }
+
+/* Gating: the invitation is reachable without scripting (real anchor + :target). */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .dg-cover { visibility: hidden; pointer-events: none; }
+.invitation-open .dg-cover { opacity: 0; visibility: hidden; }
+.invitation-open .dg-cover__panel { opacity: 0; transform: translateY(-1rem) scale(.98); }
+
+/* -- Navigation -------------------------------------------------------------- */
+.dg-nav { position: fixed; z-index: 11; top: 0; left: 0; right: 0; display: flex; overflow-x: auto; padding: max(.35rem, env(safe-area-inset-top)) .6rem .35rem; background: color-mix(in srgb, var(--dg-canvas) 92%, transparent); border-bottom: 1px solid var(--dg-line); backdrop-filter: blur(12px); transform: translateY(-100%); transition: transform .45s var(--dg-ease); scrollbar-width: none; }
+.dg-nav::-webkit-scrollbar { display: none; }
+.invitation-open .dg-nav { transform: none; }
+/* Centred when the labels fit, and a horizontal scroll — never a wrapped second
+   row — when they do not. */
+.dg-nav__inner { display: flex; gap: .15rem; margin-inline: auto; }
+.dg-nav a { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 44px; padding: .45rem .55rem; color: var(--dg-ink); font-size: .58rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+.dg-nav a:hover, .dg-nav a:focus-visible { color: var(--dg-gold); }
+
+/* -- Sections ---------------------------------------------------------------- */
+.deco-gala .invitation-section {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 62rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem));
+    overflow: hidden;
+    text-align: center;
+}
+.deco-gala .invitation-section > * { position: relative; z-index: 1; }
+.deco-gala .invitation-section > p { max-width: 42rem; margin-inline: auto; }
+/* The tint band is the LAST background rule that paints the section element. */
+.deco-gala .invitation-section--tint { width: 100%; max-width: none; background: var(--dg-soft); }
+.deco-gala .invitation-section--compact { padding-block: 3rem; }
+
+/* -- Hero -------------------------------------------------------------------- */
+.dg-hero { overflow: hidden; }
+.dg-hero__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .16; filter: grayscale(.3); }
+.dg-hero__video--desktop { display: none; }
+.dg-hero__inner { position: relative; z-index: 1; }
+.dg-hero__fan { display: block; width: clamp(6rem, 30vw, 11rem); height: 3.2rem; margin: 0 auto 1.4rem; background: repeating-conic-gradient(from -60deg at 50% 100%, var(--dg-gold) 0 .5deg, transparent .5deg 6deg);
+    -webkit-mask: radial-gradient(circle at 50% 100%, #000 0 92%, transparent 95%);
+    mask: radial-gradient(circle at 50% 100%, #000 0 92%, transparent 95%); }
+.dg-hero__inner > p { max-width: 40rem; margin-inline: auto; color: var(--dg-muted); }
+
+/* -- Hosts ------------------------------------------------------------------- */
+.dg-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.6rem); max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.6rem) auto 0; }
+.dg-host { min-width: 0; }
+.dg-host__portrait { position: relative; display: block; width: min(100%, 17rem); margin: 0 auto clamp(1.1rem, 4vw, 1.8rem); aspect-ratio: 4/5; overflow: hidden; background: var(--dg-soft); box-shadow: 0 1.2rem 2.6rem rgba(20, 18, 15, .12); }
+.dg-host__portrait::after { content: ''; position: absolute; inset: .5rem; border: 1px solid var(--dg-gold); pointer-events: none; }
+.dg-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.dg-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--dg-gold); font: 400 clamp(3rem, 14vw, 6rem)/1 'Poiret One', serif; }
+.dg-host h3 { margin-bottom: .5rem; overflow-wrap: anywhere; }
+.dg-host p { max-width: 28ch; margin-inline: auto; color: var(--dg-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.dg-host__parents small { display: block; margin-bottom: .2rem; color: var(--dg-gold); font-size: .62rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.dg-host__parents span { display: block; }
+.dg-host a { display: inline-block; min-height: 44px; padding-block: 1rem; margin-top: .5rem; color: var(--dg-gold); font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; text-underline-offset: .25rem; }
+.dg-hosts__and { align-self: center; color: var(--dg-gold); font: 400 clamp(1.6rem, 6vw, 3rem)/1 'Poiret One', serif; }
+.dg-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
+.dg-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* -- Events + actions -------------------------------------------------------- */
+.dg-events { display: grid; gap: 1rem; max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.dg-event { position: relative; padding: clamp(1.4rem, 4vw, 2.3rem) clamp(1rem, 4vw, 2rem); background: var(--dg-paper); border: 1px solid var(--dg-line); }
+.dg-event::after { content: ''; position: absolute; inset: .5rem; border: 1px solid var(--dg-line); pointer-events: none; }
+.dg-event > * { position: relative; z-index: 1; }
+.dg-event h3 { font-size: clamp(1.6rem, 5vw, 2.3rem); text-transform: uppercase; letter-spacing: .1em; }
+.dg-event__schedule, .dg-event__venue, .dg-event__notes { padding-block: .9rem; }
+.dg-event__venue, .dg-event__notes { border-top: 1px solid var(--dg-line); }
+.dg-event__venue p:last-child { color: var(--dg-muted); font-size: .92rem; }
+.dg-event small { display: block; color: var(--dg-muted); line-height: 1.65; }
+.dg-event small + small { margin-top: .55rem; }
+.dg-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: center; margin-top: 1.3rem; }
+.dg-actions > * { max-width: 100%; }
+.dg-actions--center { justify-content: center; }
+.deco-gala .dg-actions a, .deco-gala .dg-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: .62rem 1.15rem;
+    border: 1px solid var(--dg-ink);
+    border-radius: 0;
+    color: var(--dg-ink);
+    background: transparent;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .2s, background .2s;
+}
+.deco-gala .dg-actions a:hover, .deco-gala .dg-actions button:hover { color: var(--dg-paper); background: var(--dg-ink); }
+.deco-gala .dg-event .dg-actions > :first-child { color: var(--dg-paper); background: var(--dg-ink); }
+
+/* -- Countdown --------------------------------------------------------------- */
+.dg-countdown { width: 100%; max-width: none; }
+.dg-countdown__units { width: min(100%, 52rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.4rem, 2vw, 1.3rem); margin: 1.5rem auto 0; }
+.dg-countdown__units > span { display: grid; gap: .3rem; padding: 1rem .3rem; border: 1px solid var(--dg-line); background: var(--dg-paper); }
+.dg-countdown__units strong { font-family: 'Poiret One', serif; font-size: clamp(1.7rem, 6.5vw, 3.4rem); }
+.dg-countdown__units small { color: var(--dg-gold); font-size: clamp(.56rem, 1.7vw, .68rem); font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+
+/* -- Map --------------------------------------------------------------------- */
+.dg-map { position: relative; width: 100%; margin: 2rem 0 1.3rem; aspect-ratio: 16/10; overflow: hidden; border: 1px solid var(--dg-gold); background: var(--dg-soft); box-shadow: 0 1.2rem 2.6rem rgba(20, 18, 15, .12); }
+.dg-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: grayscale(.2) contrast(1.02); }
+
+/* -- Story timeline ---------------------------------------------------------- */
+.dg-timeline { position: relative; max-width: 42rem; margin: 2.4rem auto 0; padding-left: 2rem; text-align: left; }
+.dg-timeline::before { content: ''; position: absolute; top: .4rem; bottom: .4rem; left: 0; width: 2px; background: linear-gradient(180deg, var(--dg-gold), var(--dg-line)); }
+.dg-story { position: relative; padding: 0 0 2.8rem 1.4rem; }
+.dg-story::before { content: ''; position: absolute; left: -.42rem; top: .35rem; width: .7rem; height: .7rem; background: var(--dg-gold); transform: rotate(45deg); }
+.dg-story img { width: 100%; max-height: 24rem; margin-bottom: 1rem; object-fit: cover; box-shadow: 0 1.2rem 2.6rem rgba(20, 18, 15, .12); }
+.dg-story small { color: var(--dg-gold); font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.dg-story h3 { margin: .3rem 0 .5rem; }
+.dg-story p { color: var(--dg-muted); }
+
+/* -- Gallery ----------------------------------------------------------------- */
+/* A plain downward grid: the photos read as one page the guest scrolls. */
+.dg-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; max-width: 60rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.dg-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; aspect-ratio: 1; border: 1px solid var(--dg-gold); background: var(--dg-soft); }
+.dg-gallery figure:first-child { grid-column: span 2; aspect-ratio: 4/3; }
+.dg-gallery button { width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; cursor: pointer; }
+.dg-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--dg-ease); }
+.dg-gallery button:hover img { transform: scale(1.04); }
+.dg-gallery figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 2rem .8rem .7rem; color: #fff; background: linear-gradient(transparent, rgba(20, 18, 15, .8)); font-size: .76rem; pointer-events: none; }
+
+/* -- Contacts ---------------------------------------------------------------- */
+.dg-contact-section { width: 100%; max-width: none; }
+.dg-contact-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; width: min(100%, 44rem); margin: clamp(1.2rem, 4vw, 2.2rem) auto 0; }
+.dg-contact-card { position: relative; display: grid; justify-items: center; gap: .5rem; min-height: 11rem; padding: clamp(1.4rem, 4vw, 2.1rem) 1.3rem; background: var(--dg-paper); border: 1px solid var(--dg-line); }
+.dg-contact-card::before { content: ''; position: absolute; inset: .5rem; border: 1px solid var(--dg-line); pointer-events: none; }
+.dg-contact-card > * { position: relative; }
+.dg-contact-card small { display: block; margin-bottom: .3rem; color: var(--dg-gold); font-size: .62rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+.dg-contact-card h3 { margin-bottom: .35rem; }
+
+/* -- Sharing + closing ------------------------------------------------------- */
+.dg-share-section { width: 100%; max-width: none; }
+.dg-closing { min-height: 75svh; }
+.dg-closing::before { content: '❖'; display: block; margin-bottom: 1.1rem; color: var(--dg-gold); font-size: 1.5rem; }
+.dg-kicker { margin-top: 1.3rem !important; color: var(--dg-muted); font-style: italic; }
+
+/* -- Shared forms ------------------------------------------------------------ */
+.deco-gala .invitation-form { width: min(100%, 40rem); border: 1px solid var(--dg-line); border-top: 3px solid var(--dg-gold); }
+.deco-gala .invitation-form input:focus, .deco-gala .invitation-form select:focus, .deco-gala .invitation-form textarea:focus { border-color: var(--dg-gold); box-shadow: 0 0 0 3px var(--dg-soft); outline: 0; }
+.deco-gala .invitation-form button { color: var(--dg-paper); background: var(--dg-ink); }
+/* Strongest notice rule, so a template paragraph rule can never strip its colour. */
+.deco-gala .invitation-section .invitation-notice { color: #1f5438; background: #e5f3e9; border-left: 3px solid #2f9e68; }
+
+/* -- Operator blocks --------------------------------------------------------- */
+.deco-gala .invitation-block-quote { border-left: 3px solid var(--dg-gold); }
+.deco-gala .invitation-block-quote p { font-family: 'Poiret One', serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem); }
+.deco-gala .invitation-block-quote cite { color: var(--dg-gold); }
+
+/* -- Music + lightbox -------------------------------------------------------- */
+.dg-music { position: fixed; z-index: 12; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 46px; height: 46px; padding: 0; border: 1px solid var(--dg-gold); border-radius: 50%; color: var(--dg-ink); background: var(--dg-paper); font-size: 1rem; cursor: pointer; box-shadow: 0 0 0 3px var(--dg-soft); }
+.dg-music[data-playing="true"] span { display: inline-block; animation: dg-spin 4s linear infinite; }
+@keyframes dg-spin { to { transform: rotate(360deg); } }
+.dg-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 1px solid var(--dg-gold); background: var(--dg-ink); }
+.dg-lightbox::backdrop { background: rgba(20, 18, 15, .92); }
+.dg-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.dg-lightbox button { position: absolute; top: .6rem; right: .6rem; min-height: 40px; padding: .4rem .9rem; border: 1px solid var(--dg-gold); border-radius: 0; color: var(--dg-gold); background: transparent; letter-spacing: .12em; text-transform: uppercase; font-size: .7rem; cursor: pointer; }
+
+.deco-gala a:focus-visible, .deco-gala button:focus-visible, .deco-gala input:focus-visible, .deco-gala select:focus-visible, .deco-gala textarea:focus-visible { outline: 3px solid var(--dg-gold); outline-offset: 3px; }
+
+/* -- Reveal (armed only) ----------------------------------------------------
+   Role-based variants: kickers drop, headings zoom, media/text rise. */
+.dg-armed [data-reveal] { opacity: 0; filter: blur(4px); transform: translateY(1.6rem); transition: opacity .75s ease, filter .8s ease, transform .85s var(--dg-ease); transition-delay: calc(var(--dg-i, 0) * 90ms); }
+.dg-armed [data-reveal="down"] { transform: translateY(-1.2rem); }
+.dg-armed [data-reveal="zoom"] { transform: scale(.92); filter: blur(3px); }
+.dg-armed [data-reveal].is-visible { opacity: 1; filter: none; transform: none; }
+
+/* -- Per section height ------------------------------------------------------ */
+.deco-gala .invitation-section[data-height="tall"] { min-height: 75svh; }
+.deco-gala .invitation-section[data-height="half"] { min-height: 50svh; }
+.deco-gala .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* -- Motion off, and reduced motion ----------------------------------------- */
+.deco-gala[data-motion="off"] *, .deco-gala[data-motion="off"] *::before, .deco-gala[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.deco-gala) { scroll-behavior: auto; }
+    .deco-gala *, .deco-gala *::before, .deco-gala *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .dg-backdrop, .dg-fans, .dg-spine, .dg-cover__rays { display: none; }
+    .dg-armed [data-reveal] { opacity: 1 !important; filter: none !important; transform: none !important; }
+}
+
+/* -- Responsive -------------------------------------------------------------- */
+@media (max-width: 30rem) {
+    .dg-hosts { gap: .35rem; }
+    .dg-host h3 { font-size: 1.06rem; }
+    .dg-host p { font-size: .7rem; }
+    .dg-hosts__and { margin-inline: -.15rem; }
+    .dg-cover__countdown > div { gap: .3rem; }
+}
+
+@media (max-width: 47.99rem) {
+    .deco-gala { font-size: .9rem; line-height: 1.6; }
+    .deco-gala h1 { font-size: clamp(2.4rem, 12vw, 3.6rem); }
+    .deco-gala h2 { font-size: clamp(2rem, 10vw, 3rem); }
+    .deco-gala .invitation-section { padding-top: 4.25rem; padding-bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem)); }
+    .dg-host__portrait { width: 100%; aspect-ratio: 4/5; margin-bottom: .6rem; }
+    .dg-countdown__units { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dg-timeline { padding-left: 1.6rem; }
+    .dg-story { padding-left: 1.1rem; }
+    .dg-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
+}
+
+@media (min-width: 48rem) {
+    .deco-gala .invitation-section { padding-inline: 2rem; }
+    .dg-cover__video--mobile { display: none; }
+    .dg-cover__video--desktop { display: block; }
+    .dg-hero__video--mobile { display: none; }
+    .dg-hero__video--desktop { display: block; }
+    .dg-events { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dg-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .dg-gallery figure { aspect-ratio: 4/5; }
+    .dg-gallery figure:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+}
+
+@media (max-height: 43rem) {
+    .deco-gala .invitation-section { padding-top: 4rem; padding-bottom: 4.5rem; }
+    .dg-host__portrait { aspect-ratio: 1; }
+}

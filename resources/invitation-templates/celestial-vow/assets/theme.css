@@ -119,6 +119,47 @@ html:has(body.celestial-vow) {
     transform: translate3d(0, calc(var(--cel-scroll, 0) * 0.13 * 1px), 0);
 }
 
+/* The twinkle layer holds a few brighter stars and pulses on its own. */
+.cel-sky__layer--twinkle {
+    background-image:
+        radial-gradient(2.4px 2.4px at 88px 60px, rgb(255 255 255 / .95), transparent 100%),
+        radial-gradient(2px 2px at 232px 168px, color-mix(in srgb, var(--cel-starlight) 90%, transparent), transparent 100%),
+        radial-gradient(2.6px 2.6px at 330px 110px, rgb(255 255 255 / .9), transparent 100%);
+    background-size: 420px 340px;
+    opacity: .55;
+    animation: cel-twinkle 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes cel-twinkle { from { opacity: .35; } to { opacity: .95; } }
+
+/* ── Shooting stars, part of the sky behind the sections ──────────────────── */
+.cel-meteor {
+    position: absolute;
+    top: 0;
+    left: var(--cel-meteor-x, 20%);
+    width: var(--cel-meteor-len, 7rem);
+    height: 2px;
+    border-radius: 999px;
+    opacity: 0;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--cel-starlight) 85%, transparent));
+    filter: blur(var(--cel-meteor-blur, 1px));
+    transform: translate3d(0, calc((var(--cel-progress, 0) - .5) * var(--cel-meteor-drift, 80px)), 0) rotate(24deg);
+    animation: cel-shoot var(--cel-meteor-fall, 9s) linear var(--cel-meteor-delay, 0s) infinite;
+}
+
+.cel-meteor--1 { --cel-meteor-x: 12%; --cel-meteor-len: 7rem; --cel-meteor-fall: 8s; --cel-meteor-delay: -1s; }
+.cel-meteor--2 { --cel-meteor-x: 34%; --cel-meteor-len: 5rem; --cel-meteor-blur: 2px; --cel-meteor-fall: 12s; --cel-meteor-delay: -5s; --cel-meteor-drift: 110px; }
+.cel-meteor--3 { --cel-meteor-x: 58%; --cel-meteor-len: 9rem; --cel-meteor-fall: 14s; --cel-meteor-delay: -9s; --cel-meteor-drift: 96px; }
+.cel-meteor--4 { --cel-meteor-x: 76%; --cel-meteor-len: 4.5rem; --cel-meteor-blur: 2px; --cel-meteor-fall: 10s; --cel-meteor-delay: -3s; --cel-meteor-drift: 70px; }
+.cel-meteor--5 { --cel-meteor-x: 90%; --cel-meteor-len: 6rem; --cel-meteor-fall: 16s; --cel-meteor-delay: -12s; --cel-meteor-drift: 88px; }
+
+@keyframes cel-shoot {
+    0% { opacity: 0; translate: 0 -10svh; }
+    12% { opacity: var(--cel-meteor-op, .85); }
+    55% { opacity: var(--cel-meteor-op, .85); }
+    100% { opacity: 0; translate: -22vw 96svh; }
+}
+
 /* ── Controls ────────────────────────────────────────────────────────────── */
 .celestial-vow button,
 .celestial-vow .cel-actions a,
@@ -1075,6 +1116,8 @@ body:has(main:target) .cel-mark {
     transition: none !important;
 }
 
+.celestial-vow[data-motion="off"] .cel-meteor { display: none; }
+
 @keyframes cel-drift {
     0% { transform: translate3d(0, 0, 0); }
     100% { transform: translate3d(-40px, -30px, 0); }
@@ -1193,6 +1236,7 @@ body:has(main:target) .cel-mark {
         animation-duration: .01ms !important;
     }
     .cel-cover__stars { animation: none; }
+    .cel-meteor { display: none; }
 }
 
 /* ── Tint ────────────────────────────────────────────────────────────────────

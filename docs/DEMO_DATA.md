@@ -31,7 +31,7 @@ tetap masuk akal untuk template lain.
 | Nama ayah | `Hendra Wijaya` |
 | Nama ibu | `Sri Wahyuni` |
 | Anak ke / urutan | `Putra pertama` |
-| Bio singkat | `Pencinta senja, kopi, dan perjalanan.` |
+| Bio singkat | `Pencinta senja, kopi, dajn peralanan.` |
 | Instagram | `rendra.adyatma` |
 
 **Mempelai Wanita**

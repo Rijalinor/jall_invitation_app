@@ -1,0 +1,348 @@
+/* Origami — folded paper craft.
+ *
+ * Cream paper with a bold accent, sharp creases and folded planes. One rAF scroll
+ * listener publishes --or-scroll (px) and --or-progress (0..1); the far paper
+ * planes drift behind the sections and small fragments drift in front, so the
+ * depth reads as 3D. Content is only hidden under `.or-armed`, a class theme.js
+ * adds once it can animate, so a blocked script leaves the invitation visible.
+ */
+
+.origami {
+    --or-accent: #2f8f83;              /* overridden inline from the admin setting */
+    --or-ink: #2a2723;
+    --or-canvas: #f4efe4;
+    --or-paper: #fffdf7;
+    --or-muted: #7a7266;
+    --or-terra: #c9714b;
+    --or-line: color-mix(in srgb, var(--or-accent) 28%, transparent);
+    --or-soft: color-mix(in srgb, var(--or-accent) 12%, var(--or-canvas));
+    --or-ease: cubic-bezier(.2, .7, .2, 1);
+    /* Aliases consumed by the shared components (forms, blocks, gifts, dialogs). */
+    --inv-accent: color-mix(in srgb, var(--or-accent) 88%, #17423c);
+    --inv-paper: var(--or-paper);
+    --inv-ink: var(--or-ink);
+    --inv-line: var(--or-line);
+    margin: 0;
+    color: var(--or-ink);
+    background: var(--or-canvas);
+    font: 400 1rem/1.75 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+html:has(body.origami) { scroll-behavior: smooth; }
+.origami *, .origami *::before, .origami *::after { box-sizing: border-box; }
+.origami h1, .origami h2, .origami h3 { margin: 0 0 1rem; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-weight: 600; line-height: 1.08; }
+.origami h1 { font-size: clamp(2.7rem, 12vw, 5.6rem); }
+.origami h2 { font-size: clamp(2.1rem, 8.5vw, 4.2rem); }
+.origami h3 { font-size: clamp(1.3rem, 4.2vw, 1.9rem); }
+.origami p { margin: .6rem 0; }
+.origami p, .origami a, .origami button { overflow-wrap: anywhere; }
+.origami a, .origami button, .origami input, .origami select, .origami textarea { font: inherit; }
+.origami a { color: color-mix(in srgb, var(--or-accent) 88%, #17423c); }
+.origami img { display: block; max-width: 100%; }
+
+.origami .invitation-eyebrow {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    padding: .32rem .95rem;
+    color: var(--or-terra);
+    background: color-mix(in srgb, var(--or-terra) 12%, transparent);
+    border-radius: .35rem .9rem .35rem .9rem;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+}
+
+.or-couple-title { display: grid; justify-items: center; text-align: center; }
+/* The cover panel is narrower than a section, so its heading is capped and allowed
+   to wrap — a long pair of names must never spill outside the card on desktop. */
+.or-cover__panel h1 { font-size: clamp(2rem, 7vw, 3.4rem); overflow-wrap: anywhere; }
+.or-cover__panel h1 span { max-width: 100%; overflow-wrap: anywhere; }
+.or-couple-title span { max-width: 12ch; }
+.or-couple-title i { margin: -.05em 0; color: var(--or-terra); font-size: .6em; font-weight: 500; }
+.or-date { margin-top: 1.2rem !important; color: var(--or-terra); font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+
+/* -- Scroll signature: folded planes behind, fragments in front --------------- */
+.or-progress { position: fixed; z-index: 15; top: 0; left: 0; width: 100%; height: 4px; transform: scaleX(var(--or-progress, 0)); transform-origin: left; background: linear-gradient(90deg, var(--or-accent), var(--or-terra)); }
+.or-bg, .or-fore { position: fixed; inset: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1.2s ease; }
+.or-bg { z-index: 0; }
+.or-fore { z-index: 5; }
+.invitation-open .or-bg, .invitation-open .or-fore { opacity: 1; }
+.or-paper { position: absolute; width: var(--or-size, 34vmax); aspect-ratio: 1; opacity: var(--or-op, .5); transform: translate3d(0, calc(var(--or-scroll, 0) * var(--or-depth, -.05) * 1px), 0) rotate(var(--or-rot, 0deg)); clip-path: polygon(0 0, 100% 0, 0 100%); }
+.or-paper--1 { top: -8vmax; left: -10vmax; --or-size: 40vmax; --or-depth: -.03; --or-rot: 4deg; background: color-mix(in srgb, var(--or-accent) 22%, transparent); }
+.or-paper--2 { top: 18vmax; right: -14vmax; --or-size: 46vmax; --or-depth: -.06; --or-rot: 190deg; background: color-mix(in srgb, var(--or-terra) 20%, transparent); }
+.or-paper--3 { bottom: -12vmax; left: -12vmax; --or-size: 44vmax; --or-depth: -.04; --or-rot: 92deg; --or-op: .42; background: color-mix(in srgb, var(--or-accent) 18%, transparent); }
+.or-paper--4 { bottom: 6vmax; right: -16vmax; --or-size: 38vmax; --or-depth: -.07; --or-rot: 275deg; --or-op: .38; background: color-mix(in srgb, var(--or-terra) 16%, transparent); }
+/* Paper fragments fall across the viewport on a loop, so they are present at
+   every scroll position; the scroll adds only a small, bounded drift for depth. */
+.or-fore__bit { position: absolute; top: 0; width: var(--or-fsize, 3rem); aspect-ratio: 1; opacity: var(--or-fop, .55); filter: blur(var(--or-fblur, 6px)); clip-path: polygon(0 0, 100% 0, 0 100%); transform: translate3d(0, calc((var(--or-progress, 0) - .5) * var(--or-drift, 80px)), 0) rotate(var(--or-frot, 0deg)); animation: or-drift var(--or-fall, 15s) linear var(--or-delay, 0s) infinite; }
+.or-fore__bit--1 { left: 12%; --or-fsize: 3.4rem; --or-frot: 12deg; --or-fall: 14s; --or-delay: -1s; --or-drift: 70px; background: color-mix(in srgb, var(--or-accent) 70%, transparent); }
+.or-fore__bit--2 { right: 10%; --or-fsize: 2.6rem; --or-fblur: 8px; --or-frot: 200deg; --or-fall: 18s; --or-delay: -7s; --or-drift: 96px; background: color-mix(in srgb, var(--or-terra) 70%, transparent); }
+.or-fore__bit--3 { left: 20%; --or-fsize: 4rem; --or-fblur: 10px; --or-fop: .42; --or-frot: 96deg; --or-fall: 20s; --or-delay: -13s; --or-drift: 86px; background: color-mix(in srgb, var(--or-accent) 62%, transparent); }
+.or-fore__bit--4 { right: 18%; --or-fsize: 2.4rem; --or-fblur: 7px; --or-frot: 260deg; --or-fall: 13s; --or-delay: -4s; --or-drift: 60px; background: color-mix(in srgb, var(--or-terra) 66%, transparent); }
+.or-fore__bit--5 { left: 60%; --or-fsize: 1.8rem; --or-fblur: 5px; --or-fop: .6; --or-frot: 40deg; --or-fall: 15s; --or-delay: -9s; --or-drift: 78px; background: color-mix(in srgb, var(--or-accent) 66%, transparent); }
+@keyframes or-drift { from { translate: 0 -12svh; } to { translate: 0 112svh; } }
+
+/* A paper-stitch border around the viewport whose dashes keep marching, so the
+   frame reads as stitched thread even while the page is still. */
+.or-frame { position: fixed; z-index: 6; inset: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); pointer-events: none; color: var(--or-accent); opacity: 0; transition: opacity .8s ease; }
+.invitation-open .or-frame { opacity: .55; }
+.or-frame__edge { position: absolute; }
+.or-frame__edge--t, .or-frame__edge--b { left: 0; right: 0; height: 3px; background-image: repeating-linear-gradient(90deg, currentColor 0 14px, transparent 14px 26px); animation: or-march-x 1.4s linear infinite; }
+.or-frame__edge--t { top: 0; }
+.or-frame__edge--b { bottom: 0; }
+.or-frame__edge--l, .or-frame__edge--r { top: 0; bottom: 0; width: 3px; background-image: repeating-linear-gradient(180deg, currentColor 0 14px, transparent 14px 26px); animation: or-march-y 1.4s linear infinite; }
+.or-frame__edge--l { left: 0; }
+.or-frame__edge--r { right: 0; }
+@keyframes or-march-x { to { background-position-x: 26px; } }
+@keyframes or-march-y { to { background-position-y: 26px; } }
+
+/* -- Cover ------------------------------------------------------------------- */
+.or-cover { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: max(1rem, env(safe-area-inset-top)) 1rem max(2.2rem, env(safe-area-inset-bottom)); overflow: hidden; background: var(--or-canvas); perspective: 1200px; transition: opacity .8s ease, visibility .8s ease; }
+.or-cover__poster, .or-cover__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.or-cover__video--desktop { display: none; }
+.or-cover__video--mobile { display: block; }
+.or-cover::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgba(244, 239, 228, calc(.95 - var(--or-cover-veil, .48) * .3)), rgba(244, 239, 228, calc(.88 - var(--or-cover-veil, .48) * .22))); }
+.or-cover__panel { position: relative; z-index: 3; width: min(100%, 32rem); padding: clamp(1.8rem, 7vw, 3rem) clamp(1.3rem, 6vw, 2.6rem); text-align: center; background: var(--or-paper); border-radius: .6rem 1.6rem .6rem 1.6rem; box-shadow: 0 1.6rem 3.5rem rgba(42, 39, 35, .16); transform-origin: top center; transition: opacity .6s ease, transform .7s var(--or-ease); }
+.or-cover__panel::before { content: ''; position: absolute; top: 0; right: 0; width: 3rem; height: 3rem; background: linear-gradient(225deg, var(--or-soft) 50%, transparent 50%); border-radius: 0 1.6rem 0 0; pointer-events: none; }
+.or-armed .invitation-open .or-cover__panel { transform: perspective(1200px) rotateX(28deg) translateY(.6rem); }
+.or-cover__panel .invitation-eyebrow { color: var(--or-terra); }
+.or-cover__panel p { color: var(--or-muted); }
+.or-cover__date { display: block; margin: -.1rem 0 1.4rem; color: var(--or-muted); font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.or-cover__countdown { margin: -.3rem auto 1.2rem; }
+.or-cover__countdown-label { display: block; margin-bottom: .45rem; color: var(--or-terra); font-size: .6rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.or-cover__countdown > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
+.or-cover__countdown > div > span { display: grid; gap: .06rem; padding: .4rem .2rem; background: var(--or-soft); border-radius: .4rem .8rem .4rem .8rem; }
+.or-cover__countdown strong { font-family: 'Fredoka', sans-serif; font-size: 1.15rem; color: var(--or-ink); }
+.or-cover__countdown small { color: var(--or-muted); font-size: .5rem; letter-spacing: .08em; text-transform: uppercase; }
+.or-cover__to { margin: .3rem 0 0; color: var(--or-muted); }
+.or-cover__name { display: block; margin: .1rem auto 1.5rem; max-width: 24rem; font-family: 'Fredoka', sans-serif; font-size: clamp(1.3rem, 5vw, 1.8rem); color: var(--or-ink); }
+.origami .or-cover__cta { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: .72rem 1.7rem; border: 0; border-radius: .5rem; color: var(--or-paper); background: color-mix(in srgb, var(--or-accent) 90%, #17423c); font-weight: 600; letter-spacing: .04em; text-decoration: none; cursor: pointer; box-shadow: 0 .5rem 0 color-mix(in srgb, var(--or-accent) 55%, #123833); transition: transform .15s, box-shadow .15s; }
+.origami .or-cover__cta:hover { transform: translateY(-2px); box-shadow: 0 .7rem 0 color-mix(in srgb, var(--or-accent) 55%, #123833); }
+
+/* Gating: the invitation is reachable without scripting (real anchor + :target). */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .or-cover { visibility: hidden; pointer-events: none; }
+.invitation-open .or-cover { opacity: 0; visibility: hidden; }
+.invitation-open .or-cover__panel { opacity: 0; }
+
+/* -- Navigation -------------------------------------------------------------- */
+.or-nav { position: fixed; z-index: 11; top: 0; left: 0; right: 0; display: flex; overflow-x: auto; padding: max(.35rem, env(safe-area-inset-top)) .6rem .35rem; background: color-mix(in srgb, var(--or-canvas) 93%, transparent); box-shadow: 0 1px 0 var(--or-line); backdrop-filter: blur(10px); transform: translateY(-100%); transition: transform .45s var(--or-ease); scrollbar-width: none; }
+.or-nav::-webkit-scrollbar { display: none; }
+.invitation-open .or-nav { transform: none; }
+/* Centred when the labels fit, a horizontal scroll when they do not — never a
+   wrapped second row. */
+.or-nav__inner { display: flex; gap: .1rem; margin-inline: auto; }
+.or-nav a { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 44px; padding: .45rem .58rem; color: var(--or-ink); border-radius: .4rem; font-size: .58rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+.or-nav a:hover, .or-nav a:focus-visible { color: var(--or-paper); background: var(--or-accent); }
+
+/* -- Sections ---------------------------------------------------------------- */
+.origami .invitation-section {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 62rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem));
+    overflow: hidden;
+    text-align: center;
+    perspective: 1200px;
+}
+.origami .invitation-section > * { position: relative; z-index: 1; }
+.origami .invitation-section > p { max-width: 42rem; margin-inline: auto; }
+/* The tint band is the LAST background rule that paints the section element. */
+.origami .invitation-section--tint { width: 100%; max-width: none; background: color-mix(in srgb, var(--or-accent) 9%, var(--or-canvas)); }
+.origami .invitation-section--compact { padding-block: 3rem; }
+
+/* -- Hero -------------------------------------------------------------------- */
+.or-hero { overflow: hidden; }
+.or-hero__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .18; }
+.or-hero__video--desktop { display: none; }
+.or-hero__inner { position: relative; z-index: 1; }
+.or-hero__inner > p { max-width: 40rem; margin-inline: auto; color: var(--or-muted); }
+
+/* -- Hosts ------------------------------------------------------------------- */
+.or-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.6rem); max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.6rem) auto 0; }
+.or-host { min-width: 0; }
+.or-host__portrait { position: relative; display: block; width: min(100%, 17rem); margin: 0 auto clamp(1.1rem, 4vw, 1.8rem); aspect-ratio: 4/5; overflow: hidden; background: var(--or-soft); clip-path: polygon(0 8%, 100% 0, 92% 100%, 8% 92%); }
+.or-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.or-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--or-accent); font: 600 clamp(3rem, 14vw, 6rem)/1 'Fredoka', sans-serif; }
+.or-host h3 { margin-bottom: .5rem; overflow-wrap: anywhere; }
+.or-host p { max-width: 28ch; margin-inline: auto; color: var(--or-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.or-host__parents small { display: block; margin-bottom: .2rem; color: var(--or-terra); font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.or-host__parents span { display: block; }
+.or-host a { display: inline-block; min-height: 44px; padding-block: 1rem; margin-top: .5rem; color: color-mix(in srgb, var(--or-accent) 88%, #17423c); font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; text-underline-offset: .25rem; }
+.or-hosts__and { align-self: center; color: var(--or-terra); font: 500 clamp(1.6rem, 6vw, 3rem)/1 'Fredoka', sans-serif; }
+.or-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
+.or-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* -- Events + actions -------------------------------------------------------- */
+.or-events { display: grid; gap: 1rem; max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.or-event { position: relative; padding: clamp(1.4rem, 4vw, 2.3rem) clamp(1rem, 4vw, 2rem); background: var(--or-paper); border-radius: .5rem 1.4rem .5rem 1.4rem; box-shadow: 0 .9rem 2rem rgba(42, 39, 35, .1); rotate: -1deg; }
+.or-event:nth-of-type(even) { rotate: 1deg; }
+.or-event::after { content: ''; position: absolute; top: 0; right: 0; width: 2.4rem; height: 2.4rem; background: linear-gradient(225deg, var(--or-soft) 50%, transparent 50%); border-radius: 0 1.4rem 0 0; pointer-events: none; }
+.or-event > * { position: relative; z-index: 1; }
+.or-event h3 { font-size: clamp(1.6rem, 5vw, 2.2rem); }
+.or-event__schedule, .or-event__venue, .or-event__notes { padding-block: .9rem; }
+.or-event__venue, .or-event__notes { border-top: 1px dashed var(--or-line); }
+.or-event__venue p:last-child { color: var(--or-muted); font-size: .92rem; }
+.or-event small { display: block; color: var(--or-muted); line-height: 1.65; }
+.or-event small + small { margin-top: .55rem; }
+.or-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: center; margin-top: 1.3rem; }
+.or-actions > * { max-width: 100%; }
+.or-actions--center { justify-content: center; }
+.origami .or-actions a, .origami .or-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: .6rem 1.15rem;
+    border: 0;
+    border-radius: .45rem;
+    color: var(--or-paper);
+    background: color-mix(in srgb, var(--or-accent) 88%, #17423c);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .15s, background .2s;
+}
+.origami .or-actions a:hover, .origami .or-actions button:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--or-accent) 74%, #123833); }
+
+/* -- Countdown --------------------------------------------------------------- */
+.or-countdown { width: 100%; max-width: none; }
+.or-countdown__units { width: min(100%, 52rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.4rem, 2vw, 1.3rem); margin: 1.5rem auto 0; }
+.or-countdown__units > span { display: grid; gap: .3rem; padding: 1rem .3rem; background: var(--or-paper); border-radius: .4rem .9rem .4rem .9rem; box-shadow: 0 .5rem 1.2rem rgba(42, 39, 35, .08); }
+.or-countdown__units strong { font-family: 'Fredoka', sans-serif; font-size: clamp(1.7rem, 6.5vw, 3.2rem); }
+.or-countdown__units small { color: var(--or-terra); font-size: clamp(.56rem, 1.7vw, .68rem); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+
+/* -- Map --------------------------------------------------------------------- */
+.or-map { position: relative; width: 100%; margin: 2rem 0 1.3rem; aspect-ratio: 16/10; overflow: hidden; background: var(--or-soft); border-radius: .6rem 1.6rem .6rem 1.6rem; box-shadow: 0 .9rem 2rem rgba(42, 39, 35, .12); }
+.or-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* -- Story timeline ---------------------------------------------------------- */
+.or-timeline { position: relative; max-width: 42rem; margin: 2.4rem auto 0; padding-left: 2rem; text-align: left; }
+.or-timeline::before { content: ''; position: absolute; top: .4rem; bottom: .4rem; left: 0; width: 3px; background: repeating-linear-gradient(180deg, var(--or-accent) 0 8px, transparent 8px 14px); }
+.or-story { position: relative; padding: 0 0 2.8rem 1.4rem; }
+.or-story::before { content: ''; position: absolute; left: -.45rem; top: .35rem; width: .9rem; height: .9rem; background: var(--or-terra); clip-path: polygon(0 0, 100% 0, 0 100%); }
+.or-story img { width: 100%; max-height: 24rem; margin-bottom: 1rem; object-fit: cover; border-radius: .5rem 1.3rem .5rem 1.3rem; box-shadow: 0 .9rem 2rem rgba(42, 39, 35, .12); }
+.or-story small { color: var(--or-terra); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.or-story h3 { margin: .3rem 0 .5rem; }
+.or-story p { color: var(--or-muted); }
+
+/* -- Gallery ----------------------------------------------------------------- */
+/* A plain downward grid: the photos read as one page the guest scrolls. */
+.or-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; max-width: 60rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.or-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; aspect-ratio: 1; background: var(--or-soft); border-radius: .5rem 1.2rem .5rem 1.2rem; box-shadow: 0 .8rem 1.8rem rgba(42, 39, 35, .1); rotate: -1deg; }
+.or-gallery figure:nth-child(even) { rotate: 1.2deg; }
+.or-gallery figure:first-child { grid-column: span 2; aspect-ratio: 4/3; rotate: 0deg; }
+.or-gallery button { width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; cursor: pointer; }
+.or-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--or-ease); }
+.or-gallery button:hover img { transform: scale(1.04); }
+.or-gallery figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 2rem .8rem .7rem; color: #fff; background: linear-gradient(transparent, rgba(42, 39, 35, .7)); font-size: .76rem; pointer-events: none; }
+
+/* -- Contacts ---------------------------------------------------------------- */
+.or-contact-section { width: 100%; max-width: none; }
+.or-contact-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; width: min(100%, 44rem); margin: clamp(1.2rem, 4vw, 2.2rem) auto 0; }
+.or-contact-card { position: relative; display: grid; justify-items: center; gap: .5rem; min-height: 11rem; padding: clamp(1.4rem, 4vw, 2.1rem) 1.3rem; background: var(--or-paper); border-radius: .5rem 1.4rem .5rem 1.4rem; box-shadow: 0 .9rem 2rem rgba(42, 39, 35, .1); }
+.or-contact-card small { display: block; margin-bottom: .3rem; color: var(--or-terra); font-size: .62rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.or-contact-card h3 { margin-bottom: .35rem; }
+
+/* -- Sharing + closing ------------------------------------------------------- */
+.or-share-section { width: 100%; max-width: none; }
+.or-closing { min-height: 75svh; }
+.or-closing::before { content: '◆'; display: block; margin-bottom: 1rem; color: var(--or-terra); font-size: 1.3rem; }
+.or-kicker { margin-top: 1.3rem !important; color: var(--or-muted); font-style: italic; }
+
+/* -- Shared forms ------------------------------------------------------------ */
+.origami .invitation-form { width: min(100%, 40rem); border: 0; border-radius: .5rem 1.4rem .5rem 1.4rem; box-shadow: 0 .9rem 2rem rgba(42, 39, 35, .1); }
+.origami .invitation-form input:focus, .origami .invitation-form select:focus, .origami .invitation-form textarea:focus { border-color: var(--or-accent); box-shadow: 0 0 0 3px var(--or-soft); outline: 0; }
+.origami .invitation-form button { background: color-mix(in srgb, var(--or-accent) 88%, #17423c); }
+/* Strongest notice rule, so a template paragraph rule can never strip its colour. */
+.origami .invitation-section .invitation-notice { color: #1f5438; background: #e5f3e9; border-left: 3px solid #2f9e68; }
+
+/* -- Operator blocks --------------------------------------------------------- */
+.origami .invitation-block-quote { border-left: 3px solid var(--or-accent); }
+.origami .invitation-block-quote p { font-family: 'Fredoka', sans-serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem); }
+.origami .invitation-block-quote cite { color: var(--or-terra); }
+
+/* -- Music + lightbox -------------------------------------------------------- */
+.or-music { position: fixed; z-index: 12; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 46px; height: 46px; padding: 0; border: 0; border-radius: 50%; color: var(--or-paper); background: color-mix(in srgb, var(--or-accent) 90%, #17423c); font-size: 1rem; cursor: pointer; box-shadow: 0 .5rem 1.4rem rgba(42, 39, 35, .24); }
+.or-music[data-playing="true"] span { display: inline-block; animation: or-spin 4s linear infinite; }
+@keyframes or-spin { to { transform: rotate(360deg); } }
+.or-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 0; border-radius: .8rem 1.6rem .8rem 1.6rem; background: #241f1c; }
+.or-lightbox::backdrop { background: rgba(30, 26, 23, .9); }
+.or-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.or-lightbox button { position: absolute; top: .6rem; right: .6rem; min-height: 40px; padding: .4rem .9rem; border: 0; border-radius: .45rem; color: var(--or-paper); background: rgba(255, 255, 255, .16); cursor: pointer; }
+
+.origami a:focus-visible, .origami button:focus-visible, .origami input:focus-visible, .origami select:focus-visible, .origami textarea:focus-visible { outline: 3px solid var(--or-accent); outline-offset: 3px; }
+
+/* -- Fold reveal (armed only) -----------------------------------------------
+   Paper unfolding: cards hinge open on their top edge. */
+.or-armed [data-reveal] { opacity: 0; transform: translateY(1.2rem); transition: opacity .7s ease, transform .8s var(--or-ease); transition-delay: calc(var(--or-i, 0) * 85ms); }
+.or-armed [data-reveal="down"] { transform: translateY(-1rem); }
+.or-armed [data-reveal="fold"] { transform: perspective(1000px) rotateX(-26deg) translateY(1.6rem); transform-origin: top center; }
+.or-armed [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* -- Per section height ------------------------------------------------------ */
+.origami .invitation-section[data-height="tall"] { min-height: 75svh; }
+.origami .invitation-section[data-height="half"] { min-height: 50svh; }
+.origami .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* -- Motion off, and reduced motion ----------------------------------------- */
+.origami[data-motion="off"] *, .origami[data-motion="off"] *::before, .origami[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+.origami[data-motion="off"] .or-fore { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.origami) { scroll-behavior: auto; }
+    .origami *, .origami *::before, .origami *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .or-bg, .or-fore, .or-frame { display: none; }
+    .or-armed [data-reveal] { opacity: 1 !important; transform: none !important; }
+    .or-event, .or-event:nth-of-type(even), .or-gallery figure, .or-gallery figure:nth-child(even) { rotate: 0deg; }
+}
+
+/* -- Responsive -------------------------------------------------------------- */
+@media (max-width: 30rem) {
+    .or-hosts { gap: .35rem; }
+    .or-host h3 { font-size: 1.06rem; }
+    .or-host p { font-size: .7rem; }
+    .or-hosts__and { margin-inline: -.15rem; }
+    .or-cover__countdown > div { gap: .3rem; }
+}
+
+@media (max-width: 47.99rem) {
+    .origami { font-size: .9rem; line-height: 1.6; }
+    .origami h1 { font-size: clamp(2.3rem, 12vw, 3.6rem); }
+    .origami h2 { font-size: clamp(2rem, 10vw, 3rem); }
+    .origami .invitation-section { padding-top: 4.25rem; padding-bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem)); }
+    .or-host__portrait { width: 100%; aspect-ratio: 4/5; margin-bottom: .6rem; }
+    .or-countdown__units { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .or-timeline { padding-left: 1.6rem; }
+    .or-story { padding-left: 1.1rem; }
+    .or-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
+}
+
+@media (min-width: 48rem) {
+    .origami .invitation-section { padding-inline: 2rem; }
+    .or-cover__video--mobile { display: none; }
+    .or-cover__video--desktop { display: block; }
+    .or-hero__video--mobile { display: none; }
+    .or-hero__video--desktop { display: block; }
+    .or-events { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .or-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .or-gallery figure { aspect-ratio: 4/5; }
+    .or-gallery figure:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+}
+
+@media (max-height: 43rem) {
+    .origami .invitation-section { padding-top: 4rem; padding-bottom: 4.5rem; }
+    .or-host__portrait { aspect-ratio: 1; }
+}

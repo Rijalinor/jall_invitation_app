@@ -1,0 +1,332 @@
+/* Ensō — Japanese zen: washi paper, sumi ink, a single ensō and drifting sakura.
+ *
+ * One rAF scroll listener publishes --en-scroll (px) and --en-progress (0..1).
+ * Ink washes drift behind the sections and sakura petals loop in front of them,
+ * so the garden reads as depth. The ensō draws itself once on open, then turns
+ * very slowly. Content is only hidden under `.en-armed`, a class theme.js adds
+ * once it can animate, so a blocked script leaves the invitation visible.
+ */
+
+.enso {
+    --en-accent: #b23a2e;              /* overridden inline from the admin setting */
+    --en-canvas: #f4f0e6;
+    --en-surface: #fbf8f1;
+    --en-ink: #221f1c;
+    --en-muted: #7c7568;
+    --en-line: color-mix(in srgb, var(--en-ink) 16%, transparent);
+    --en-soft: color-mix(in srgb, var(--en-ink) 5%, var(--en-canvas));
+    --en-ease: cubic-bezier(.22, .7, .18, 1);
+    /* Aliases consumed by the shared components (forms, blocks, gifts, dialogs). */
+    --inv-accent: color-mix(in srgb, var(--en-accent) 92%, #3a1512);
+    --inv-paper: var(--en-surface);
+    --inv-ink: var(--en-ink);
+    --inv-line: var(--en-line);
+    margin: 0;
+    color: var(--en-ink);
+    background: var(--en-canvas);
+    font: 300 1rem/1.85 'Zen Kaku Gothic New', ui-sans-serif, system-ui, sans-serif;
+}
+
+html:has(body.enso) { scroll-behavior: smooth; }
+.enso *, .enso *::before, .enso *::after { box-sizing: border-box; }
+.enso h1, .enso h2, .enso h3 { margin: 0 0 1rem; font-family: 'Shippori Mincho', ui-serif, Georgia, serif; font-weight: 500; line-height: 1.2; letter-spacing: .06em; }
+.enso h1 { font-size: clamp(2.3rem, 9vw, 4rem); }
+.enso h2 { font-size: clamp(1.9rem, 7.5vw, 3.2rem); }
+.enso h3 { font-size: clamp(1.2rem, 4.2vw, 1.7rem); }
+.enso p { margin: .7rem 0; }
+.enso p, .enso a, .enso button { overflow-wrap: anywhere; }
+.enso a, .enso button, .enso input, .enso select, .enso textarea { font: inherit; }
+.enso a { color: color-mix(in srgb, var(--en-accent) 92%, #3a1512); }
+.enso img { display: block; max-width: 100%; }
+
+.enso .invitation-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    margin: 0 auto 1.2rem;
+    color: color-mix(in srgb, var(--en-ink) 62%, transparent);
+    font-size: .64rem;
+    font-weight: 500;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+}
+
+.enso .invitation-eyebrow::before,
+.enso .invitation-eyebrow::after { content: ''; width: 1.4rem; height: 1px; background: var(--en-accent); opacity: .55; }
+
+.en-couple { display: grid; justify-items: center; text-align: center; }
+.en-couple span { max-width: 12ch; overflow-wrap: anywhere; }
+.en-couple i { margin: -.05em 0; color: var(--en-accent); font-size: .5em; font-style: normal; }
+.en-couple--lg { font-size: clamp(2.1rem, 8.5vw, 3.6rem); }
+.en-date { margin-top: 1.2rem !important; color: var(--en-muted); font-size: .72rem; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; }
+
+/* -- Scroll signature: ink washes behind, petals in front --------------------- */
+.en-wash, .en-petals {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+}
+
+.en-wash { z-index: 0; }
+.en-petals { z-index: 5; }
+.invitation-open .en-wash, .invitation-open .en-petals { opacity: 1; }
+
+.en-wash__blot { position: absolute; width: var(--en-wsize, 40vmax); aspect-ratio: 1; border-radius: 50%; opacity: var(--en-wop, .9); filter: blur(10px); background: radial-gradient(circle at 46% 42%, color-mix(in srgb, var(--en-ink) 9%, transparent), transparent 66%); transform: translate3d(0, calc(var(--en-scroll, 0) * var(--en-wdepth, -.03) * 1px), 0); }
+.en-wash__blot--1 { top: -14vmax; left: -16vmax; --en-wsize: 52vmax; --en-wdepth: -.03; }
+.en-wash__blot--2 { top: 34vmax; right: -22vmax; --en-wsize: 60vmax; --en-wdepth: -.05; --en-wop: .75; }
+.en-wash__blot--3 { bottom: -18vmax; left: -20vmax; --en-wsize: 56vmax; --en-wdepth: -.02; --en-wop: .6; }
+
+/* Sakura petals: a notched blossom shape, not a plain blob. They fall across the
+   whole viewport on a loop, so they are present at every scroll position; the
+   scroll adds only a small, bounded drift. */
+.en-petals__sprite { position: absolute; width: 0; height: 0; }
+.en-petal { position: absolute; top: 0; width: var(--en-psize, 1.8rem); color: color-mix(in srgb, var(--en-accent) 42%, #ffffff); opacity: var(--en-pop, .62); filter: blur(var(--en-pblur, 1px)) drop-shadow(0 1px 1px rgb(34 31 28 / .06)); transform: translate3d(0, calc((var(--en-progress, 0) - .5) * var(--en-pdrift, 90px)), 0) rotate(var(--en-prot, 0deg)); animation: en-fall var(--en-pdur, 17s) linear var(--en-pdelay, 0s) infinite; }
+.en-petal__blossom { display: block; width: 100%; height: auto; fill: currentColor; }
+.en-petal--1 { left: 12%; --en-psize: 1.8rem; --en-pdur: 16s; --en-pdelay: -2s; }
+.en-petal--2 { right: 14%; --en-psize: 1.25rem; --en-pblur: 2px; --en-pdur: 21s; --en-pdelay: -8s; --en-pdrift: 110px; --en-pop: .5; }
+.en-petal--3 { left: 30%; --en-psize: 2.1rem; --en-pblur: 2.5px; --en-pop: .45; --en-pdur: 24s; --en-pdelay: -15s; --en-pdrift: 96px; }
+.en-petal--4 { right: 26%; --en-psize: 1.45rem; --en-pblur: 1.5px; --en-pdur: 15s; --en-pdelay: -5s; --en-pdrift: 74px; }
+.en-petal--5 { left: 66%; --en-psize: 1.15rem; --en-pblur: 1px; --en-pop: .68; --en-pdur: 19s; --en-pdelay: -11s; --en-pdrift: 88px; }
+@keyframes en-fall { from { translate: 0 -12svh; } to { translate: 0 112svh; } }
+
+/* The ensō: draws itself once the invitation opens, then turns very slowly. */
+.en-enso { position: fixed; z-index: 0; inset: 0; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity 1.6s ease; }
+.invitation-open .en-enso { opacity: 1; }
+.en-enso svg { width: min(76vmin, 33rem); height: auto; animation: en-turn 90s linear infinite; }
+.en-enso__ring { fill: none; stroke: color-mix(in srgb, var(--en-ink) 20%, transparent); stroke-width: 5; stroke-linecap: round; stroke-dasharray: .92 1; stroke-dashoffset: .92; }
+.invitation-open .en-enso__ring { stroke-dashoffset: 0; transition: stroke-dashoffset 2.2s ease; }
+@keyframes en-turn { to { rotate: 360deg; } }
+
+/* A fine ink rule down the left edge that draws with the page progress. */
+.en-brush { position: fixed; z-index: 10; top: 22vh; bottom: 22vh; left: max(.55rem, env(safe-area-inset-left)); width: 1px; background: var(--en-line); opacity: 0; transition: opacity .9s ease; }
+.invitation-open .en-brush { opacity: 1; }
+.en-brush__ink { position: absolute; top: 0; left: 0; width: 100%; height: calc(var(--en-progress, 0) * 100%); background: var(--en-accent); }
+
+/* -- Cover ------------------------------------------------------------------- */
+.en-cover { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: max(1.4rem, env(safe-area-inset-top)) 1.2rem max(2.4rem, env(safe-area-inset-bottom)); overflow: hidden; background: var(--en-canvas); transition: opacity .9s ease, visibility .9s ease; }
+.en-cover__poster, .en-cover__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.en-cover__video--desktop { display: none; }
+.en-cover__video--mobile { display: block; }
+.en-cover::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgba(244, 240, 230, calc(.95 - var(--en-cover-veil, .46) * .3)), rgba(244, 240, 230, calc(.9 - var(--en-cover-veil, .46) * .22))); }
+.en-cover__panel { position: relative; z-index: 2; width: min(100%, 31rem); padding: clamp(2rem, 7vw, 3rem) clamp(1.2rem, 6vw, 2.3rem); text-align: center; background: var(--en-surface); border: 1px solid var(--en-line); box-shadow: 0 1.5rem 3.2rem rgb(34 31 28 / .14); }
+.en-cover__panel::before { content: ''; position: absolute; inset: .55rem; border: 1px solid color-mix(in srgb, var(--en-ink) 10%, transparent); pointer-events: none; }
+.en-cover__panel > * { position: relative; }
+.en-cover__panel h1 { font-size: clamp(1.9rem, 6.5vw, 2.8rem); overflow-wrap: anywhere; }
+.en-cover__panel h1 span { max-width: 100%; overflow-wrap: anywhere; }
+.en-hanko { position: absolute; top: -1.05rem; right: -1.05rem; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; color: #fff; background: var(--en-accent); font-family: 'Shippori Mincho', serif; font-size: .92rem; letter-spacing: .06em; }
+.en-cover__date { display: block; margin: .1rem 0 1.3rem; color: var(--en-muted); font-size: .7rem; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+.en-cover__countdown { margin: 0 auto 1.2rem; }
+.en-cover__countdown-label { display: block; margin-bottom: .5rem; color: var(--en-muted); font-size: .58rem; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; }
+.en-cover__countdown > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.en-cover__countdown > div > span { display: grid; gap: .1rem; padding-top: .55rem; border-top: 1px solid var(--en-line); }
+.en-cover__countdown strong { font-family: 'Shippori Mincho', serif; font-size: 1.15rem; font-weight: 500; }
+.en-cover__countdown small { color: var(--en-muted); font-size: .5rem; letter-spacing: .12em; text-transform: uppercase; }
+.en-cover__to { margin: .2rem 0 0; color: var(--en-muted); font-size: .82rem; }
+.en-cover__name { display: block; margin: .15rem auto 1.4rem; max-width: 24rem; font-family: 'Shippori Mincho', serif; font-size: clamp(1.2rem, 4.6vw, 1.6rem); }
+.enso .en-cover__cta, .enso [data-open-invitation] { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: .72rem 1.9rem; border: 0; border-radius: 2px; color: #fff; background: var(--en-accent); font-weight: 500; letter-spacing: .18em; font-size: .74rem; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: transform .18s ease, background .2s ease; }
+.enso .en-cover__cta:hover, .enso [data-open-invitation]:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--en-accent) 82%, #3a1512); }
+
+/* Gating: the invitation is reachable without scripting (real anchor + :target). */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .en-cover { visibility: hidden; pointer-events: none; }
+.invitation-open .en-cover { opacity: 0; visibility: hidden; }
+
+/* -- Navigation: a hairline of small caps that scrolls sideways --------------- */
+.en-nav { position: fixed; z-index: 11; top: 0; left: 0; right: 0; display: flex; overflow-x: auto; padding: max(.4rem, env(safe-area-inset-top)) .8rem .4rem; background: color-mix(in srgb, var(--en-canvas) 92%, transparent); box-shadow: 0 1px 0 var(--en-line); backdrop-filter: blur(8px); transform: translateY(-100%); transition: transform .5s var(--en-ease); scrollbar-width: none; }
+.en-nav::-webkit-scrollbar { display: none; }
+.invitation-open .en-nav { transform: none; }
+.en-nav__inner { display: flex; gap: 1.3rem; margin-inline: auto; }
+.enso .en-nav a { flex: 0 0 auto; display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; color: var(--en-muted); font-size: .62rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+.enso .en-nav a.is-active { color: var(--en-ink); }
+.enso .en-nav a.is-active::before { content: ''; width: .32rem; height: .32rem; border-radius: 50%; background: var(--en-accent); }
+
+/* -- Sections ---------------------------------------------------------------- */
+.enso .invitation-section {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 58rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    margin: auto;
+    padding: clamp(4.5rem, 11vw, 7rem) 1.2rem max(5.5rem, calc(env(safe-area-inset-bottom) + 4.5rem));
+    overflow: hidden;
+    text-align: center;
+}
+.enso .invitation-section > * { position: relative; z-index: 1; }
+.enso .invitation-section > p { width: min(100%, 40rem); margin-inline: auto; color: var(--en-muted); }
+/* A quiet shoji frame around each panel. */
+.enso .invitation-section::after { content: ''; position: absolute; z-index: 0; inset: clamp(1rem, 3.5vw, 2rem); border: 1px solid color-mix(in srgb, var(--en-ink) 9%, transparent); pointer-events: none; }
+/* The tint band is the LAST background rule that paints the section element. */
+.enso .invitation-section--tint { width: 100%; max-width: none; background: color-mix(in srgb, var(--en-accent) 5%, var(--en-canvas)); }
+
+/* -- Hero -------------------------------------------------------------------- */
+.en-hero { overflow: hidden; }
+.en-hero__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .14; }
+.en-hero__video--desktop { display: none; }
+.en-hero__inner { position: relative; z-index: 1; }
+.en-hero__inner > p { max-width: 38rem; margin-inline: auto; }
+
+/* -- Hosts ------------------------------------------------------------------- */
+.en-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.6rem); max-width: 54rem; margin: clamp(1.4rem, 4vw, 2.8rem) auto 0; }
+.en-host { min-width: 0; }
+.en-host__portrait { position: relative; display: block; width: min(100%, 15rem); margin: 0 auto clamp(1rem, 4vw, 1.6rem); aspect-ratio: 4 / 5; overflow: hidden; background: var(--en-soft); border: 1px solid var(--en-line); }
+.en-host__portrait::after { content: ''; position: absolute; top: -.28rem; left: 50%; width: .5rem; height: .5rem; margin-left: -.25rem; border-radius: 50%; background: var(--en-accent); }
+.en-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.en-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--en-accent); font-family: 'Shippori Mincho', serif; font-size: clamp(3rem, 13vw, 5.5rem); }
+.en-host h3 { margin-bottom: .45rem; overflow-wrap: anywhere; }
+.en-host p { max-width: 26ch; margin-inline: auto; color: var(--en-muted); font-size: clamp(.8rem, 2.4vw, .92rem); line-height: 1.7; }
+.en-host__parents small { display: block; margin-bottom: .2rem; color: var(--en-muted); font-size: .58rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+.en-host__parents span { display: block; }
+.en-hosts__and { align-self: center; color: var(--en-accent); font-family: 'Shippori Mincho', serif; font-size: clamp(1.5rem, 5.5vw, 2.6rem); }
+.en-hosts[data-count="1"] { grid-template-columns: minmax(0, 21rem); justify-content: center; }
+.en-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* -- Events: a quiet schedule, ruled like a letter --------------------------- */
+.en-events { width: 100%; max-width: 46rem; margin: clamp(1.4rem, 4vw, 2.6rem) auto 0; text-align: left; }
+.en-event { display: grid; grid-template-columns: minmax(7rem, .34fr) minmax(0, 1fr); gap: clamp(.9rem, 4vw, 3rem); padding: clamp(1.4rem, 4vw, 2rem) 0; border-top: 1px solid var(--en-line); }
+.en-event:last-child { border-bottom: 1px solid var(--en-line); }
+.en-event__when { display: grid; align-content: start; gap: .25rem; color: var(--en-muted); font-size: .76rem; }
+.en-event__when strong { color: var(--en-ink); font-family: 'Shippori Mincho', serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem); font-weight: 500; line-height: 1.3; }
+.en-event__when span { color: var(--en-ink); }
+.en-event__when small { color: var(--en-muted); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; }
+.en-event__what h3 { margin-bottom: .4rem; }
+.en-event__what p { margin: 0 0 .35rem; color: var(--en-muted); font-size: .9rem; }
+.en-event__what strong { color: var(--en-ink); font-weight: 500; }
+.en-event__notes { margin-top: .8rem; }
+.en-event__notes small { display: block; padding-left: .8rem; border-left: 1px solid var(--en-accent); color: var(--en-muted); line-height: 1.7; }
+.en-event__notes small + small { margin-top: .45rem; }
+
+/* -- Actions ----------------------------------------------------------------- */
+.en-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: flex-start; margin-top: 1rem; }
+.en-actions--center { justify-content: center; }
+.en-actions > * { max-width: 100%; }
+.enso .en-actions a, .enso .en-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .55rem 1.1rem; border: 1px solid var(--en-line); border-radius: 2px; color: var(--en-ink); background: transparent; font-size: .72rem; font-weight: 500; letter-spacing: .08em; text-decoration: none; cursor: pointer; transition: color .2s, background .2s, border-color .2s; }
+.enso .en-actions a:hover, .enso .en-actions button:hover { color: #fff; background: var(--en-accent); border-color: var(--en-accent); }
+
+/* -- Countdown --------------------------------------------------------------- */
+.en-countdown { width: min(100%, 44rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.5rem, 2.5vw, 1.6rem); margin: 1.6rem auto 0; }
+.en-countdown > span { display: grid; gap: .3rem; padding-top: 1rem; border-top: 1px solid var(--en-line); }
+.en-countdown strong { font-family: 'Shippori Mincho', serif; font-size: clamp(1.8rem, 7vw, 3.2rem); font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.en-countdown small { color: var(--en-muted); font-size: clamp(.54rem, 1.7vw, .64rem); letter-spacing: .2em; text-transform: uppercase; }
+
+/* -- Map --------------------------------------------------------------------- */
+.en-map { position: relative; width: 100%; margin: 2rem 0 1.2rem; aspect-ratio: 16 / 10; overflow: hidden; background: var(--en-soft); border: 1px solid var(--en-line); }
+.en-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: saturate(.85); }
+
+/* -- Story: a quiet path ----------------------------------------------------- */
+.en-path { position: relative; max-width: 42rem; margin: 2.4rem auto 0; padding-left: 1.9rem; text-align: left; }
+.en-path::before { content: ''; position: absolute; top: .5rem; bottom: .5rem; left: 0; width: 1px; background: var(--en-line); }
+.en-step { position: relative; padding: 0 0 2.6rem 1.3rem; }
+.en-step::before { content: ''; position: absolute; left: -.2rem; top: .55rem; width: .42rem; height: .42rem; border-radius: 50%; background: var(--en-accent); }
+.en-step img { width: 100%; max-height: 22rem; margin-bottom: 1rem; object-fit: cover; border: 1px solid var(--en-line); }
+.en-step small { color: var(--en-muted); font-size: .64rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; }
+.en-step h3 { margin: .35rem 0 .45rem; }
+.en-step p { color: var(--en-muted); }
+
+/* -- Gallery ----------------------------------------------------------------- */
+.en-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; max-width: 58rem; margin: clamp(1.4rem, 4vw, 2.6rem) auto 0; }
+.en-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; aspect-ratio: 1; background: var(--en-soft); border: .4rem solid var(--en-surface); box-shadow: 0 0 0 1px var(--en-line), 0 .7rem 1.8rem rgb(34 31 28 / .1); }
+.en-gallery figure:first-child { grid-column: span 2; aspect-ratio: 4 / 3; }
+.en-gallery button { width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.en-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--en-ease); }
+.en-gallery button:hover img { transform: scale(1.03); }
+.en-gallery figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 1.6rem .7rem .6rem; color: #fff; background: linear-gradient(transparent, rgb(34 31 28 / .7)); font-size: .72rem; pointer-events: none; }
+
+/* -- Contacts ---------------------------------------------------------------- */
+.en-contacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; width: min(100%, 44rem); margin: clamp(1.4rem, 4vw, 2.4rem) auto 0; }
+.en-contact { position: relative; display: grid; justify-items: center; gap: .5rem; min-height: 10rem; padding: clamp(1.3rem, 4vw, 2rem) 1.2rem; background: var(--en-surface); border: 1px solid var(--en-line); }
+.en-contact small { color: var(--en-muted); font-size: .6rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; }
+.en-contact h3 { margin: 0; }
+
+/* -- Closing ----------------------------------------------------------------- */
+.en-closing { min-height: 75svh; }
+.en-closing::before { content: ''; width: 2.2rem; height: 1px; margin-bottom: 1.4rem; background: var(--en-accent); }
+.en-kicker { margin-top: 1.3rem !important; color: var(--en-muted); font-family: 'Shippori Mincho', serif; font-style: italic; }
+
+/* -- Shared forms ------------------------------------------------------------ */
+.enso .invitation-form { width: min(100%, 40rem); border: 1px solid var(--en-line); border-radius: 0; box-shadow: none; }
+.enso .invitation-form input:focus, .enso .invitation-form select:focus, .enso .invitation-form textarea:focus { border-color: var(--en-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-accent) 16%, transparent); outline: 0; }
+.enso .invitation-form button { background: var(--en-accent); }
+/* Strongest notice rule, so a template paragraph rule can never strip its colour. */
+.enso .invitation-section .invitation-notice { color: #1f5438; background: #e5f3e9; border-left: 3px solid #2f9e68; }
+
+/* -- Operator blocks --------------------------------------------------------- */
+.enso .invitation-block-quote { border-left: 1px solid var(--en-accent); }
+.enso .invitation-block-quote p { font-family: 'Shippori Mincho', serif; font-size: clamp(1.05rem, 3.2vw, 1.4rem); line-height: 1.6; }
+.enso .invitation-block-quote cite { color: var(--en-muted); }
+
+/* -- Music + lightbox -------------------------------------------------------- */
+.en-music { position: fixed; z-index: 12; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 46px; height: 46px; padding: 0; border: 1px solid var(--en-line); border-radius: 50%; color: #fff; background: var(--en-accent); font-size: 1rem; cursor: pointer; }
+.en-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 0; border-radius: 0; background: #1e1c1a; }
+.en-lightbox::backdrop { background: rgb(24 22 20 / .92); }
+.en-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.en-lightbox button { position: absolute; top: .6rem; right: .6rem; min-height: 40px; padding: .4rem .9rem; border: 0; border-radius: 2px; color: #fff; background: rgb(255 255 255 / .16); cursor: pointer; }
+
+.enso a:focus-visible, .enso button:focus-visible, .enso input:focus-visible, .enso select:focus-visible, .enso textarea:focus-visible { outline: 3px solid var(--en-accent); outline-offset: 3px; }
+
+/* -- Settle reveal (armed only) ---------------------------------------------- */
+.en-armed [data-reveal] { opacity: 0; transform: translateY(1.1rem); transition: opacity .8s ease, transform .9s var(--en-ease); transition-delay: calc(var(--en-i, 0) * 90ms); }
+.en-armed [data-reveal="down"] { transform: translateY(-.9rem); }
+.en-armed [data-reveal="settle"] { transform: translateY(1.4rem) scale(.99); }
+.en-armed [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* -- Per section height ------------------------------------------------------ */
+.enso .invitation-section[data-height="tall"] { min-height: 75svh; }
+.enso .invitation-section[data-height="half"] { min-height: 50svh; }
+.enso .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* -- Motion off, and reduced motion ----------------------------------------- */
+.enso[data-motion="off"] *, .enso[data-motion="off"] *::before, .enso[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+.enso[data-motion="off"] .en-wash, .enso[data-motion="off"] .en-petals, .enso[data-motion="off"] .en-brush, .enso[data-motion="off"] .en-enso { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.enso) { scroll-behavior: auto; }
+    .enso *, .enso *::before, .enso *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .en-wash, .en-petals, .en-brush, .en-enso { display: none; }
+    .en-armed [data-reveal] { opacity: 1 !important; transform: none !important; }
+}
+
+/* -- Responsive -------------------------------------------------------------- */
+@media (max-width: 30rem) {
+    .en-hosts { gap: .35rem; }
+    .en-host h3 { font-size: 1.05rem; }
+    .en-host p { font-size: .72rem; }
+    .en-hosts__and { margin-inline: -.15rem; }
+}
+
+@media (max-width: 47.99rem) {
+    .enso { font-size: .94rem; line-height: 1.75; }
+    .enso h1 { font-size: clamp(2rem, 10vw, 3rem); }
+    .enso h2 { font-size: clamp(1.7rem, 8.5vw, 2.6rem); }
+    .enso .invitation-section { padding-top: 4.4rem; padding-bottom: max(5.4rem, calc(env(safe-area-inset-bottom) + 4.8rem)); }
+    .en-host__portrait { width: 100%; margin-bottom: .6rem; }
+    .en-event { grid-template-columns: minmax(5.6rem, .4fr) minmax(0, 1fr); gap: .8rem; }
+    .en-event__when strong { font-size: 1.05rem; }
+    .en-countdown { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+    .en-path { padding-left: 1.5rem; }
+    .en-step { padding-left: 1.1rem; }
+    .en-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
+}
+
+@media (min-width: 48rem) {
+    .enso .invitation-section { padding-inline: 2rem; }
+    .en-cover__video--mobile { display: none; }
+    .en-cover__video--desktop { display: block; }
+    .en-hero__video--mobile { display: none; }
+    .en-hero__video--desktop { display: block; }
+    .en-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .en-gallery figure { aspect-ratio: 4 / 5; }
+    .en-gallery figure:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+}
+
+@media (max-height: 43rem) {
+    .enso .invitation-section { padding-top: 4rem; padding-bottom: 4.5rem; }
+    .en-host__portrait { aspect-ratio: 1; }
+}

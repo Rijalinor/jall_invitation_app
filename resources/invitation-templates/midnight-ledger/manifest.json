@@ -1,7 +1,7 @@
 {
     "id": "midnight-ledger",
-    "name": "Midnight Ledger",
-    "version": "1.0.0",
+    "name": "Sulur",
+    "version": "2.0.0",
     "event_types": ["wedding", "engagement"],
     "entry_view": "midnight-ledger.views.index",
     "preview": "preview.svg",

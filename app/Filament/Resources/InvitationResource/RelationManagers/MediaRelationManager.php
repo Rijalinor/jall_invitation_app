@@ -34,7 +34,8 @@ class MediaRelationManager extends RelationManager
                                 'banner' => 'Foto Cover / Header Utama',
                             ])
                             ->default('image')
-                            ->required(),
+                            ->required()
+                            ->helperText('Pilih "Foto Cover / Header" untuk gambar pembuka bila template mendukung.'),
 
                         FileUpload::make('path')
                             ->disk('public')
@@ -52,15 +53,18 @@ class MediaRelationManager extends RelationManager
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(5120)
                             ->required()
+                            ->helperText('JPG, PNG, atau WebP. Rasio bebas; landscape disarankan.')
                             ->columnSpanFull(),
 
                         TextInput::make('alt_text')
                             ->label('Deskripsi Singkat (Alt Text)')
-                            ->placeholder('Foto Prewedding 1'),
+                            ->placeholder('Foto Prewedding 1')
+                            ->helperText('Deskripsi untuk aksesibilitas dan mesin pencari.'),
 
                         TextInput::make('caption')
                             ->label('Keterangan / Caption Foto')
-                            ->placeholder('Foto diambil di Bali, 2024'),
+                            ->placeholder('Foto diambil di Bali, 2024')
+                            ->helperText('Teks kecil yang tampil di bawah foto (opsional).'),
 
                     ])->columns(2),
             ]);

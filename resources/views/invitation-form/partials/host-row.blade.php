@@ -54,11 +54,6 @@
             <input type="text" name="{{ $field('social_instagram') }}" value="{{ $value('social_instagram', $host?->social_instagram) }}" maxlength="100" placeholder="tanpa tanda @">
         </label>
 
-        <label class="field">
-            <span>TikTok</span>
-            <input type="text" name="{{ $field('social_tiktok') }}" value="{{ $value('social_tiktok', $host?->social_tiktok) }}" maxlength="100" placeholder="tanpa tanda @">
-        </label>
-
         <label class="field field--wide">
             <span>Biodata singkat</span>
             <textarea name="{{ $field('bio') }}" rows="3" maxlength="600">{{ $value('bio', $host?->bio) }}</textarea>

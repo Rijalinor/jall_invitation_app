@@ -29,6 +29,7 @@ class ContactsRelationManager extends RelationManager
                             ->label('Label / Peran Kontak')
                             ->placeholder('CP Keluarga Pria / WO / Panitia')
                             ->required()
+                            ->helperText('Peran yang dilihat tamu, mis. "CP Keluarga Pria" atau "WO".')
                             ->maxLength(255),
 
                         TextInput::make('name')
@@ -43,6 +44,7 @@ class ContactsRelationManager extends RelationManager
                             ->tel()
                             ->required()
                             ->rule('regex:/^\+?[0-9\s\-()]{8,20}$/')
+                            ->helperText('Boleh ditulis 08… atau +62…. Dipakai untuk tombol hubungi di undangan.')
                             ->maxLength(50),
 
                     ])->columns(2),

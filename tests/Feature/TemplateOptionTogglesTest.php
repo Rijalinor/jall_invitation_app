@@ -50,9 +50,9 @@ class TemplateOptionTogglesTest extends TestCase
 
         $response = $this->get('/'.$slug)->assertOk();
 
-        // Automatic: the empty end time and the single gift block.
+        // Automatic: the empty end time and the shared gift card.
         $response->assertSee('08:00 s/d Selesai', false)
-            ->assertSee('aria-label="Kirim hadiah"', false);
+            ->assertSee('invitation-bank-card', false);
 
         if ($coverMarker !== null) {
             $response->assertSee($coverMarker, false);
@@ -96,6 +96,10 @@ class TemplateOptionTogglesTest extends TestCase
             'celestial-vow' => ['celestial-vow', 'undangan-opsi-cl', 'cel-hero__video', null],
             'sari-pura' => ['sari-pura', 'undangan-opsi-sp', 'sp-opening__video', null],
             'mahligai' => ['mahligai', 'undangan-opsi-mh', 'mh-hero__video', null],
+            'lentera-senja' => ['lentera-senja', 'undangan-opsi-lnt', 'lnt-hero__video', 'lnt-couple-title--cover'],
+            'deco-gala' => ['deco-gala', 'undangan-opsi-dg', 'dg-hero__video', 'dg-couple-title--cover'],
+            'aquarelle' => ['aquarelle', 'undangan-opsi-aq', 'aq-hero__video', 'aq-couple-title--cover'],
+            'origami' => ['origami', 'undangan-opsi-or', 'or-hero__video', 'or-couple-title--cover'],
         ];
     }
 
@@ -132,6 +136,31 @@ class TemplateOptionTogglesTest extends TestCase
     }
 
     /**
+     * The gift mark belongs on the physical-gift card, not floating above the
+     * section: it moves with the delivery address it describes, in every design.
+     */
+    #[DataProvider('giftTemplates')]
+    public function test_the_gift_mark_heads_the_physical_card(string $template, string $slug): void
+    {
+        $invitation = $this->invitation($template, $slug.'-fisik');
+        $invitation->giftMethods()->create([
+            'type' => 'physical_gift', 'delivery_address' => 'Jl. Mawar No. 1', 'position' => 0,
+        ]);
+
+        $content = $this->get('/'.$slug.'-fisik')
+            ->assertOk()
+            ->assertSee('invitation-gift-method', false)
+            ->assertSee('aria-label="Kirim hadiah"', false)
+            ->getContent();
+
+        // The mark sits inside the card, after it opens — not before the section.
+        $this->assertGreaterThan(
+            strpos($content, 'invitation-gift-method'),
+            strpos($content, 'aria-label="Kirim hadiah"'),
+        );
+    }
+
+    /**
      * @return array<string, array{0: string, 1: string}>
      */
     public static function giftTemplates(): array
@@ -144,6 +173,10 @@ class TemplateOptionTogglesTest extends TestCase
             'celestial-vow' => ['celestial-vow', 'undangan-gift-cl'],
             'sari-pura' => ['sari-pura', 'undangan-gift-sp'],
             'mahligai' => ['mahligai', 'undangan-gift-mh'],
+            'lentera-senja' => ['lentera-senja', 'undangan-gift-lnt'],
+            'deco-gala' => ['deco-gala', 'undangan-gift-dg'],
+            'aquarelle' => ['aquarelle', 'undangan-gift-aq'],
+            'origami' => ['origami', 'undangan-gift-or'],
         ];
     }
 

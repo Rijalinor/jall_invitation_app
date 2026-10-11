@@ -81,6 +81,37 @@ class CelestialVowTemplateTest extends TestCase
         $this->assertStringContainsString('.js-ready [data-gate]', $css);
     }
 
+    public function test_the_star_layers_and_scroll_highlight_are_declared(): void
+    {
+        $this->invitation();
+
+        $this->get('/undangan-langit')
+            ->assertOk()
+            ->assertSee('class="cel-sky"', false)
+            ->assertSee('cel-sky__layer--twinkle', false)
+            ->assertSee('cel-meteor--1', false);
+
+        $css = (string) file_get_contents(resource_path('invitation-templates/celestial-vow/assets/theme.css'));
+        $script = (string) file_get_contents(resource_path('invitation-templates/celestial-vow/assets/theme.js'));
+
+        // A scroll-linked highlight: the star field drifts on --cel-scroll, the
+        // shooting stars read --cel-progress, and they loop across the viewport.
+        $this->assertStringContainsString('--cel-scroll', $css);
+        $this->assertStringContainsString('--cel-progress', $css);
+        $this->assertStringContainsString('@keyframes cel-shoot', $css);
+        // One detail animates on its own, with or without scrolling.
+        $this->assertStringContainsString('@keyframes cel-twinkle', $css);
+        // The whole layer sits behind the content.
+        $this->assertStringContainsString(".cel-sky {\n    position: fixed;\n    z-index: 0;", $css);
+        $this->assertStringNotContainsString('cel-meteors', $css);
+        // Removed under motion: off and reduced motion.
+        $this->assertStringContainsString('.celestial-vow[data-motion="off"] .cel-meteor', $css);
+        $this->assertStringContainsString('.cel-meteor { display: none; }', $css);
+        // One rAF-throttled listener publishes both numbers.
+        $this->assertStringContainsString("setProperty('--cel-scroll'", $script);
+        $this->assertStringContainsString("setProperty('--cel-progress'", $script);
+    }
+
     public function test_the_accent_colour_is_validated_before_it_reaches_the_page(): void
     {
         $invitation = $this->invitation();

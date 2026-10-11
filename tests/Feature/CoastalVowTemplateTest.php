@@ -110,6 +110,38 @@ class CoastalVowTemplateTest extends TestCase
         $this->assertStringContainsString('.js-ready [data-gate]', $css);
     }
 
+    public function test_the_ambient_sea_layers_and_scroll_highlight_are_declared(): void
+    {
+        $this->invitation();
+
+        $this->get('/undangan-pesisir')
+            ->assertOk()
+            ->assertSee('class="cv-sea"', false)
+            ->assertSee('cv-tide--1', false)
+            ->assertSee('class="cv-spray"', false)
+            ->assertSee('cv-drop--1', false);
+
+        $css = (string) file_get_contents(resource_path('invitation-templates/coastal-vow/assets/theme.css'));
+        $script = (string) file_get_contents(resource_path('invitation-templates/coastal-vow/assets/theme.js'));
+
+        // A scroll-linked highlight: the swells rise on --cv-scroll, the spray
+        // drifts on --cv-progress, and it loops across the whole viewport.
+        $this->assertStringContainsString('--cv-scroll', $css);
+        $this->assertStringContainsString('--cv-progress', $css);
+        $this->assertStringContainsString('@keyframes cv-drift', $css);
+        // One detail animates on its own, with or without scrolling.
+        $this->assertStringContainsString('@keyframes cv-swell', $css);
+        // Layered behind and in front of the content.
+        $this->assertStringContainsString('.cv-sea { z-index: 0; }', $css);
+        $this->assertStringContainsString('.cv-spray { z-index: 4; }', $css);
+        // Removed under motion: off and reduced motion.
+        $this->assertStringContainsString('.coastal-vow[data-motion="off"] .cv-sea', $css);
+        $this->assertStringContainsString('.cv-sea, .cv-spray { display: none; }', $css);
+        // One rAF-throttled listener publishes both numbers.
+        $this->assertStringContainsString("setProperty('--cv-scroll'", $script);
+        $this->assertStringContainsString("setProperty('--cv-progress'", $script);
+    }
+
     public function test_the_accent_colour_is_validated_before_it_reaches_the_page(): void
     {
         $invitation = $this->invitation();

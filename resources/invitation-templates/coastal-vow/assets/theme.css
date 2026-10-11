@@ -244,7 +244,10 @@ html:has(body.coastal-vow) {
     height: 38%;
     color: #eafbfa;
     transition: transform var(--cv-slow) cubic-bezier(.2, .7, .2, 1);
+    animation: cv-wave-bob 6.5s ease-in-out infinite alternate;
 }
+
+@keyframes cv-wave-bob { to { translate: 0 -.55rem; } }
 
 .cv-cover__waves svg {
     display: block;
@@ -474,22 +477,63 @@ body:has(main:target) .cv-dock {
     background: var(--cv-sand);
 }
 
-/* ── Ambient tide decoration ─────────────────────────────────────────────── */
-.cv-tide {
+/* ── Ambient sea: swells behind, spray in front ─────────────────────────────
+   The swells rise and recede with the scroll (--cv-scroll) and breathe on their
+   own; the spray loops across the whole viewport in front of the sections, so
+   the coast reads as depth instead of a flat page. Decoration only. */
+.cv-sea,
+.cv-spray {
     position: fixed;
-    z-index: 0;
-    top: -8rem;
-    right: -10rem;
-    width: 26rem;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--cv-accent) 16%, transparent), transparent 68%);
-    opacity: 0;
+    inset: 0;
+    overflow: hidden;
     pointer-events: none;
-    transition: opacity 1s ease;
+    opacity: 0;
+    transition: opacity 1.2s ease;
 }
 
-.invitation-open .cv-tide { opacity: 1; }
+.cv-sea { z-index: 0; }
+.cv-spray { z-index: 4; }
+
+.invitation-open .cv-sea,
+.invitation-open .cv-spray { opacity: 1; }
+
+.cv-tide {
+    position: absolute;
+    width: var(--cv-tide-size, 26rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    opacity: var(--cv-tide-op, .9);
+    background: radial-gradient(circle, color-mix(in srgb, var(--cv-accent) 16%, transparent), transparent 68%);
+    transform: translate3d(0, calc(var(--cv-scroll, 0) * var(--cv-tide-depth, -.03) * 1px), 0);
+    animation: cv-swell var(--cv-tide-dur, 9s) ease-in-out var(--cv-tide-delay, 0s) infinite alternate;
+}
+
+.cv-tide--1 { top: -8rem; right: -10rem; --cv-tide-depth: -.03; }
+.cv-tide--2 { top: 42%; left: -14rem; --cv-tide-size: 20rem; --cv-tide-depth: -.05; --cv-tide-op: .7; --cv-tide-dur: 11s; --cv-tide-delay: -4s; }
+.cv-tide--3 { bottom: -12rem; right: -12rem; --cv-tide-size: 30rem; --cv-tide-depth: -.02; --cv-tide-op: .6; --cv-tide-dur: 13s; --cv-tide-delay: -7s; }
+
+@keyframes cv-swell { to { scale: 1.09; } }
+
+.cv-drop {
+    position: absolute;
+    top: 0;
+    width: var(--cv-drop-size, .5rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    opacity: var(--cv-drop-op, .5);
+    filter: blur(var(--cv-drop-blur, 3px));
+    background: radial-gradient(circle at 35% 30%, #ffffff, color-mix(in srgb, var(--cv-accent) 55%, transparent));
+    transform: translate3d(0, calc((var(--cv-progress, 0) - .5) * var(--cv-drop-drift, 90px)), 0);
+    animation: cv-drift var(--cv-drop-fall, 14s) linear var(--cv-drop-delay, 0s) infinite;
+}
+
+.cv-drop--1 { left: 12%; --cv-drop-size: .5rem; --cv-drop-fall: 13s; --cv-drop-delay: -2s; --cv-drop-drift: 80px; }
+.cv-drop--2 { right: 10%; --cv-drop-size: .34rem; --cv-drop-blur: 4px; --cv-drop-fall: 18s; --cv-drop-delay: -8s; --cv-drop-drift: 104px; --cv-drop-op: .42; }
+.cv-drop--3 { left: 24%; --cv-drop-size: .62rem; --cv-drop-blur: 5px; --cv-drop-op: .4; --cv-drop-fall: 20s; --cv-drop-delay: -14s; --cv-drop-drift: 92px; }
+.cv-drop--4 { right: 22%; --cv-drop-size: .4rem; --cv-drop-blur: 3px; --cv-drop-fall: 12s; --cv-drop-delay: -5s; --cv-drop-drift: 70px; }
+.cv-drop--5 { left: 62%; --cv-drop-size: .3rem; --cv-drop-blur: 2px; --cv-drop-op: .55; --cv-drop-fall: 16s; --cv-drop-delay: -11s; --cv-drop-drift: 86px; }
+
+@keyframes cv-drift { from { translate: 0 -12svh; } to { translate: 0 112svh; } }
 
 /* ── Opening hero ────────────────────────────────────────────────────────── */
 .cv-hero {
@@ -1093,6 +1137,9 @@ body:has(main:target) .cv-dock {
     transition: none !important;
 }
 
+.coastal-vow[data-motion="off"] .cv-sea,
+.coastal-vow[data-motion="off"] .cv-spray { display: none; }
+
 /* ── Operator-built blocks ───────────────────────────────────────────────── */
 .invitation-block-quote {
     max-width: 42rem;
@@ -1211,7 +1258,7 @@ body:has(main:target) .cv-dock {
         transition-duration: .01ms !important;
         animation-duration: .01ms !important;
     }
-    .cv-tide { display: none; }
+    .cv-sea, .cv-spray { display: none; }
 }
 
 /* ── Tint ────────────────────────────────────────────────────────────────────

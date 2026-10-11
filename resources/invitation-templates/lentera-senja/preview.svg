@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Lentera Senja — undangan bernuansa senja dengan lampion melayang">
+    <defs>
+        <linearGradient id="lnt-dusk" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#160f2b"/>
+            <stop offset="0.45" stop-color="#3a2350"/>
+            <stop offset="0.72" stop-color="#7a3b5a"/>
+            <stop offset="1" stop-color="#c06a4a"/>
+        </linearGradient>
+        <radialGradient id="lnt-glow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#ffd68a" stop-opacity="0.95"/>
+            <stop offset="0.45" stop-color="#e8a63f" stop-opacity="0.5"/>
+            <stop offset="1" stop-color="#e8a63f" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="lnt-hill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1c1233"/>
+            <stop offset="1" stop-color="#0e0a1e"/>
+        </linearGradient>
+    </defs>
+    <rect width="800" height="1000" fill="url(#lnt-dusk)"/>
+    <circle cx="600" cy="250" r="70" fill="#ffe6b0" opacity="0.85"/>
+    <circle cx="600" cy="250" r="120" fill="#ffcf8a" opacity="0.14"/>
+    <g fill="#ffffff" opacity="0.55">
+        <circle cx="120" cy="150" r="2"/><circle cx="260" cy="90" r="2.4"/>
+        <circle cx="420" cy="180" r="1.8"/><circle cx="700" cy="120" r="2.2"/>
+        <circle cx="180" cy="320" r="1.6"/><circle cx="520" cy="80" r="2"/>
+    </g>
+    <path d="M0 720 Q200 660 400 710 T800 690 L800 1000 L0 1000 Z" fill="url(#lnt-hill)" opacity="0.9"/>
+    <path d="M0 800 Q260 760 520 810 T800 790 L800 1000 L0 1000 Z" fill="#0b0817" opacity="0.95"/>
+    <g>
+        <circle cx="250" cy="500" r="90" fill="url(#lnt-glow)"/>
+        <circle cx="250" cy="500" r="46" fill="url(#lnt-glow)"/>
+        <rect x="238" y="470" width="24" height="34" rx="10" fill="#f2b24c"/>
+        <rect x="242" y="452" width="16" height="8" rx="3" fill="#ffd68a"/>
+    </g>
+    <g>
+        <circle cx="560" cy="620" r="70" fill="url(#lnt-glow)"/>
+        <circle cx="560" cy="620" r="36" fill="url(#lnt-glow)"/>
+        <rect x="550" y="598" width="20" height="28" rx="9" fill="#f2b24c"/>
+        <rect x="553" y="584" width="14" height="7" rx="3" fill="#ffd68a"/>
+    </g>
+    <g>
+        <circle cx="150" cy="700" r="54" fill="url(#lnt-glow)"/>
+        <rect x="142" y="684" width="16" height="24" rx="8" fill="#e8a63f"/>
+    </g>
+    <g font-family="Georgia, 'Times New Roman', serif" fill="#f6e7c8" text-anchor="middle">
+        <text x="400" y="905" font-size="30" letter-spacing="8" opacity="0.8">UNDANGAN</text>
+        <text x="400" y="960" font-size="52" letter-spacing="2">Lentera Senja</text>
+    </g>
+</svg>

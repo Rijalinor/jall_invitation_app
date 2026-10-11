@@ -459,39 +459,6 @@
     .closing-families__item p { margin: 0; font-size: .78rem; line-height: 1.45; overflow-wrap: break-word; }
 }
 
-/* Closing social row ---------------------------------------------------------
-   Optional follow row in the closing section: an Instagram link per host that
-   has one, plus the WhatsApp share action. Template-neutral, drawn from the
-   shared --inv-* tokens, and it renders nothing when there is nothing to link. */
-.closing-social {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: .6rem;
-    width: min(100%, 40rem);
-    margin: 1.6rem auto .4rem;
-}
-
-.closing-social a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: .55rem 1.1rem;
-    border: 1px solid var(--inv-line, rgb(0 0 0 / .18));
-    border-radius: 999px;
-    color: var(--inv-accent, #555);
-    background: transparent;
-    font: inherit;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.closing-social a:hover {
-    color: #fff;
-    background: var(--inv-accent, #555);
-    border-color: var(--inv-accent, #555);
-}
-
 /* Gifts in one block --------------------------------------------------------
    The shared "Kirim Hadiah" header the gifts section shows when an invitation
    asks for a single block. Template-neutral, so every design gets the same
@@ -579,6 +546,14 @@
     background: var(--inv-accent, #555);
     border-color: var(--inv-accent, #555);
 }
+
+/* A physical gift is headed by the shared "Kirim Hadiah" mark, centred, so the
+   mark, the address and the copy action read as one centred block instead of the
+   mark floating above the whole section. */
+.invitation-gift-method:has(.invitation-gift-intro) { text-align: center; }
+.invitation-gift-method:has(.invitation-gift-intro) .invitation-gift-method__head,
+.invitation-gift-method:has(.invitation-gift-intro) .invitation-gift-method__actions { justify-content: center; }
+.invitation-gift-method:has(.invitation-gift-intro) .invitation-gift-method__number { justify-items: center; }
 
 .invitation-bank-card {
     display: grid;
@@ -669,7 +644,7 @@
 .invitation-bank-card__delivery small { color: var(--inv-accent, #555); font-size: .58rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
 .invitation-bank-card__delivery span { color: var(--inv-ink, #555); overflow-wrap: anywhere; }
 
-.invitation-bank-card__delivery .invitation-bank-card__delivery button {
+.invitation-bank-card__delivery button {
     justify-self: start;
     min-height: 40px;
     padding: .5rem 1rem;

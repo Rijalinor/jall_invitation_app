@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Deco Gala — undangan art deco ivory dengan emas dan hitam">
+    <defs>
+        <linearGradient id="dg-gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e2c766"/>
+            <stop offset="1" stop-color="#a9811d"/>
+        </linearGradient>
+        <pattern id="dg-paper" width="14" height="14" patternUnits="userSpaceOnUse">
+            <rect width="14" height="14" fill="#f6f0e4"/>
+            <path d="M0 14 L14 0" stroke="#00000008" stroke-width="1"/>
+        </pattern>
+    </defs>
+
+    <rect width="800" height="1000" fill="url(#dg-paper)"/>
+    <rect x="40" y="40" width="720" height="920" fill="none" stroke="url(#dg-gold)" stroke-width="2"/>
+    <rect x="52" y="52" width="696" height="896" fill="none" stroke="#14120f" stroke-width="1" opacity="0.5"/>
+
+    <!-- sunburst fan -->
+    <g transform="translate(400 300)" stroke="url(#dg-gold)" stroke-width="2" opacity="0.9">
+        <line x1="0" y1="0" x2="0" y2="-210"/>
+        <line x1="0" y1="0" x2="-80" y2="-195"/>
+        <line x1="0" y1="0" x2="-150" y2="-148"/>
+        <line x1="0" y1="0" x2="-195" y2="-80"/>
+        <line x1="0" y1="0" x2="-210" y2="0"/>
+        <line x1="0" y1="0" x2="80" y2="-195"/>
+        <line x1="0" y1="0" x2="150" y2="-148"/>
+        <line x1="0" y1="0" x2="195" y2="-80"/>
+        <line x1="0" y1="0" x2="210" y2="0"/>
+    </g>
+    <circle cx="400" cy="300" r="34" fill="#14120f"/>
+    <circle cx="400" cy="300" r="24" fill="none" stroke="url(#dg-gold)" stroke-width="3"/>
+
+    <g font-family="Jost, 'Trebuchet MS', sans-serif" text-anchor="middle">
+        <text x="400" y="560" font-size="22" letter-spacing="10" fill="#a9811d">UNDANGAN PERNIKAHAN</text>
+        <text x="400" y="650" font-family="'Poiret One', Jost, sans-serif" font-size="76" fill="#14120f">Deco Gala</text>
+        <line x1="300" y1="690" x2="500" y2="690" stroke="url(#dg-gold)" stroke-width="3"/>
+        <text x="400" y="745" font-size="24" letter-spacing="6" fill="#14120f">RENDRA &amp; ALYA</text>
+        <text x="400" y="800" font-size="18" letter-spacing="4" fill="#6b6153">SABTU, 12 JUNI 2027</text>
+        <rect x="320" y="850" width="160" height="52" rx="26" fill="#14120f"/>
+        <text x="400" y="884" font-size="16" letter-spacing="3" fill="#e2c766">BUKA UNDANGAN</text>
+    </g>
+</svg>

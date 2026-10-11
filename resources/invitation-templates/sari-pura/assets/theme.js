@@ -8,6 +8,8 @@ const root = document.body;
 const music = document.querySelector('[data-music]');
 const musicToggle = document.querySelector('[data-music-toggle]');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mode = root.dataset.motion || 'calm';
+const motionAllowed = mode !== 'off' && !reducedMotion;
 
 document.querySelectorAll('[data-cover-video]').forEach((video) => {
     if (reducedMotion) return video.remove();
@@ -108,6 +110,29 @@ if ('IntersectionObserver' in window) {
         }, { rootMargin: '-45% 0px -45% 0px' });
         tracked.forEach((section) => navObserver.observe(section));
     }
+}
+
+/* One scroll listener publishes the scrolled pixels and the page progress; the
+   petal layers drift on --sp-progress. rAF-throttled and passive, so it never
+   reads layout per frame. Skipped entirely when motion is off. */
+if (motionAllowed) {
+    let ticking = false;
+
+    const update = () => {
+        const range = document.documentElement.scrollHeight - window.innerHeight;
+        document.documentElement.style.setProperty('--sp-scroll', String(Math.round(window.scrollY)));
+        document.documentElement.style.setProperty('--sp-progress', String(range > 0 ? Math.min(1, window.scrollY / range) : 0));
+        ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+
+        window.requestAnimationFrame(update);
+    }, { passive: true });
+
+    update();
 }
 
 /* Reveal in one pass. `.sp-armed` is added only when motion is allowed, so a

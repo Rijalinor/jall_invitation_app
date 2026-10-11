@@ -49,9 +49,8 @@ class MahligaiTemplateTest extends TestCase
             ->assertSee('Ahmad Fauzan')
             ->assertSee('Rahmah Az-Zahra')
             ->assertSee('invitation-bank-card', false)
-            // The wish tally and the closing social row.
-            ->assertSee('1 Ucapan', false)
-            ->assertSee('closing-social', false);
+            // The wish tally.
+            ->assertSee('1 Ucapan', false);
     }
 
     public function test_optional_sections_and_navigation_are_omitted_when_empty(): void
@@ -121,16 +120,18 @@ class MahligaiTemplateTest extends TestCase
         $this->get('/undangan-mahligai')->assertOk()->assertSee('data-auto-scroll="1"', false);
     }
 
-    public function test_the_closing_social_row_only_shows_when_a_host_has_instagram(): void
+    public function test_the_closing_has_no_instagram_or_share_row(): void
     {
         $invitation = $this->invitation();
-        $invitation->hosts()->create(['role' => 'groom', 'name' => 'Ahmad', 'position' => 0]);
+        $invitation->hosts()->create([
+            'role' => 'groom', 'name' => 'Ahmad', 'position' => 0, 'social_instagram' => 'ahmad.fauzan',
+        ]);
 
-        $this->get('/undangan-mahligai')->assertOk()->assertDontSee('closing-social', false);
-
-        $invitation->hosts()->update(['social_instagram' => 'ahmad.fauzan']);
-
-        $this->get('/undangan-mahligai')->assertOk()->assertSee('closing-social', false);
+        // The Instagram / WhatsApp row was removed from every design on purpose.
+        $this->get('/undangan-mahligai')
+            ->assertOk()
+            ->assertDontSee('closing-social', false)
+            ->assertDontSee('Bagikan via WhatsApp', false);
     }
 
     public function test_the_wish_tally_is_hidden_until_there_are_approved_wishes(): void
@@ -148,6 +149,36 @@ class MahligaiTemplateTest extends TestCase
         $invitation->guestbookEntries()->create(['name' => 'Siti', 'message' => 'Selamat', 'moderation_status' => 'approved']);
 
         $this->get('/undangan-mahligai')->assertOk()->assertSee('1 Ucapan</p>', false);
+    }
+
+    public function test_the_ambient_light_layers_and_scroll_highlight_are_declared(): void
+    {
+        $this->invitation();
+
+        $this->get('/undangan-mahligai')
+            ->assertOk()
+            ->assertSee('class="mh-glow"', false)
+            ->assertSee('class="mh-motes"', false)
+            ->assertSee('mh-mote--1', false);
+
+        $css = (string) file_get_contents(resource_path('invitation-templates/mahligai/assets/theme.css'));
+        $script = (string) file_get_contents(resource_path('invitation-templates/mahligai/assets/theme.js'));
+
+        // A scroll-linked highlight: the glow drifts on --mh-progress and the
+        // light motes rise across the whole viewport on a loop.
+        $this->assertStringContainsString('--mh-progress', $css);
+        $this->assertStringContainsString('@keyframes mh-rise', $css);
+        // One detail animates on its own, with or without scrolling.
+        $this->assertStringContainsString('@keyframes mh-shimmer', $css);
+        // Layered behind and in front of the content.
+        $this->assertStringContainsString('.mh-glow { position: fixed; inset: 0; z-index: 0;', $css);
+        $this->assertStringContainsString('.mh-motes { position: fixed; z-index: 4;', $css);
+        // Removed under motion: off and reduced motion.
+        $this->assertStringContainsString('.mahligai[data-motion="off"] .mh-motes', $css);
+        $this->assertStringContainsString('.mh-motes { display: none; }', $css);
+        // One rAF-throttled listener publishes both numbers.
+        $this->assertStringContainsString("setProperty('--mh-scroll'", $script);
+        $this->assertStringContainsString("setProperty('--mh-progress'", $script);
     }
 
     private function invitation(): Invitation

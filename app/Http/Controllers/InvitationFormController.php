@@ -10,11 +10,13 @@ use App\Models\Rsvp;
 use App\Services\FormLinks;
 use App\Services\GuestCsvImporter;
 use App\Services\PublicImageUpload;
+use App\Services\TemplateRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -45,6 +47,10 @@ class InvitationFormController extends Controller
 
     public const STEP_CONTACTS = 'kontak';
 
+    public const STEP_WORDING = 'tulisan';
+
+    public const STEP_STRUCTURE = 'susunan';
+
     public const STEP_GUESTS = 'tamu';
 
     public const STEP_RSVP = 'rsvp';
@@ -60,6 +66,8 @@ class InvitationFormController extends Controller
         self::STEP_GALLERY => 'Galeri',
         self::STEP_GIFTS => 'Hadiah',
         self::STEP_CONTACTS => 'Kontak',
+        self::STEP_WORDING => 'Tulisan',
+        self::STEP_STRUCTURE => 'Susunan',
         self::STEP_GUESTS => 'Tamu',
         self::STEP_RSVP => 'RSVP',
         self::STEP_GUESTBOOK => 'Ucapan',
@@ -97,6 +105,28 @@ class InvitationFormController extends Controller
 
     private const MAX_CONTACTS = 5;
 
+    private const MAX_CLOSING_FAMILIES = 6;
+
+    private const MUSIC_DIRECTORY = 'invitations/music';
+
+    private const SECTION_LABELS = [
+        'opening' => 'Pembuka',
+        'hosts' => 'Mempelai',
+        'events' => 'Acara',
+        'countdown' => 'Hitung mundur',
+        'map' => 'Lokasi',
+        'story' => 'Cerita',
+        'gallery' => 'Galeri',
+        'blocks' => 'Seksi tambahan',
+        'rsvp' => 'Konfirmasi (RSVP)',
+        'guestbook' => 'Buku ucapan',
+        'gifts' => 'Hadiah',
+        'contacts' => 'Kontak',
+        'livestream' => 'Siaran langsung',
+        'sharing' => 'Bagikan',
+        'closing' => 'Penutup',
+    ];
+
     private const MAX_GUESTS = Invitation::MAX_GUESTS;
 
     public function show(
@@ -123,6 +153,13 @@ class InvitationFormController extends Controller
             'guests' => $invitation->guests()->orderBy('id')->get(),
             'rsvps' => $invitation->rsvps()->orderByDesc('submitted_at')->get(),
             'guestbookEntries' => $invitation->guestbookEntries()->orderByDesc('created_at')->get(),
+            'labels' => $this->labels($invitation),
+            'closingFamilies' => $this->closingFamilies($invitation),
+            'sections' => $this->sectionRows($invitation),
+            'sectionLabels' => self::SECTION_LABELS,
+            'musicUrl' => $invitation->music_path ? Storage::disk('public')->url($invitation->music_path) : null,
+            'doneSteps' => $this->doneSteps($invitation),
+            'maxClosingFamilies' => self::MAX_CLOSING_FAMILIES,
             'hostRoles' => self::HOST_ROLES,
             'timezones' => self::TIMEZONES,
             'giftTypes' => self::giftTypes(),
@@ -153,6 +190,8 @@ class InvitationFormController extends Controller
             self::STEP_GALLERY => $this->saveGallery($request, $invitation, $uploads, $token),
             self::STEP_GIFTS => $this->saveGifts($request, $invitation, $token),
             self::STEP_CONTACTS => $this->saveContacts($request, $invitation, $token),
+            self::STEP_WORDING => $this->saveWording($request, $invitation, $token),
+            self::STEP_STRUCTURE => $this->saveStructure($request, $invitation, $token),
             self::STEP_GUESTS => $this->saveGuests($request, $invitation, $token),
             default => $this->toStep($token, self::STEP_DONE),
         };
@@ -184,7 +223,6 @@ class InvitationFormController extends Controller
             'hosts.*.parent_mother' => ['nullable', 'string', 'max:150'],
             'hosts.*.bio' => ['nullable', 'string', 'max:600'],
             'hosts.*.social_instagram' => ['nullable', 'string', 'max:100'],
-            'hosts.*.social_tiktok' => ['nullable', 'string', 'max:100'],
             'hosts.*.photo' => [
                 'nullable',
                 'image',
@@ -192,6 +230,13 @@ class InvitationFormController extends Controller
                 'max:'.PublicImageUpload::MAX_KILOBYTES,
             ],
         ]);
+
+        $this->requireAnchor(
+            $data['hosts'] ?? [],
+            'name',
+            ['role', 'nickname', 'birth_order', 'parent_father', 'parent_mother', 'bio', 'social_instagram'],
+            'Setiap mempelai perlu nama lengkap.',
+        );
 
         $rows = collect($data['hosts'] ?? [])
             ->filter(fn (array $row): bool => filled($row['name'] ?? null))
@@ -227,7 +272,6 @@ class InvitationFormController extends Controller
                     'parent_mother' => $row['parent_mother'] ?? null,
                     'bio' => $row['bio'] ?? null,
                     'social_instagram' => $row['social_instagram'] ?? null,
-                    'social_tiktok' => $row['social_tiktok'] ?? null,
                     'position' => $index,
                 ]);
 
@@ -270,6 +314,13 @@ class InvitationFormController extends Controller
             'acara.*.map_url' => ['nullable', 'string', 'max:500', 'regex:/^https?:\/\//i'],
             'acara.*.dress_code' => ['nullable', 'string', 'max:100'],
         ]);
+
+        $this->requireAnchor(
+            $data['acara'] ?? [],
+            'label',
+            ['date', 'start_time', 'end_time', 'venue_name', 'address', 'map_url', 'dress_code'],
+            'Setiap acara perlu nama acara.',
+        );
 
         $rows = collect($data['acara'] ?? [])
             ->filter(fn (array $row): bool => filled($row['label'] ?? null))
@@ -499,6 +550,13 @@ class InvitationFormController extends Controller
             'hadiah.*.notes' => ['nullable', 'string', 'max:500'],
         ]);
 
+        $this->requireAnchor(
+            $data['hadiah'] ?? [],
+            'provider',
+            ['account_name', 'account_number', 'delivery_address', 'notes'],
+            'Setiap hadiah perlu nama bank atau penyedia.',
+        );
+
         $rows = collect($data['hadiah'] ?? [])
             ->filter(fn (array $row): bool => filled($row['provider'] ?? null))
             ->reject(fn (array $row): bool => filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL))
@@ -559,6 +617,13 @@ class InvitationFormController extends Controller
             'kontak.*.phone' => ['nullable', 'string', 'max:50', 'regex:/^\+?[0-9\s\-()]{8,20}$/'],
         ]);
 
+        $this->requireAnchor(
+            $data['kontak'] ?? [],
+            'name',
+            ['label', 'phone'],
+            'Setiap kontak perlu nama.',
+        );
+
         $rows = collect($data['kontak'] ?? [])
             ->filter(fn (array $row): bool => filled($row['name'] ?? null))
             ->reject(fn (array $row): bool => filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL))
@@ -599,7 +664,7 @@ class InvitationFormController extends Controller
             $this->applyRemovals($invitation->contacts(), $data['kontak'] ?? [], $keptIds);
         });
 
-        return $this->toStep($token, self::STEP_DONE);
+        return $this->toStep($token, self::STEP_WORDING);
     }
 
     private function saveGuests(Request $request, Invitation $invitation, string $token): RedirectResponse
@@ -610,9 +675,16 @@ class InvitationFormController extends Controller
             'tamu.*.remove' => ['nullable', 'boolean'],
             'tamu.*.display_name' => ['nullable', 'string', 'max:255'],
             'tamu.*.group' => ['nullable', 'string', 'max:255'],
-            'tamu.*.phone' => ['nullable', 'string', 'max:50'],
+            'tamu.*.phone' => ['nullable', 'string', 'max:50', 'regex:/^\+?[0-9\s\-()]{8,20}$/'],
             'tamu.*.invitation_limit' => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
+
+        $this->requireAnchor(
+            $data['tamu'] ?? [],
+            'display_name',
+            ['group', 'phone'],
+            'Setiap tamu perlu nama.',
+        );
 
         $rows = collect($data['tamu'] ?? [])
             ->filter(fn (array $row): bool => filled($row['display_name'] ?? null))
@@ -860,6 +932,250 @@ class InvitationFormController extends Controller
 
             $record->delete();
         }
+    }
+
+    /**
+     * Save the couple's own wording: opening and closing text, the closing
+     * families, the WhatsApp share message, and the per-invitation section titles
+     * the chosen template declares.
+     */
+    private function saveWording(Request $request, Invitation $invitation, string $token): RedirectResponse
+    {
+        $declared = array_keys($this->labels($invitation));
+
+        $data = $request->validateWithBag('form', [
+            'opening_text' => ['nullable', 'string', 'max:600'],
+            'closing_message' => ['nullable', 'string', 'max:1200'],
+            'closing_footer' => ['nullable', 'string', 'max:400'],
+            'share_message' => ['nullable', 'string', 'max:500'],
+            'closing_families' => ['array', 'max:'.self::MAX_CLOSING_FAMILIES],
+            'closing_families.*.label' => ['nullable', 'string', 'max:120'],
+            'closing_families.*.names' => ['nullable', 'string', 'max:400'],
+            'labels' => ['array'],
+            'labels.*' => ['nullable', 'string', 'max:400'],
+        ]);
+
+        // Closing families: trim each side and drop empty rows, so an untouched
+        // spare slot never renders an empty column.
+        $families = [];
+
+        foreach ($data['closing_families'] ?? [] as $row) {
+            $label = mb_substr(trim(strip_tags((string) ($row['label'] ?? ''))), 0, 120);
+            $names = mb_substr(trim(strip_tags((string) ($row['names'] ?? ''))), 0, 400);
+
+            if ($label === '' && $names === '') {
+                continue;
+            }
+
+            $families[] = ['label' => $label, 'names' => $names];
+        }
+
+        // Section wording: only keys the chosen template declares; a blank value
+        // clears the override so the manifest default comes back.
+        $overrides = [];
+
+        foreach ($data['labels'] ?? [] as $key => $value) {
+            if (! in_array($key, $declared, true)) {
+                continue;
+            }
+
+            $value = mb_substr(trim(strip_tags((string) $value)), 0, 400);
+
+            if ($value !== '') {
+                $overrides[$key] = $value;
+            }
+        }
+
+        $settings = $invitation->settings_json ?? [];
+        $settings['closing_families'] = array_slice($families, 0, self::MAX_CLOSING_FAMILIES);
+        $settings['closing_footer'] = mb_substr(trim((string) ($data['closing_footer'] ?? '')), 0, 400);
+        $settings['labels'] = $overrides;
+
+        $invitation->opening_text = $data['opening_text'] ?? null;
+        $invitation->closing_message = $data['closing_message'] ?? null;
+        $invitation->share_message = $data['share_message'] ?? null;
+        $invitation->settings_json = $settings;
+        $invitation->save();
+
+        return $this->toStep($token, self::STEP_STRUCTURE);
+    }
+
+    /**
+     * Save which sections are shown, their order, and the background music.
+     */
+    private function saveStructure(Request $request, Invitation $invitation, string $token): RedirectResponse
+    {
+        $data = $request->validateWithBag('form', [
+            'sections' => ['array'],
+            'sections.*.key' => ['required', 'string', 'max:100'],
+            'sections.*.enabled' => ['nullable', 'boolean'],
+            'music' => ['nullable', 'file', 'mimes:mp3,m4a,ogg,wav', 'max:10240'],
+            'remove_music' => ['nullable', 'boolean'],
+        ]);
+
+        DB::transaction(function () use ($data, $invitation): void {
+            $position = 0;
+
+            foreach ($data['sections'] ?? [] as $row) {
+                // firstOrNew so a template that ships no default section rows can
+                // still be ordered and toggled from here.
+                $section = $invitation->sections()->firstOrNew(['key' => $row['key']]);
+                $section->enabled = filter_var($row['enabled'] ?? false, FILTER_VALIDATE_BOOL);
+                $section->position = $position++;
+                $section->save();
+            }
+        });
+
+        if ($request->hasFile('music')) {
+            if (filled($invitation->music_path)) {
+                Storage::disk('public')->delete($invitation->music_path);
+            }
+
+            $invitation->music_path = $request->file('music')->store(self::MUSIC_DIRECTORY.'/'.$invitation->id, 'public');
+            $invitation->save();
+        } elseif (filter_var($data['remove_music'] ?? false, FILTER_VALIDATE_BOOL)) {
+            if (filled($invitation->music_path)) {
+                Storage::disk('public')->delete($invitation->music_path);
+            }
+
+            $invitation->music_path = null;
+            $invitation->save();
+        }
+
+        return $this->toStep($token, self::STEP_GUESTS);
+    }
+
+    /**
+     * Guard against a row that carries content but is missing its identifying
+     * field: the filter below would otherwise drop it without a word.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     * @param  list<string>  $contentKeys  Fields (besides the anchor) that count as content.
+     */
+    private function requireAnchor(array $rows, string $anchor, array $contentKeys, string $message): void
+    {
+        foreach ($rows as $row) {
+            if (filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL) || filled($row[$anchor] ?? null)) {
+                continue;
+            }
+
+            foreach ($contentKeys as $key) {
+                if (($row[$key] ?? null) instanceof UploadedFile || filled($row[$key] ?? null)) {
+                    $this->fail($message);
+                }
+            }
+        }
+    }
+
+    /**
+     * Section wording the chosen template declares, keyed by label key.
+     *
+     * @return array<string, string>
+     */
+    private function labels(Invitation $invitation): array
+    {
+        return app(TemplateRegistry::class)->labels($invitation->template_id);
+    }
+
+    /**
+     * @return array<int, array{label: string, names: string}>
+     */
+    private function closingFamilies(Invitation $invitation): array
+    {
+        $families = $invitation->settings_json['closing_families'] ?? [];
+
+        if (! is_array($families)) {
+            return [];
+        }
+
+        $clean = [];
+
+        foreach ($families as $family) {
+            if (! is_array($family)) {
+                continue;
+            }
+
+            $clean[] = [
+                'label' => is_string($family['label'] ?? null) ? $family['label'] : '',
+                'names' => is_string($family['names'] ?? null) ? $family['names'] : '',
+            ];
+        }
+
+        return $clean;
+    }
+
+    /**
+     * Every section row for the structure step; falls back to the template's
+     * declared sections when the invitation has none stored.
+     *
+     * @return Collection<int, object>
+     */
+    private function sectionRows(Invitation $invitation): Collection
+    {
+        $rows = $invitation->sections()->orderBy('position')->orderBy('id')->get();
+
+        if ($rows->isNotEmpty()) {
+            return $rows;
+        }
+
+        $manifest = app(TemplateRegistry::class)->find($invitation->template_id);
+        $keys = $manifest['sections'] ?? [];
+
+        return collect($keys)->map(fn (string $key, int $index): object => (object) [
+            'key' => $key,
+            'enabled' => true,
+            'position' => $index,
+        ]);
+    }
+
+    /**
+     * Step keys that already have content, so the nav can show progress.
+     *
+     * @return array<int, string>
+     */
+    private function doneSteps(Invitation $invitation): array
+    {
+        $settings = $invitation->settings_json ?? [];
+        $done = [];
+
+        if ($invitation->hosts()->exists()) {
+            $done[] = self::STEP_HOSTS;
+        }
+
+        if ($invitation->events()->exists()) {
+            $done[] = self::STEP_EVENTS;
+        }
+
+        if ($invitation->stories()->exists()) {
+            $done[] = self::STEP_STORIES;
+        }
+
+        if ($invitation->media()->exists()) {
+            $done[] = self::STEP_GALLERY;
+        }
+
+        if ($invitation->giftMethods()->exists()) {
+            $done[] = self::STEP_GIFTS;
+        }
+
+        if ($invitation->contacts()->exists()) {
+            $done[] = self::STEP_CONTACTS;
+        }
+
+        if (filled($invitation->opening_text) || filled($invitation->closing_message)
+            || filled($invitation->share_message) || ! empty($settings['closing_families'])) {
+            $done[] = self::STEP_WORDING;
+        }
+
+        if ($invitation->sections()->exists()) {
+            $done[] = self::STEP_STRUCTURE;
+        }
+
+        if ($invitation->guests()->exists()) {
+            $done[] = self::STEP_GUESTS;
+        }
+
+        return $done;
     }
 
     private function invitation(FormLinks $links, string $token): Invitation

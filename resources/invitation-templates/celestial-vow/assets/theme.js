@@ -8,6 +8,8 @@ const root = document.body;
 const music = document.querySelector('[data-music]');
 const musicToggle = document.querySelector('[data-music-toggle]');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mode = root.dataset.motion || 'expressive';
+const motionAllowed = mode !== 'off' && !reducedMotion;
 
 document.querySelectorAll('[data-cover-video]').forEach((video) => {
     if (reducedMotion) return video.remove();
@@ -107,28 +109,33 @@ if ('IntersectionObserver' in window) {
     }
 }
 
-/* The star layers drift a little as the guest scrolls. One rAF-throttled
-   listener writes a single custom property; the CSS does the rest. */
-if (!reducedMotion) {
+/* The star layers drift as the guest scrolls, and the shooting stars read the
+   page progress. One rAF-throttled listener writes both numbers; CSS does the
+   rest. Skipped entirely when motion is off. */
+if (motionAllowed) {
     let ticking = false;
+
+    const update = () => {
+        const range = document.documentElement.scrollHeight - window.innerHeight;
+        document.documentElement.style.setProperty('--cel-scroll', String(Math.round(window.scrollY)));
+        document.documentElement.style.setProperty('--cel-progress', String(range > 0 ? Math.min(1, window.scrollY / range) : 0));
+        ticking = false;
+    };
 
     window.addEventListener('scroll', () => {
         if (ticking) return;
         ticking = true;
 
-        window.requestAnimationFrame(() => {
-            document.documentElement.style.setProperty('--cel-scroll', String(Math.round(window.scrollY)));
-            ticking = false;
-        });
+        window.requestAnimationFrame(update);
     }, { passive: true });
+
+    update();
 }
 
 /* Reveal in one pass. `.cel-armed` is added only when motion is allowed, so a
    blocked or failed script leaves every section already visible. */
 (function () {
-    const mode = root.dataset.motion || 'expressive';
-
-    if (mode === 'off' || reducedMotion || !('IntersectionObserver' in window)) {
+    if (!motionAllowed || !('IntersectionObserver' in window)) {
         return;
     }
 

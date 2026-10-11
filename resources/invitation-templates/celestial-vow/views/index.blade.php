@@ -38,9 +38,20 @@
         $openingVideoMobile = $coverMobile;
     @endphp
 
+    {{-- Back layer: the star field, a few twinkling stars, and shooting stars that
+         loop across the whole viewport. This template keeps its ambient motion
+         behind the content only. Decoration only. --}}
     <div class="cel-sky" aria-hidden="true">
         <span class="cel-sky__layer cel-sky__layer--far" data-parallax="0.06"></span>
         <span class="cel-sky__layer cel-sky__layer--near" data-parallax="0.14"></span>
+        {{-- A few brighter stars twinkle on their own, so the sky is never fully
+             still even before the guest scrolls. --}}
+        <span class="cel-sky__layer cel-sky__layer--twinkle"></span>
+        <span class="cel-meteor cel-meteor--1"></span>
+        <span class="cel-meteor cel-meteor--2"></span>
+        <span class="cel-meteor cel-meteor--3"></span>
+        <span class="cel-meteor cel-meteor--4"></span>
+        <span class="cel-meteor cel-meteor--5"></span>
     </div>
 
     <div class="cel-cover" id="opening-cover">

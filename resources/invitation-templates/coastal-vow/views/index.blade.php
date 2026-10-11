@@ -91,7 +91,21 @@
         @endforeach
     </nav>
 
-    <span class="cv-tide" aria-hidden="true"></span>
+    {{-- Back layer: soft sea swells that rise and recede with the scroll. Spray
+         loops in front of the sections, so the coast reads as depth instead of a
+         flat page. Both are decoration only. --}}
+    <div class="cv-sea" aria-hidden="true">
+        <span class="cv-tide cv-tide--1"></span>
+        <span class="cv-tide cv-tide--2"></span>
+        <span class="cv-tide cv-tide--3"></span>
+    </div>
+    <div class="cv-spray" aria-hidden="true">
+        <span class="cv-drop cv-drop--1"></span>
+        <span class="cv-drop cv-drop--2"></span>
+        <span class="cv-drop cv-drop--3"></span>
+        <span class="cv-drop cv-drop--4"></span>
+        <span class="cv-drop cv-drop--5"></span>
+    </div>
 
     <main id="coastal-content" tabindex="-1" data-gate>
         @foreach ($sections as $section)

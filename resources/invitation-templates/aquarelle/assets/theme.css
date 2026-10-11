@@ -1,0 +1,357 @@
+/* Aquarelle — soft watercolour pastels.
+ *
+ * Blush, sage and sky washes on ivory. One rAF scroll listener publishes
+ * --aq-scroll (px) and --aq-progress (0..1); the washes drift and the brush
+ * stroke paints down with them. Content is only hidden under `.aq-armed`, a
+ * class theme.js adds once it can animate, so a blocked script leaves the whole
+ * invitation visible and usable.
+ */
+
+.aquarelle {
+    --aq-accent: #d98ba3;              /* overridden inline from the admin setting */
+    --aq-ink: #3a3330;
+    --aq-canvas: #fbf7f0;
+    --aq-paper: #fffdf9;
+    --aq-muted: #7d736b;
+    --aq-rose: color-mix(in srgb, var(--aq-accent) 62%, #fff);
+    --aq-sage: #93a887;
+    --aq-sky: #9db7cf;
+    --aq-peach: #e0a882;
+    --aq-line: color-mix(in srgb, var(--aq-accent) 30%, transparent);
+    --aq-soft: color-mix(in srgb, var(--aq-accent) 10%, var(--aq-canvas));
+    --aq-ease: cubic-bezier(.2, .7, .2, 1);
+    /* Aliases consumed by the shared components (forms, blocks, gifts, dialogs). */
+    --inv-accent: color-mix(in srgb, var(--aq-accent) 84%, #7a3f54);
+    --inv-paper: var(--aq-paper);
+    --inv-ink: var(--aq-ink);
+    --inv-line: var(--aq-line);
+    margin: 0;
+    color: var(--aq-ink);
+    background: var(--aq-canvas);
+    font: 400 1rem/1.75 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+html:has(body.aquarelle) { scroll-behavior: smooth; }
+.aquarelle *, .aquarelle *::before, .aquarelle *::after { box-sizing: border-box; }
+.aquarelle h1, .aquarelle h2, .aquarelle h3 { margin: 0 0 1rem; font-family: 'EB Garamond', Georgia, serif; font-weight: 500; line-height: 1.1; }
+.aquarelle h1 { font-size: clamp(2.7rem, 12vw, 5.8rem); }
+.aquarelle h2 { font-size: clamp(2.1rem, 8.5vw, 4.3rem); }
+.aquarelle h3 { font-size: clamp(1.3rem, 4.2vw, 1.9rem); }
+.aquarelle p { margin: .6rem 0; }
+.aquarelle p, .aquarelle a, .aquarelle button { overflow-wrap: anywhere; }
+.aquarelle a, .aquarelle button, .aquarelle input, .aquarelle select, .aquarelle textarea { font: inherit; }
+.aquarelle a { color: color-mix(in srgb, var(--aq-accent) 82%, #7a3f54); }
+.aquarelle img { display: block; max-width: 100%; }
+
+.aquarelle .invitation-eyebrow {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    padding: .3rem .95rem;
+    border-radius: 999px;
+    color: color-mix(in srgb, var(--aq-accent) 68%, #7a3f54);
+    background: color-mix(in srgb, var(--aq-accent) 14%, transparent);
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+}
+
+.aq-couple-title { display: grid; justify-items: center; text-align: center; }
+/* The cover panel is narrower than a section, so its heading is capped and allowed
+   to wrap — a long pair of names must never spill outside the card on desktop. */
+.aq-cover__panel h1 { font-size: clamp(2rem, 7vw, 3.4rem); overflow-wrap: anywhere; }
+.aq-cover__panel h1 span { max-width: 100%; overflow-wrap: anywhere; }
+.aq-couple-title span { max-width: 12ch; }
+.aq-couple-title i { margin: -.05em 0; color: var(--aq-rose); font-size: .6em; font-weight: 400; }
+.aq-date { margin-top: 1.2rem !important; color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); font-size: .78rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+
+/* -- Scroll signature: drifting washes and a painted brush stroke ------------ */
+.aq-ambient { position: fixed; z-index: 0; inset: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1.2s ease; }
+.invitation-open .aq-ambient { opacity: 1; }
+.aq-wash { position: absolute; width: 62vmax; height: 62vmax; border-radius: 50%; filter: blur(34px); opacity: .5; transform: translate3d(0, calc(var(--aq-scroll, 0) * var(--aq-depth, -.05) * 1px), 0); }
+.aq-wash--rose  { top: -22vmax; left: -18vmax;  background: radial-gradient(circle, color-mix(in srgb, var(--aq-rose) 70%, transparent), transparent 62%); --aq-depth: -.03; }
+.aq-wash--sage  { top: 6vmax;  right: -24vmax;  background: radial-gradient(circle, color-mix(in srgb, var(--aq-sage) 55%, transparent), transparent 62%); --aq-depth: -.07; }
+.aq-wash--sky   { bottom: -24vmax; right: -10vmax; background: radial-gradient(circle, color-mix(in srgb, var(--aq-sky) 60%, transparent), transparent 62%); --aq-depth: -.04; }
+.aq-wash--peach { bottom: 4vmax; left: -22vmax; background: radial-gradient(circle, color-mix(in srgb, var(--aq-peach) 60%, transparent), transparent 62%); --aq-depth: -.08; }
+.aq-brush { position: fixed; z-index: 9; top: 0; bottom: 0; left: max(.6rem, env(safe-area-inset-left)); width: 6px; border-radius: 3px; background: color-mix(in srgb, var(--aq-accent) 14%, transparent); opacity: 0; transition: opacity .6s ease; }
+.invitation-open .aq-brush { opacity: 1; }
+.aq-brush__fill { position: absolute; inset: 0; display: block; border-radius: inherit; background: linear-gradient(180deg, var(--aq-rose), color-mix(in srgb, var(--aq-accent) 60%, #7a3f54)); transform: scaleY(var(--aq-progress, 0)); transform-origin: top; }
+
+/* A slow colour flow — the paper soaking up blush, sage, sky and peach as the
+   guest scrolls — plus drifting paint dabs at several depths, so the page keeps
+   moving under the thumb instead of only fading sections in. */
+.aq-flow { position: fixed; z-index: 0; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; background: linear-gradient(180deg, color-mix(in srgb, var(--aq-rose) 55%, transparent), color-mix(in srgb, var(--aq-sage) 45%, transparent) 34%, color-mix(in srgb, var(--aq-sky) 50%, transparent) 67%, color-mix(in srgb, var(--aq-peach) 55%, transparent)); background-size: 100% 200%; background-position: 50% calc(var(--aq-progress, 0) * 100%); }
+.invitation-open .aq-flow { opacity: .32; }
+.aq-dabs { position: fixed; z-index: 0; inset: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1s ease; }
+.invitation-open .aq-dabs { opacity: 1; }
+/* Paint dabs fall across the viewport on a loop, so they are present at every
+   scroll position; the scroll adds only a small, bounded drift for depth. */
+.aq-dab { position: absolute; top: 0; width: var(--aq-dab-size, 2.6rem); height: var(--aq-dab-size, 2.6rem); border-radius: 46% 54% 58% 42% / 54% 46% 52% 48%; filter: blur(7px); opacity: var(--aq-dab-opacity, .5); transform: translate3d(0, calc((var(--aq-progress, 0) - .5) * var(--aq-drift, 30px)), 0); animation: aq-drift var(--aq-fall, 26s) linear var(--aq-delay, 0s) infinite; }
+.aq-dab--1 { left: 10%; --aq-dab-size: 3.2rem; --aq-fall: 26s; --aq-delay: 0s; --aq-drift: 26px; background: color-mix(in srgb, var(--aq-rose) 70%, transparent); }
+.aq-dab--2 { right: 12%; --aq-dab-size: 2.4rem; --aq-fall: 32s; --aq-delay: -12s; --aq-drift: 38px; --aq-dab-opacity: .45; background: color-mix(in srgb, var(--aq-sage) 70%, transparent); }
+.aq-dab--3 { left: 18%; --aq-dab-size: 4rem; --aq-fall: 30s; --aq-delay: -20s; --aq-drift: 46px; background: color-mix(in srgb, var(--aq-sky) 60%, transparent); }
+.aq-dab--4 { right: 16%; --aq-dab-size: 3rem; --aq-fall: 36s; --aq-delay: -8s; --aq-drift: 42px; --aq-dab-opacity: .45; background: color-mix(in srgb, var(--aq-peach) 70%, transparent); }
+.aq-dab--5 { left: 12%; --aq-dab-size: 2.2rem; --aq-fall: 24s; --aq-delay: -16s; --aq-drift: 22px; background: color-mix(in srgb, var(--aq-rose) 62%, transparent); }
+.aq-dab--6 { left: 52%; --aq-dab-size: 2rem; --aq-fall: 28s; --aq-delay: -4s; --aq-drift: 34px; --aq-dab-opacity: .4; background: color-mix(in srgb, var(--aq-sage) 62%, transparent); }
+@keyframes aq-drift { from { translate: 0 -12svh; } to { translate: 0 112svh; } }
+
+/* Foreground layer: paint dabs in front of the sections that drift faster than
+   the content and sit softly out of focus, so the three layers — far washes,
+   content, near dabs — give the page a 3D parallax feel. */
+.aq-fore { position: fixed; z-index: 5; inset: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1s ease; }
+.invitation-open .aq-fore { opacity: 1; }
+.aq-fore__dab { position: absolute; top: 0; width: var(--aq-fsize, 3rem); height: var(--aq-fsize, 3rem); border-radius: 42% 58% 62% 38% / 56% 44% 56% 44%; filter: blur(var(--aq-fblur, 9px)); opacity: var(--aq-fop, .5); transform: translate3d(0, calc((var(--aq-progress, 0) - .5) * var(--aq-drift, 80px)), 0); animation: aq-drift var(--aq-fall, 15s) linear var(--aq-delay, 0s) infinite; }
+.aq-fore__dab--1 { left: 12%; --aq-fsize: 3.6rem; --aq-fblur: 9px; --aq-fop: .5; --aq-fall: 14s; --aq-delay: -1s; --aq-drift: 70px; background: color-mix(in srgb, var(--aq-rose) 80%, transparent); }
+.aq-fore__dab--2 { right: 10%; --aq-fsize: 2.6rem; --aq-fblur: 12px; --aq-fop: .45; --aq-fall: 18s; --aq-delay: -7s; --aq-drift: 96px; background: color-mix(in srgb, var(--aq-sage) 80%, transparent); }
+.aq-fore__dab--3 { left: 20%; --aq-fsize: 4.4rem; --aq-fblur: 14px; --aq-fop: .38; --aq-fall: 20s; --aq-delay: -13s; --aq-drift: 86px; background: color-mix(in srgb, var(--aq-sky) 78%, transparent); }
+.aq-fore__dab--4 { right: 16%; --aq-fsize: 2.2rem; --aq-fblur: 8px; --aq-fop: .5; --aq-fall: 13s; --aq-delay: -4s; --aq-drift: 60px; background: color-mix(in srgb, var(--aq-peach) 80%, transparent); }
+.aq-fore__dab--5 { left: 62%; --aq-fsize: 1.8rem; --aq-fblur: 6px; --aq-fop: .55; --aq-fall: 15s; --aq-delay: -9s; --aq-drift: 78px; background: color-mix(in srgb, var(--aq-rose) 78%, transparent); }
+
+/* -- Cover ------------------------------------------------------------------- */
+.aq-cover { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: max(1rem, env(safe-area-inset-top)) 1rem max(2.2rem, env(safe-area-inset-bottom)); overflow: hidden; background: var(--aq-canvas); transition: opacity .8s ease, visibility .8s ease; }
+.aq-cover__poster, .aq-cover__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.aq-cover__video--desktop { display: none; }
+.aq-cover__video--mobile { display: block; }
+.aq-cover::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgba(251, 247, 240, calc(.94 - var(--aq-cover-veil, .46) * .28)), rgba(251, 247, 240, calc(.86 - var(--aq-cover-veil, .46) * .2))); }
+.aq-cover__wash { position: absolute; z-index: 2; inset: 0; pointer-events: none; background:
+    radial-gradient(48vmax 40vmax at 22% 18%, color-mix(in srgb, var(--aq-rose) 60%, transparent), transparent 60%),
+    radial-gradient(46vmax 38vmax at 82% 28%, color-mix(in srgb, var(--aq-sage) 52%, transparent), transparent 60%),
+    radial-gradient(52vmax 42vmax at 70% 88%, color-mix(in srgb, var(--aq-sky) 55%, transparent), transparent 62%); filter: blur(28px); opacity: .7; }
+.aq-cover__panel { position: relative; z-index: 3; width: min(100%, 32rem); padding: clamp(1.8rem, 7vw, 3rem) clamp(1.3rem, 6vw, 2.6rem); text-align: center; background: color-mix(in srgb, var(--aq-paper) 92%, transparent); border-radius: 1.6rem; box-shadow: 0 1.6rem 4rem rgba(58, 51, 48, .14); backdrop-filter: blur(6px); transition: opacity .6s ease, transform .7s var(--aq-ease); }
+.aq-cover__panel::before { content: ''; position: absolute; inset: .5rem; border: 1px solid var(--aq-line); border-radius: 1.2rem; pointer-events: none; }
+.aq-cover__date { display: block; margin: -.1rem 0 1.4rem; color: var(--aq-muted); font-size: .72rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+.aq-cover__countdown { margin: -.3rem auto 1.2rem; }
+.aq-cover__countdown-label { display: block; margin-bottom: .45rem; color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); font-size: .6rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.aq-cover__countdown > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
+.aq-cover__countdown > div > span { display: grid; gap: .06rem; padding: .4rem .2rem; border-radius: .7rem; background: var(--aq-soft); }
+.aq-cover__countdown strong { font-family: 'EB Garamond', serif; font-size: 1.2rem; color: var(--aq-ink); }
+.aq-cover__countdown small { color: var(--aq-muted); font-size: .5rem; letter-spacing: .08em; text-transform: uppercase; }
+.aq-cover__to { margin: .3rem 0 0; color: var(--aq-muted); }
+.aq-cover__name { display: block; margin: .1rem auto 1.5rem; max-width: 24rem; font-family: 'EB Garamond', serif; font-size: clamp(1.3rem, 5vw, 1.8rem); color: var(--aq-ink); }
+.aquarelle .aq-cover__cta { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: .72rem 1.7rem; border: 0; border-radius: 999px; color: var(--aq-paper); background: color-mix(in srgb, var(--aq-accent) 88%, #7a3f54); font-weight: 700; letter-spacing: .06em; text-decoration: none; cursor: pointer; box-shadow: 0 .7rem 1.6rem color-mix(in srgb, var(--aq-accent) 40%, transparent); transition: transform .2s, box-shadow .2s; }
+.aquarelle .aq-cover__cta:hover { transform: translateY(-1px); box-shadow: 0 .9rem 2rem color-mix(in srgb, var(--aq-accent) 50%, transparent); }
+.invitation-open .aq-cover__wash { animation: aq-bloom 1.3s var(--aq-ease) both; }
+
+/* Gating: the invitation is reachable without scripting (real anchor + :target). */
+.js-ready [data-gate] { visibility: hidden; }
+.js-ready .invitation-open [data-gate] { visibility: visible; }
+.js-ready [data-gate]:target { visibility: visible; }
+body:has(main:target) .aq-cover { visibility: hidden; pointer-events: none; }
+.invitation-open .aq-cover { opacity: 0; visibility: hidden; }
+.invitation-open .aq-cover__panel { opacity: 0; transform: translateY(-1rem) scale(.98); }
+
+/* -- Navigation -------------------------------------------------------------- */
+.aq-nav { position: fixed; z-index: 11; top: 0; left: 0; right: 0; display: flex; overflow-x: auto; padding: max(.35rem, env(safe-area-inset-top)) .6rem .35rem; background: color-mix(in srgb, var(--aq-canvas) 92%, transparent); backdrop-filter: blur(12px); transform: translateY(-100%); transition: transform .45s var(--aq-ease); scrollbar-width: none; }
+.aq-nav::-webkit-scrollbar { display: none; }
+.invitation-open .aq-nav { transform: none; }
+/* Centred when the labels fit, a horizontal scroll when they do not — never a
+   wrapped second row. */
+.aq-nav__inner { display: flex; gap: .1rem; margin-inline: auto; }
+.aq-nav a { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 44px; padding: .45rem .55rem; color: var(--aq-ink); border-radius: 999px; font-size: .58rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+.aq-nav a:hover, .aq-nav a:focus-visible { color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); background: var(--aq-soft); }
+
+/* -- Sections ---------------------------------------------------------------- */
+.aquarelle .invitation-section {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 62rem);
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    margin: auto;
+    padding: clamp(4.5rem, 10vw, 7rem) 1.15rem max(5rem, calc(env(safe-area-inset-bottom) + 4rem));
+    overflow: hidden;
+    text-align: center;
+}
+.aquarelle .invitation-section > * { position: relative; z-index: 1; }
+.aquarelle .invitation-section > p { max-width: 42rem; margin-inline: auto; }
+/* The tint band is the LAST background rule that paints the section element. */
+.aquarelle .invitation-section--tint { width: 100%; max-width: none; background: color-mix(in srgb, var(--aq-rose) 22%, var(--aq-canvas)); }
+.aquarelle .invitation-section--compact { padding-block: 3rem; }
+
+/* -- Hero -------------------------------------------------------------------- */
+.aq-hero { overflow: hidden; }
+.aq-hero__video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .2; }
+.aq-hero__video--desktop { display: none; }
+.aq-hero__inner { position: relative; z-index: 1; }
+.aq-hero__inner > p { max-width: 40rem; margin-inline: auto; color: var(--aq-muted); }
+
+/* -- Hosts ------------------------------------------------------------------- */
+.aq-hosts { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: clamp(.45rem, 2vw, 1.6rem); max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.6rem) auto 0; }
+.aq-host { min-width: 0; }
+.aq-host__portrait { position: relative; display: block; width: min(100%, 17rem); margin: 0 auto clamp(1.1rem, 4vw, 1.8rem); aspect-ratio: 4/5; overflow: hidden; border-radius: 44% 56% 48% 52% / 52% 48% 52% 48%; background: var(--aq-soft); box-shadow: 0 1.2rem 2.8rem rgba(58, 51, 48, .14); }
+.aq-host__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.aq-host__portrait > span { height: 100%; display: grid; place-items: center; color: var(--aq-rose); font: 500 clamp(3rem, 14vw, 6rem)/1 'EB Garamond', serif; }
+.aq-host h3 { margin-bottom: .5rem; overflow-wrap: anywhere; }
+.aq-host p { max-width: 28ch; margin-inline: auto; color: var(--aq-muted); font-size: clamp(.8rem, 2.5vw, .95rem); line-height: 1.6; }
+.aq-host__parents small { display: block; margin-bottom: .2rem; color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); font-size: .62rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.aq-host__parents span { display: block; }
+.aq-host a { display: inline-block; min-height: 44px; padding-block: 1rem; margin-top: .5rem; color: color-mix(in srgb, var(--aq-accent) 82%, #7a3f54); font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-underline-offset: .25rem; }
+.aq-hosts__and { align-self: center; color: var(--aq-rose); font: 500 clamp(1.6rem, 6vw, 3rem)/1 'EB Garamond', serif; }
+.aq-hosts[data-count="1"] { grid-template-columns: minmax(0, 22rem); justify-content: center; }
+.aq-hosts:not([data-count="1"]):not([data-count="2"]) { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* -- Events + actions -------------------------------------------------------- */
+.aq-events { display: grid; gap: 1rem; max-width: 56rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.aq-event { position: relative; padding: clamp(1.4rem, 4vw, 2.3rem) clamp(1rem, 4vw, 2rem); background: color-mix(in srgb, var(--aq-paper) 88%, transparent); border-radius: 1.4rem; box-shadow: 0 1.2rem 2.8rem rgba(58, 51, 48, .1); }
+.aq-event h3 { font-size: clamp(1.6rem, 5vw, 2.3rem); }
+.aq-event__schedule, .aq-event__venue, .aq-event__notes { padding-block: .9rem; }
+.aq-event__venue, .aq-event__notes { border-top: 1px dashed var(--aq-line); }
+.aq-event__venue p:last-child { color: var(--aq-muted); font-size: .92rem; }
+.aq-event small { display: block; color: var(--aq-muted); line-height: 1.65; }
+.aq-event small + small { margin-top: .55rem; }
+.aq-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: center; margin-top: 1.3rem; }
+.aq-actions > * { max-width: 100%; }
+.aq-actions--center { justify-content: center; }
+.aquarelle .aq-actions a, .aquarelle .aq-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: .6rem 1.15rem;
+    border: 0;
+    border-radius: 999px;
+    color: color-mix(in srgb, var(--aq-accent) 82%, #7a3f54);
+    background: var(--aq-soft);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .2s, background .2s, transform .2s;
+}
+.aquarelle .aq-actions a:hover, .aquarelle .aq-actions button:hover { color: var(--aq-paper); background: color-mix(in srgb, var(--aq-accent) 88%, #7a3f54); transform: translateY(-1px); }
+.aquarelle .aq-event .aq-actions > :first-child { color: var(--aq-paper); background: color-mix(in srgb, var(--aq-accent) 88%, #7a3f54); }
+
+/* -- Countdown --------------------------------------------------------------- */
+.aq-countdown { width: 100%; max-width: none; }
+.aq-countdown__units { width: min(100%, 52rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.4rem, 2vw, 1.3rem); margin: 1.5rem auto 0; }
+.aq-countdown__units > span { display: grid; gap: .3rem; padding: 1rem .3rem; border-radius: 1rem; background: var(--aq-paper); box-shadow: 0 0 0 1px var(--aq-line); }
+.aq-countdown__units strong { font-family: 'EB Garamond', serif; font-size: clamp(1.7rem, 6.5vw, 3.4rem); }
+.aq-countdown__units small { color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); font-size: clamp(.56rem, 1.7vw, .68rem); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+
+/* -- Map --------------------------------------------------------------------- */
+.aq-map { position: relative; width: 100%; margin: 2rem 0 1.3rem; aspect-ratio: 16/10; overflow: hidden; border-radius: 1.4rem; background: var(--aq-soft); box-shadow: 0 1.2rem 2.8rem rgba(58, 51, 48, .12); }
+.aq-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: saturate(.9); }
+
+/* -- Story timeline ---------------------------------------------------------- */
+.aq-timeline { position: relative; max-width: 42rem; margin: 2.4rem auto 0; padding-left: 2rem; text-align: left; }
+.aq-timeline::before { content: ''; position: absolute; top: .4rem; bottom: .4rem; left: .1rem; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--aq-rose), color-mix(in srgb, var(--aq-sky) 70%, transparent)); }
+.aq-story { position: relative; padding: 0 0 2.8rem 1.4rem; }
+.aq-story::before { content: ''; position: absolute; left: -.35rem; top: .4rem; width: .8rem; height: .8rem; border-radius: 50%; background: var(--aq-rose); box-shadow: 0 0 0 4px color-mix(in srgb, var(--aq-rose) 30%, transparent); }
+.aq-story img { width: 100%; max-height: 24rem; margin-bottom: 1rem; object-fit: cover; border-radius: 1.2rem; box-shadow: 0 1.2rem 2.8rem rgba(58, 51, 48, .12); }
+.aq-story small { color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.aq-story h3 { margin: .3rem 0 .5rem; }
+.aq-story p { color: var(--aq-muted); }
+
+/* -- Gallery ----------------------------------------------------------------- */
+/* A plain downward grid: the photos read as one page the guest scrolls. */
+.aq-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; max-width: 60rem; margin: clamp(1.2rem, 4vw, 2.4rem) auto 0; }
+.aq-gallery figure { position: relative; min-width: 0; margin: 0; overflow: hidden; aspect-ratio: 1; border-radius: 1.1rem; background: var(--aq-soft); box-shadow: 0 1rem 2.4rem rgba(58, 51, 48, .1); }
+.aq-gallery figure:first-child { grid-column: span 2; aspect-ratio: 4/3; }
+.aq-gallery button { width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; cursor: pointer; }
+.aq-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--aq-ease); }
+.aq-gallery button:hover img { transform: scale(1.04); }
+.aq-gallery figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 2rem .8rem .7rem; color: #fff; background: linear-gradient(transparent, rgba(58, 51, 48, .7)); font-size: .76rem; pointer-events: none; }
+
+/* -- Contacts ---------------------------------------------------------------- */
+.aq-contact-section { width: 100%; max-width: none; }
+.aq-contact-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; width: min(100%, 44rem); margin: clamp(1.2rem, 4vw, 2.2rem) auto 0; }
+.aq-contact-card { position: relative; display: grid; justify-items: center; gap: .5rem; min-height: 11rem; padding: clamp(1.4rem, 4vw, 2.1rem) 1.3rem; background: var(--aq-paper); border-radius: 1.4rem; box-shadow: 0 1.2rem 2.8rem rgba(58, 51, 48, .1); }
+.aq-contact-card small { display: block; margin-bottom: .3rem; color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); font-size: .62rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.aq-contact-card h3 { margin-bottom: .35rem; }
+
+/* -- Sharing + closing ------------------------------------------------------- */
+.aq-share-section { width: 100%; max-width: none; }
+.aq-closing { min-height: 75svh; }
+.aq-closing::before { content: '❀'; display: block; margin-bottom: 1rem; color: var(--aq-rose); font-size: 1.5rem; }
+.aq-kicker { margin-top: 1.3rem !important; color: var(--aq-muted); font-style: italic; }
+
+/* -- Shared forms ------------------------------------------------------------ */
+.aquarelle .invitation-form { width: min(100%, 40rem); border: 0; border-radius: 1.2rem; box-shadow: 0 1.2rem 2.8rem rgba(58, 51, 48, .1); }
+.aquarelle .invitation-form input:focus, .aquarelle .invitation-form select:focus, .aquarelle .invitation-form textarea:focus { border-color: color-mix(in srgb, var(--aq-accent) 70%, #7a3f54); box-shadow: 0 0 0 3px var(--aq-soft); outline: 0; }
+.aquarelle .invitation-form button { background: color-mix(in srgb, var(--aq-accent) 88%, #7a3f54); }
+/* Strongest notice rule, so a template paragraph rule can never strip its colour. */
+.aquarelle .invitation-section .invitation-notice { color: #1f5438; background: #e5f3e9; border-left: 3px solid #2f9e68; }
+
+/* -- Operator blocks --------------------------------------------------------- */
+.aquarelle .invitation-block-quote { border-left: 3px solid var(--aq-rose); }
+.aquarelle .invitation-block-quote p { font-family: 'EB Garamond', serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem); }
+.aquarelle .invitation-block-quote cite { color: color-mix(in srgb, var(--aq-accent) 72%, #7a3f54); }
+
+/* -- Music + lightbox -------------------------------------------------------- */
+.aq-music { position: fixed; z-index: 12; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: 46px; height: 46px; padding: 0; border: 0; border-radius: 50%; color: var(--aq-paper); background: color-mix(in srgb, var(--aq-accent) 88%, #7a3f54); font-size: 1rem; cursor: pointer; box-shadow: 0 .6rem 1.6rem color-mix(in srgb, var(--aq-accent) 40%, transparent); }
+.aq-music[data-playing="true"] span { display: inline-block; animation: aq-spin 4s linear infinite; }
+@keyframes aq-spin { to { transform: rotate(360deg); } }
+.aq-lightbox { width: min(94vw, 70rem); padding: 3rem 1rem 1rem; border: 0; border-radius: 1.2rem; background: #2d2724; }
+.aq-lightbox::backdrop { background: rgba(40, 34, 31, .9); }
+.aq-lightbox img { width: 100%; max-height: 82vh; object-fit: contain; }
+.aq-lightbox button { position: absolute; top: .6rem; right: .6rem; min-height: 40px; padding: .4rem .9rem; border: 0; border-radius: 999px; color: var(--aq-paper); background: rgba(255, 255, 255, .16); cursor: pointer; }
+
+.aquarelle a:focus-visible, .aquarelle button:focus-visible, .aquarelle input:focus-visible, .aquarelle select:focus-visible, .aquarelle textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--aq-accent) 70%, #7a3f54); outline-offset: 3px; }
+
+/* -- Reveal (armed only) ----------------------------------------------------
+   Watercolour arriving: out of focus and small, then blooming into place. */
+.aq-armed [data-reveal] { opacity: 0; filter: blur(10px); transform: translateY(1.2rem) scale(.98); transition: opacity .9s ease, filter 1s ease, transform 1s var(--aq-ease); transition-delay: calc(var(--aq-i, 0) * 90ms); }
+.aq-armed [data-reveal="down"] { transform: translateY(-1rem); filter: blur(8px); }
+.aq-armed [data-reveal="bloom"] { transform: scale(.9); filter: blur(14px); }
+.aq-armed [data-reveal].is-visible { opacity: 1; filter: none; transform: none; }
+@keyframes aq-bloom { from { opacity: 0; transform: scale(.82); filter: blur(30px); } }
+
+/* -- Per section height ------------------------------------------------------ */
+.aquarelle .invitation-section[data-height="tall"] { min-height: 75svh; }
+.aquarelle .invitation-section[data-height="half"] { min-height: 50svh; }
+.aquarelle .invitation-section[data-height="auto"] { min-height: 0; }
+
+/* -- Motion off, and reduced motion ----------------------------------------- */
+.aquarelle[data-motion="off"] *, .aquarelle[data-motion="off"] *::before, .aquarelle[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+.aquarelle[data-motion="off"] .aq-dabs, .aquarelle[data-motion="off"] .aq-fore { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.aquarelle) { scroll-behavior: auto; }
+    .aquarelle *, .aquarelle *::before, .aquarelle *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .aq-ambient, .aq-brush, .aq-flow, .aq-dabs, .aq-fore, .aq-cover__wash { display: none; }
+    .aq-armed [data-reveal] { opacity: 1 !important; filter: none !important; transform: none !important; }
+}
+
+/* -- Responsive -------------------------------------------------------------- */
+@media (max-width: 30rem) {
+    .aq-hosts { gap: .35rem; }
+    .aq-host h3 { font-size: 1.06rem; }
+    .aq-host p { font-size: .7rem; }
+    .aq-hosts__and { margin-inline: -.15rem; }
+    .aq-cover__countdown > div { gap: .3rem; }
+}
+
+@media (max-width: 47.99rem) {
+    .aquarelle { font-size: .9rem; line-height: 1.6; }
+    .aquarelle h1 { font-size: clamp(2.3rem, 12vw, 3.6rem); }
+    .aquarelle h2 { font-size: clamp(2rem, 10vw, 3rem); }
+    .aquarelle .invitation-section { padding-top: 4.25rem; padding-bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem)); }
+    .aq-wash { filter: blur(24px); opacity: .45; }
+    .aq-host__portrait { width: 100%; aspect-ratio: 4/5; margin-bottom: .6rem; }
+    .aq-countdown__units { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .aq-timeline { padding-left: 1.6rem; }
+    .aq-story { padding-left: 1.1rem; }
+    .aq-music { bottom: max(4.6rem, calc(env(safe-area-inset-bottom) + 4.2rem)); }
+}
+
+@media (min-width: 48rem) {
+    .aquarelle .invitation-section { padding-inline: 2rem; }
+    .aq-cover__video--mobile { display: none; }
+    .aq-cover__video--desktop { display: block; }
+    .aq-hero__video--mobile { display: none; }
+    .aq-hero__video--desktop { display: block; }
+    .aq-events { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .aq-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .aq-gallery figure { aspect-ratio: 4/5; }
+    .aq-gallery figure:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+}
+
+@media (max-height: 43rem) {
+    .aquarelle .invitation-section { padding-top: 4rem; padding-bottom: 4.5rem; }
+    .aq-host__portrait { aspect-ratio: 1; }
+}
